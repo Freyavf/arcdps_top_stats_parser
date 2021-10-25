@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('xml_directory', help='directory containing .xml files from arcdps reports')
-    parser.add_argument('-o', '--output', dest="output_filename", help="text file containing the computed top stats")
+    parser.add_argument('-o', '--output', dest="output_filename", help="text file to write the computed top stats")
     parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="minimum duration of a fight in s. Shorter fights will be ignored.", default=30)
     parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="minimum of allied players in a fight. Fights with less players will be ignored.", default=10)        
 
@@ -65,7 +65,12 @@ if __name__ == '__main__':
         args.output_filename = args.xml_directory+"/top_stats.txt"
 
     print("Using xml directory ",args.xml_directory+", writing output to", args.output_filename)
-    output = open(args.output_filename, "x")
+    try:
+        output = open(args.output_filename, "x")
+    except FileExistsError:
+        print("The output file "+args.output_filename+" already exists. Please rename or delete it. For changing the output file, see the help message:")
+        parser.print_help()
+        sys.exit()
 
     print("considering fights with more than", args.minimum_ally_numbers, "allied players that took longer than", args.minimum_duration, "s.")
         
