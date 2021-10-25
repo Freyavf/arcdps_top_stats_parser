@@ -8,18 +8,67 @@ import sys
 import xml.etree.ElementTree as ET
 from decimal import *
 
+def write_sorted_top_3(output_file, sorted_values, total_values, stat):
+    if len(sorted_values) == 0:
+        return
+    print("top 3", stat, "top x times")
+    output_file.write("top 3 "+stat+" top x times\n")
+    i = 0
+    while i < len(sorted_values) and (i < 3 or sorted_values[i][1] == sorted_values[i-1][1]):
+        print(sorted_values[i][0]+": "+str(sorted_values[i][1])+" (total "+str(total_values[sorted_values[i][0]])+")")
+        output_file.write(sorted_values[i][0]+": "+str(sorted_values[i][1])+" (total "+str(total_values[sorted_values[i][0]])+")\n")
+        i += 1
+    print("\n")
+    output_file.write("\n")
+
+def write_sorted_top_3_dist(output_file, sorted_top_dist, total_dist):
+    print("top 3 dist top x times")
+    output_file.write("top 3 dist top x times\n")
+    # top dist = com -> start at 1
+    i = 1
+    while i < len(sorted_top_dist) and (i < 4 or sorted_top_dist[i][1] == sorted_top_dist[i-1][1]):
+        print(sorted_top_dist[i][0],":",sorted_top_dist[i][1], f"(total {total_dist[sorted_top_dist[i][0]]:.2f})")
+        output_file.write(sorted_top_dist[i][0]+": "+str(sorted_top_dist[i][1])+f"(total {total_dist[sorted_top_dist[i][0]]:.2f})\n")
+        i += 1
+    print("\n")
+    output_file.write("\n")
+
+def write_sorted_total(output_file, sorted_total_values, stat):
+    if len(sorted_total_values) == 0:
+        return
+    print("top 3 total", stat)
+    output_file.write("top 3 total "+stat+"\n")
+    i = 0
+    while i < min(len(sorted_total_values), 3):
+        print(sorted_total_values[i][0]+":",sorted_total_values[i][1])
+        output_file.write(sorted_total_values[i][0]+": "+str(sorted_total_values[i][1])+"\n")
+        i += 1
+    print("\n")
+    output_file.write("\n")
+    
+    
 if __name__ == '__main__':
+    debug = False # enable / disable debug output
+
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('xml_directory', help='directory containing .xml files from arcdps reports')
+    parser.add_argument('-o', '--output', dest="output_filename", help="text file containing the computed top stats")
+    parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="minimum duration of a fight in s. Shorter fights will be ignored.", default=30)
+    parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="minimum of allied players in a fight. Fights with less players will be ignored.", default=10)        
 
     args = parser.parse_args()
 
-    if os.path.isdir(args.xml_directory):
-        print("Using xml directory ",args.xml_directory)
-    else:
-        print("Directory ",xml_directory," is not a directory or does not exist!")
+    if not os.path.isdir(args.xml_directory):
+        print("Directory ",args.xml_directory," is not a directory or does not exist!")
         sys.exit()
+    if args.output_filename is None:
+        args.output_filename = args.xml_directory+"/top_stats.txt"
 
+    print("Using xml directory ",args.xml_directory+", writing output to", args.output_filename)
+    output = open(args.output_filename, "x")
+
+    print("considering fights with more than", args.minimum_ally_numbers, "allied players that took longer than", args.minimum_duration, "s.")
+        
     top_damage_x_times = collections.defaultdict(int)
     top_strips_x_times = collections.defaultdict(int)
     top_cleanses_x_times = collections.defaultdict(int)
@@ -35,7 +84,8 @@ if __name__ == '__main__':
     total_dist = collections.defaultdict(int)
     
     stab_id = "1122"
-
+    used_fights = 0
+    
     # iterating over all fights in directory
     for xml_filename in listdir(args.xml_directory):
 
@@ -50,6 +100,29 @@ if __name__ == '__main__':
         
         xml_root = xml_tree.getroot()
 
+        # get fight duration
+        fight_duration_xml = xml_root.find('duration')
+        split_duration = fight_duration_xml.text.split('m ', 1)
+        mins = int(split_duration[0])
+        split_duration = split_duration[1].split('s', 1)
+        secs = int(split_duration[0])
+        if debug:
+            print("duration: ", mins, "m", secs, "s")
+        duration = mins*60 + secs
+
+        # skip fights that last less than 30s
+        if(duration < args.minimum_duration):
+            print("Fight only took", mins, "m", secs, "s. Skipping fight.")
+            continue
+        
+        # skip fights with less than 10 allies
+        num_allies = len(xml_root.findall('players'))
+        if num_allies < args.minimum_ally_numbers:
+            print("only",num_allies,"allied players involved. Skipping fight.")
+            continue
+
+        used_fights += 1
+
         # dictionaries for stats for each player in this fight
         damage = {}
         cleanses = {}
@@ -63,21 +136,17 @@ if __name__ == '__main__':
         
         # get stats for each player
         for xml_player in xml_root.iter('players'):
-            print(".",end='',flush=True)
+            #print(".",end='',flush=True)
             name_xml = xml_player.find('name')
-            #print(name_xml.text)
-
+            name = name_xml.text
             dmg_xml = xml_player.find('dpsAll').find('damage')#.find('damage')
-            #print("dmg:",dmg_xml.text)
-            damage[name_xml.text] = int(dmg_xml.text)
+            damage[name] = int(dmg_xml.text)
 
             support_stats = xml_player.find('support')
             strips_xml = support_stats.find('boonStrips')
-            #print "strips:",strips.text
-            strips[name_xml.text] = int(strips_xml.text)
+            strips[name] = int(strips_xml.text)
             cleanses_xml = support_stats.find('condiCleanse')
-            #print("cleanses:",cleanses_xml.text)
-            cleanses[name_xml.text] = int(cleanses_xml.text)
+            cleanses[name] = int(cleanses_xml.text)
 
             stab_generated = 0
             for buff in xml_player.iter('squadBuffs'):
@@ -87,49 +156,58 @@ if __name__ == '__main__':
                 stab_xml = buff.find('buffData').find('generation')
                 stab_generated = Decimal(stab_xml.text)
                 break
-            #print("stab:",stab_generated)
-            stab[name_xml.text] = stab_generated
+            stab[name] = stab_generated
 
             # check if healing was logged
             ext_healing_xml = xml_player.find('extHealingStats')
             if(ext_healing_xml != None):
                 found_healing = True
                 healing_xml = ext_healing_xml.find('outgoingHealingAllies').find('outgoingHealingAllies').find('healing')
-                #print("healing:",healing_xml.text)
-                healing[name_xml.text] = int(healing_xml.text)
+                healing[name] = int(healing_xml.text)
             
             dist_xml = xml_player.find('statsAll').find('distToCom')
-            #print("dist:",dist_xml.text)
-            dist[name_xml.text] = Decimal(dist_xml.text)
+            dist[name] = Decimal(dist_xml.text)
+
+            if debug:
+                print(name)
+                print("damage:",damage[name])
+                print("strips:",strips[name])
+                print("cleanses:",cleanses[name])
+                print("stab:",stab_generated)
+                print("healing:",healing[name])
+                print(f"dist: {dist[name]:.2f}")
+                print("\n")
 
             # add new data from this fight to total stats
-            total_damage[name_xml.text] += damage[name_xml.text]
-            total_strips[name_xml.text] += strips[name_xml.text]
-            total_cleanses[name_xml.text] += cleanses[name_xml.text]
-            total_stab[name_xml.text] += stab[name_xml.text]
+            total_damage[name] += damage[name]
+            total_strips[name] += strips[name]
+            total_cleanses[name] += cleanses[name]
+            total_stab[name] += stab[name]
             if found_healing:
-                total_healing[name_xml.text] += healing[name_xml.text]
+                total_healing[name] += healing[name]
             # dist sometimes -1 for some reason
-            if dist[name_xml.text] >= 0:
-                total_dist[name_xml.text] += dist[name_xml.text]
+            if dist[name] >= 0:
+                total_dist[name] += dist[name]
             
         print("\n")
 
         # create dictionaries sorted according to stats
         sortedDamage = sorted(damage, key=damage.get, reverse=True)
-        #print("top dmg:", sortedDamage)
         sortedStrips = sorted(strips, key=strips.get, reverse=True)
-        #print("top strips:",sortedStrips)
         sortedCleanses = sorted(cleanses, key=cleanses.get, reverse=True)
-        #print("top cleanses:",sortedCleanses)
         sortedStab = sorted(stab, key=stab.get, reverse=True)
-        #print("top stab:",sortedStab)
         sortedHealing = sorted(healing, key=healing.get, reverse=True)
-        #print("top healing:", sortedHealing)
         # small dist = good -> don't reverse sorting. Need to check for -1 -> keep values
         sortedDist = sorted(dist.items(), key=lambda x:x[1])
-        #print("top dist:",sortedDist)
 
+        if debug:
+            print("sorted dmg:", sortedDamage,"\n")
+            print("sorted strips:", sortedStrips,"\n")
+            print("sorted cleanses:",sortedCleanses,"\n")
+            print("sorted stab:", sortedStab,"\n")
+            print("sorted healing:", sortedHealing,"\n")
+            print("sorted dist:", sortedDist, "\n")
+        
         # increase number of times top 3 was achieved for top 3 players in each stat
         for i in range(min(len(sortedDamage), 3)):
             top_damage_x_times[sortedDamage[i]] += 1
@@ -163,50 +241,14 @@ if __name__ == '__main__':
     # same amount of top 3 achieved.
 
     print("\n")
-    
-    print("top 3 damage top x times")
-    i = 0
-    while i < len(sorted_top_damage) and (i < 3 or sorted_top_damage[i][1] == sorted_top_damage[i-1][1]):
-        print(sorted_top_damage[i][0],":",sorted_top_damage[i][1],"(total",total_damage[sorted_top_damage[i][0]],")")
-        i += 1
-    print("\n")
+    print("The following stats are computed over",used_fights,"fights.\n")
 
-    print("top 3 strips top x times")
-    i = 0
-    while i < len(sorted_top_strips) and (i < 3 or sorted_top_strips[i][1] == sorted_top_strips[i-1][1]):
-        print(sorted_top_strips[i][0],":",sorted_top_strips[i][1],"(total",total_strips[sorted_top_strips[i][0]],")")
-        i += 1
-    print("\n")
-    
-    print("top 3 cleanses top x times")
-    i = 0
-    while i < len(sorted_top_cleanses) and (i < 3 or sorted_top_cleanses[i][1] == sorted_top_cleanses[i-1][1]):
-        print(sorted_top_cleanses[i][0],":",sorted_top_cleanses[i][1],"(total",total_cleanses[sorted_top_cleanses[i][0]],")")
-        i += 1
-    print("\n")
-    
-    print("top 3 stab output top x times")
-    i = 0
-    while i < len(sorted_top_stab) and (i < 3 or sorted_top_stab[i][1] == sorted_top_stab[i-1][1]):
-        print(sorted_top_stab[i][0],":",sorted_top_stab[i][1],"(total",total_stab[sorted_top_stab[i][0]],")")
-        i += 1
-    print("\n")    
-
-    if(len(sorted_top_healing) > 0):
-        print("top 3 healing top x times")
-        i = 0
-        while i < len(sorted_top_healing) and (i < 3 or sorted_top_healing[i][1] == sorted_top_healing[i-1][1]):
-            print(sorted_top_healing[i][0],":",sorted_top_healing[i][1],"(total",total_healing[sorted_top_healing[i][0]],")")
-            i += 1
-        print("\n")    
-
-    print("top 3 dist top x times")
-    # top dist = com -> start at 1
-    i = 1
-    while i < len(sorted_top_dist) and (i < 4 or sorted_top_dist[i][1] == sorted_top_dist[i-1][1]):
-        print(sorted_top_dist[i][0],":",sorted_top_dist[i][1],"(total",total_dist[sorted_top_dist[i][0]],")")
-        i += 1
-    print("\n")
+    write_sorted_top_3(output, sorted_top_damage, total_damage, "damage")
+    write_sorted_top_3(output, sorted_top_strips, total_strips, "strips")
+    write_sorted_top_3(output, sorted_top_cleanses, total_cleanses, "cleanses")
+    write_sorted_top_3(output, sorted_top_stab, total_stab, "stab output")        
+    write_sorted_top_3(output, sorted_top_healing, total_healing, "healing")
+    write_sorted_top_3_dist(output, sorted_top_dist, total_dist) # dist handled slightly differently.
 
     # sort total stats
     sorted_total_damage = sorted(total_damage.items(), key=lambda x:x[1], reverse=True)
@@ -216,47 +258,17 @@ if __name__ == '__main__':
     sorted_total_healing = sorted(total_healing.items(), key=lambda x:x[1], reverse=True)    
     sorted_total_dist = sorted(total_dist.items(), key=lambda x:x[1]) # small dist = good -> don't reverse
 
-    print("top 3 total damage")
-    i = 0
-    while i < min(len(sorted_total_damage),3):
-        print(sorted_total_damage[i][0],":",sorted_total_damage[i][1])
-        i += 1
-    print("\n")
-
-    print("top 3 total strips")
-    i = 0
-    while i < min(len(sorted_total_strips), 3):
-        print(sorted_total_strips[i][0],":",sorted_total_strips[i][1])
-        i += 1
-    print("\n")
+    write_sorted_total(output, sorted_total_damage, "damage")
+    write_sorted_total(output, sorted_total_strips, "strips")
+    write_sorted_total(output, sorted_total_cleanses, "cleanses")
+    write_sorted_total(output, sorted_total_stab, "stab output")
+    write_sorted_total(output, sorted_total_healing, "healing")
     
-    print("top 3 total cleanses")
-    i = 0
-    while i < min(len(sorted_total_cleanses), 3):
-        print(sorted_total_cleanses[i][0],":",sorted_total_cleanses[i][1])
-        i += 1
-    print("\n")
-    
-    print("top 3 total stab output")
-    i = 0
-    while i < min(len(sorted_total_stab), 3):
-        print(sorted_total_stab[i][0],":",sorted_total_stab[i][1])
-        i += 1
-    print("\n")
-
-    if len(sorted_total_healing) > 0:
-        print("top 3 total healing")
-        i = 0
-        while i < min(len(sorted_total_healing), 3):
-            print(sorted_total_healing[i][0],":",sorted_total_healing[i][1])
-            i += 1
-        print("\n")        
-
-    print("top 3 total dist")
-    # top dist = com -> start at 1
-    i = 1
-    while i < min(len(sorted_total_dist), 4):
-        print(sorted_total_dist[i][0],":",sorted_total_dist[i][1])
-        i += 1
-    print("\n")
+    #print("top 3 total dist")
+    ## top dist = com -> start at 1
+    #i = 1
+    #while i < min(len(sorted_total_dist), 4):
+    #    print(sorted_total_dist[i][0],f": {sorted_total_dist[i][1]:.2f}")
+    #    i += 1
+    #print("\n")
     
