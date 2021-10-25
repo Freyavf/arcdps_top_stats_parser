@@ -5,7 +5,9 @@ This project provides a tool for generating top stats from a set of arcdps logs.
 - boon rips
 - cleanses
 - stability output (generation squad)
+- healing output
 - average distance to tag
+Healing output can only be analyzed when contained in the logs, i.e., the healing addon for arcdps is installed.
 
 To generate the top stats, do the following:
 - Install python3 if you don't have it yet (https://www.python.org/downloads/).
