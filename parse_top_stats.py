@@ -167,8 +167,12 @@ if __name__ == '__main__':
             ext_healing_xml = xml_player.find('extHealingStats')
             if(ext_healing_xml != None):
                 found_healing = True
-                healing_xml = ext_healing_xml.find('outgoingHealingAllies').find('outgoingHealingAllies').find('healing')
-                healing[name] = int(healing_xml.text)
+                healing[name] = 0
+                for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
+                    outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
+                    if not outgoing_healing_xml2 is None:
+                        healing_xml = outgoing_healing_xml2.find('healing')
+                        healing[name] += int(healing_xml.text)
             
             dist_xml = xml_player.find('statsAll').find('distToCom')
             dist[name] = Decimal(dist_xml.text)
@@ -182,7 +186,7 @@ if __name__ == '__main__':
                 print("healing:",healing[name])
                 print(f"dist: {dist[name]:.2f}")
                 print("\n")
-
+                
             # add new data from this fight to total stats
             total_damage[name] += damage[name]
             total_strips[name] += strips[name]
