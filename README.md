@@ -20,9 +20,9 @@ To generate the top stats, do the following:
 - Type ```python parse_top_stats.py <folder>```, where \<folder> is the path to your folder with xml files. In our example case, we run ```python parse_top_stats.py C:\Users\Example\Documents\xml_folder```.
 
 By default, all fights that took less than 30s or included less than 10 allied players are filtered out. To change these settings, use the commandline options:
-- ```-d <duration>``` sets the minimum fight duration to <duration> in s
-- ```-a <num_allies>``` sets the minimum number of allied players to <num_allies>
+- ```-d <duration>``` sets the minimum fight duration to \<duration> in s
+- ```-a <num_allies>``` sets the minimum number of allied players to \<num_allies>
 
 As an example, running ```python parse_top_stats.py -d 5 -a 7 xml_folder``` will generate the top stats on all xml files in xml_folder with a duration of at least 5s and at least 7 players involved.
 
-The output shows you for each supported stat the three players that achieved top 3 in this stat most often over all fights included in the xml folder. There may be more than three players shown if a place is doubled. For each mentioned player, the number of times that top 3 was achieved as well as the accumulated stat is given, e.g., the summed up damage over all xml fights. Additionally, the output gives you the three players with the best total stats. An output file containing the top stats is also generated. By default, it is created in the xml folder as top_stats.txt. The output file can be changed using the command line option ```-o <output_file>```, e.g., ```python parse_top_stats.py -o C:\Users\Example\Documents\test.txt xml_folder``` creates ```test.txt``` in C:\Users\Example\Documents\.
+The output shows you for each supported stat the three players that achieved top 3 in this stat most often over all fights satisfying the above constraints included in the xml folder. There may be more than three players shown if a place is doubled. For each mentioned player, the number of times that top 3 was achieved as well as the accumulated stat is given, e.g., the summed up damage over all fights. Additionally, the output gives you the three players with the best total stats. An output file containing the top stats is also generated. By default, it is created in the xml folder as top_stats.txt. The output file can be changed using the command line option ```-o <output_file>```, e.g., ```python parse_top_stats.py -o C:\Users\Example\Documents\test.txt xml_folder``` creates ```test.txt``` in C:\Users\Example\Documents\.
