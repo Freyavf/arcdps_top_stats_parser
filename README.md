@@ -37,4 +37,9 @@ A call using all command line arguments could be
 
 ```python parse_top_stats.py -d 5 -a 7 -o awesome_stats.txt -n 6 -p xml_folder```
 
-which results in computing top stats considering all fights contained in xml_folder that last at least 5s, involve at least 7 players, prints the top 6 players for each stat, prints the players with the highest percentage of top stats achieved, and outputs everything to a file awesome_stats.txt.
+which computes top stats considering all fights contained in
+xml_folder that last at least 5s and involve at least 7 players,
+prints the top 6 players for each stat (regarding top 3 achieved top
+times and top total stats), prints the players with the highest
+percentage of top 3 stats achieved, and outputs everything to a file
+awesome_stats.txt.
