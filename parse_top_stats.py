@@ -13,18 +13,19 @@ from decimal import *
 # top3_x_times = how often did each player achieve a top3 spot in this stat
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
+# num_top_stats = number of players to print
 # omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top 3 stat 2nd to 4th most often.
-def write_sorted_top_3(output_file, top3_x_times, total_values, stat, omit = 0):
+def write_sorted_top_3(output_file, top3_x_times, total_values, stat, num_top_stats, omit = 0):
     if len(top3_x_times) == 0:
         return
 
     # sort players according to number of times top 3 was achieved for stat
     sorted_top3 = sorted(top3_x_times.items(), key=lambda x:x[1], reverse=True)
 
-    print("top 3", stat, "top x times")
-    output_file.write("top 3 "+stat+" top x times\n")
+    print("top 3", stat, "top", num_top_stats, "times")
+    output_file.write("top 3 "+stat+" top "+str(num_top_stats)+" times\n")
     i = omit
-    while i < len(sorted_top3) and (i < 3+omit or sorted_top3[i][1] == sorted_top3[i-1][1]) and sorted_top3[i][1] > 0:
+    while i < len(sorted_top3) and (i < num_top_stats+omit or sorted_top3[i][1] == sorted_top3[i-1][1]) and sorted_top3[i][1] > 0:
         print(sorted_top3[i][0]+": "+str(sorted_top3[i][1])+f" (total {total_values[sorted_top3[i][0]]:.0f})")
         output_file.write(sorted_top3[i][0]+": "+str(sorted_top3[i][1])+f" (total {total_values[sorted_top3[i][0]]:.0f})\n")
         i += 1
@@ -37,8 +38,9 @@ def write_sorted_top_3(output_file, top3_x_times, total_values, stat, omit = 0):
 # top3_x_times = how often did each player achieve a top3 spot in this stat
 # num_fights_present = in how many fights was the player present
 # stat = which stat are we looking at (dmg, cleanses, ...)
+# num_top_stats = number of players to print
 # omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top 3 stat 2nd to 4th most often.    
-def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present, stat, omit = 0):
+def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present, stat, num_top_stats, omit = 0):
     if len(top3_x_times) == 0:
         return
 
@@ -46,10 +48,10 @@ def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present,
     for name in top3_x_times.keys():
         percentages[name] = top3_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
-    print("top 3", stat, "top 3 percentage")
-    output_file.write("top 3 "+stat+" top 3 percentage\n")
+    print("top 3", stat, "top", num_top_stats, "percentage")
+    output_file.write("top 3 "+stat+" top "+str(num_top_stats)+" percentage\n")
     i = omit
-    while i < len(sorted_percentages) and (i < 3+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0:
+    while i < len(sorted_percentages) and (i < num_top_stats+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0:
         name = sorted_percentages[i][0]
         print(name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(top3_x_times[name])+" / " + str(num_fights_present[name]) +")")
         output_file.write(name+": "+str(sorted_percentages[i][1])+" ("+str(top3_x_times[name])+" / " + str(num_fights_present[name]) +")\n")
@@ -57,16 +59,16 @@ def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present,
     print("\n")
     output_file.write("\n")
 
-def write_sorted_total(output_file, total_values, stat):
+def write_sorted_total(output_file, total_values, stat, num_top_stats):
     if len(total_values) == 0:
         return
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
     
-    print("top 3 total", stat)
-    output_file.write("top 3 total "+stat+"\n")
+    print("top", num_top_stats, "total", stat)
+    output_file.write("top "+str(num_top_stats)+" total "+stat+"\n")
     i = 0
-    while i < min(len(sorted_total_values), 3) and sorted_total_values[i][1] > 0:
+    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0:
         print(sorted_total_values[i][0]+":",sorted_total_values[i][1])
         output_file.write(sorted_total_values[i][0]+": "+str(sorted_total_values[i][1])+"\n")
         i += 1
@@ -78,10 +80,12 @@ if __name__ == '__main__':
     debug = False # enable / disable debug output
 
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-    parser.add_argument('xml_directory', help='directory containing .xml files from arcdps reports')
-    parser.add_argument('-o', '--output', dest="output_filename", help="text file to write the computed top stats")
-    parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="minimum duration of a fight in s. Shorter fights will be ignored.", default=30)
-    parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="minimum of allied players in a fight. Fights with less players will be ignored.", default=10)        
+    parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
+    parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="Minimum duration of a fight in s. Shorter fights will be ignored. Defaults to 30s.", default=30)
+    parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="Minimum of allied players in a fight. Fights with less players will be ignored. Defaults to 10.", default=10)
+    parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top 3 stats. Defaults to 3.", default=3)
+    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_true', help="Print players with the top percentage of reaching top 3 stats. Defaults to False.")    
 
     args = parser.parse_args()
 
@@ -92,14 +96,9 @@ if __name__ == '__main__':
         args.output_filename = args.xml_directory+"/top_stats.txt"
 
     print("Using xml directory ",args.xml_directory+", writing output to", args.output_filename)
-    try:
-        output = open(args.output_filename, "w")
-    except FileExistsError:
-        print("The output file "+args.output_filename+" already exists. Please rename or delete it. For changing the output file, see the help message:")
-        parser.print_help()
-        sys.exit()
+    output = open(args.output_filename, "w")
 
-    print("considering fights with more than", args.minimum_ally_numbers, "allied players that took longer than", args.minimum_duration, "s.")
+    print("considering fights with more than", args.minimum_ally_numbers, "allied players that took longer than", args.minimum_duration, "s. Printing the top", args.num_top_stats, "performing players.")
         
     top_damage_x_times = collections.defaultdict(int)
     top_strips_x_times = collections.defaultdict(int)
@@ -279,24 +278,25 @@ if __name__ == '__main__':
     print("\n")
     print("The following stats are computed over",used_fights,"fights.\n")
 
-    write_sorted_top_3(output, top_damage_x_times, total_damage, "damage")
-    write_sorted_top_3(output, top_strips_x_times, total_strips, "strips")
-    write_sorted_top_3(output, top_cleanses_x_times, total_cleanses, "cleanses")
-    write_sorted_top_3(output, top_stab_x_times, total_stab, "stab output")        
-    write_sorted_top_3(output, top_healing_x_times, total_healing, "healing")
-    write_sorted_top_3(output, top_dist_x_times, total_dist, "dist", 1) # dist handled slightly differently.
+    write_sorted_top_3(output, top_damage_x_times, total_damage, "damage", args.num_top_stats)
+    write_sorted_top_3(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
+    write_sorted_top_3(output, top_cleanses_x_times, total_cleanses, "cleanses", args.num_top_stats)
+    write_sorted_top_3(output, top_stab_x_times, total_stab, "stab output", args.num_top_stats)        
+    write_sorted_top_3(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
+    write_sorted_top_3(output, top_dist_x_times, total_dist, "dist", args.num_top_stats, 1) # dist handled slightly differently.
     
-    write_sorted_total(output, sorted_total_damage, "damage")
-    write_sorted_total(output, sorted_total_strips, "strips")
-    write_sorted_total(output, sorted_total_cleanses, "cleanses")
-    write_sorted_total(output, sorted_total_stab, "stab output")
-    write_sorted_total(output, sorted_total_healing, "healing")
+    write_sorted_total(output, total_damage, "damage", args.num_top_stats)
+    write_sorted_total(output, total_strips, "strips", args.num_top_stats)
+    write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
+    write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
+    write_sorted_total(output, total_healing, "healing", args.num_top_stats)
     # dist to tag total doesn't make much sense
-    
-    write_sorted_top_3_percentage(output, top_damage_x_times, num_fights_present, "damage")
-    write_sorted_top_3_percentage(output, top_strips_x_times, num_fights_present, "strips")
-    write_sorted_top_3_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses")
-    write_sorted_top_3_percentage(output, top_stab_x_times, num_fights_present, "stab")
-    write_sorted_top_3_percentage(output, top_healing_x_times, num_fights_present, "healing")
-    write_sorted_top_3_percentage(output, top_dist_x_times, num_fights_present, "dist", 1)        
+
+    if args.print_percentage:
+        write_sorted_top_3_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats)
+        write_sorted_top_3_percentage(output, top_strips_x_times, num_fights_present, "strips", args.num_top_stats)
+        write_sorted_top_3_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses", args.num_top_stats)
+        write_sorted_top_3_percentage(output, top_stab_x_times, num_fights_present, "stab", args.num_top_stats)
+        write_sorted_top_3_percentage(output, top_healing_x_times, num_fights_present, "healing", args.num_top_stats)
+        write_sorted_top_3_percentage(output, top_dist_x_times, num_fights_present, "dist", args.num_top_stats, 1)        
     
