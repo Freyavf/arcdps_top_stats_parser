@@ -34,6 +34,7 @@ For the top players, the number of times that top 3 was achieved as well as the 
 An output file containing the top stats is also generated. By default, it is created in the xml folder as top_stats.txt. The output file can be changed using the command line option ```-o <output_file>```, e.g., ```python parse_top_stats.py -o C:\Users\Example\Documents\test.txt xml_folder``` creates ```test.txt``` in C:\Users\Example\Documents\.
 
 A call using all command line arguments could be
+
 ```python parse_top_stats.py -d 5 -a 7 -o awesome_stats.txt -n 6 -p xml_folder```
 
 which results in computing top stats considering all fights contained in xml_folder that last at least 5s, involve at least 7 players, prints the top 6 players for each stat, prints the players with the highest percentage of top stats achieved, and outputs everything to a file awesome_stats.txt.
