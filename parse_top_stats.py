@@ -59,6 +59,12 @@ def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present,
     print("\n")
     output_file.write("\n")
 
+    
+# Write the top x people who achieved top total stat.
+# Input:
+# total_values = stat summed up over all fights
+# stat = which stat are we looking at (dmg, cleanses, ...)
+# num_top_stats = number of players to print
 def write_sorted_total(output_file, total_values, stat, num_top_stats):
     if len(total_values) == 0:
         return
@@ -271,7 +277,7 @@ if __name__ == '__main__':
                 valid_dist += 1
             i += 1
 
-    # print top 3 players top x times for all stats. If less then 3
+    # print top x players for all stats. If less then 3
     # players, print all. If 3rd place doubled, print all with the
     # same amount of top 3 achieved.
 
