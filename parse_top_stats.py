@@ -8,79 +8,100 @@ import sys
 import xml.etree.ElementTree as ET
 from decimal import *
 
-# Write the top x people who achieved top 3 in stat most often.
+def myprint(output_file, output_string):
+    print(output_string)
+    output_file.write(output_string+"\n")
+
+# Write the top x people who achieved top x in stat most often.
 # Input:
-# top3_x_times = how often did each player achieve a top3 spot in this stat
+# topx_x_times = how often did each player achieve a top x spot in this stat
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-# omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top 3 stat 2nd to 4th most often.
-def write_sorted_top_3(output_file, top3_x_times, total_values, stat, num_top_stats, omit = 0):
-    if len(top3_x_times) == 0:
+# omit = omit the first n players in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to x+1th most often.
+def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_stats, omit = 0):
+    if len(topx_x_times) == 0:
         return
 
-    # sort players according to number of times top 3 was achieved for stat
-    sorted_top3 = sorted(top3_x_times.items(), key=lambda x:x[1], reverse=True)
+    # sort players according to number of times top x was achieved for stat
+    sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
 
-    print("top 3", stat, "top", num_top_stats, "times")
-    output_file.write("top 3 "+stat+" top "+str(num_top_stats)+" times\n")
+    print_string = "top "+str(num_top_stats)+" "+stat+" top "+str(num_top_stats)+" times"
+    myprint(output_file, print_string)
+
     i = omit
-    while i < len(sorted_top3) and (i < num_top_stats+omit or sorted_top3[i][1] == sorted_top3[i-1][1]) and sorted_top3[i][1] > 0:
-        print(sorted_top3[i][0]+": "+str(sorted_top3[i][1])+f" (total {total_values[sorted_top3[i][0]]:.0f})")
-        output_file.write(sorted_top3[i][0]+": "+str(sorted_top3[i][1])+f" (total {total_values[sorted_top3[i][0]]:.0f})\n")
+    top = sorted_topx[i][1]
+
+    # 1) index must be lower than length of the list
+    # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
+    # 3) value must be greater than 0
+    # 4) value must be at least 50% of top value
+    while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0 and sorted_topx[i][1] > top * Decimal(0.5):
+        if stat == "dist":
+            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1]) 
+        else:
+            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" (total "+str(total_values[sorted_topx[i][0]])+")"
+        myprint(output_file, print_string)
         i += 1
-    print("\n")
-    output_file.write("\n")
+    myprint(output_file, "\n")
 
-
-# Write the top x people who achieved top 3 in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top 3 spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top 3 spot in 1 of them.
+# Write the top x people who achieved top x in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top x spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top x spot in 1 of them.
 # Input:
-# top3_x_times = how often did each player achieve a top3 spot in this stat
+# topx_x_times = how often did each player achieve a topx spot in this stat
 # num_fights_present = in how many fights was the player present
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-# omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top 3 stat 2nd to 4th most often.    
-def write_sorted_top_3_percentage(output_file, top3_x_times, num_fights_present, stat, num_top_stats, omit = 0):
-    if len(top3_x_times) == 0:
+# omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to 4th most often.    
+def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, stat, num_top_stats, omit = 0):
+    if len(topx_x_times) == 0:
         return
 
     percentages = {}
-    for name in top3_x_times.keys():
-        percentages[name] = top3_x_times[name] / num_fights_present[name]
+    for name in topx_x_times.keys():
+        percentages[name] = topx_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
-    print("top 3", stat, "top", num_top_stats, "percentage")
-    output_file.write("top 3 "+stat+" top "+str(num_top_stats)+" percentage\n")
-    i = omit
-    while i < len(sorted_percentages) and (i < num_top_stats+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0:
-        name = sorted_percentages[i][0]
-        print(name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(top3_x_times[name])+" / " + str(num_fights_present[name]) +")")
-        output_file.write(name+": "+str(sorted_percentages[i][1])+" ("+str(top3_x_times[name])+" / " + str(num_fights_present[name]) +")\n")
-        i += 1
-    print("\n")
-    output_file.write("\n")
 
+    print_string = "top "+str(num_top_stats)+" "+stat+" top "+str(num_top_stats)+" percentage"
+    myprint(output_file, print_string)
+
+    i = omit
+    top = sorted_percentages[i][1]
+
+    # 1) index must be lower than length of the list
+    # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
+    # x) value must be greater than 0
+    # 4) value must be at least 50% of top value    
+    while i < len(sorted_percentages) and (i < num_top_stats+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0 and sorted_percentages[i][1] > top * 0.5:
+        name = sorted_percentages[i][0]
+        print_string = name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
+        myprint(output_file, print_string)
+        i += 1
+    myprint(output_file, "\n")
     
 # Write the top x people who achieved top total stat.
 # Input:
 # total_values = stat summed up over all fights
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_total(output_file, total_values, stat, num_top_stats):
+def write_sorted_total(output_file, total_values, stat, num_top_stats = 3):
     if len(total_values) == 0:
         return
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
-    
-    print("top", num_top_stats, "total", stat)
-    output_file.write("top "+str(num_top_stats)+" total "+stat+"\n")
+
+    print_string = "top "+str(num_top_stats)+" total "+stat
+    myprint(output_file, print_string)
     i = 0
-    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0:
-        print(sorted_total_values[i][0]+":",sorted_total_values[i][1])
-        output_file.write(sorted_total_values[i][0]+": "+str(sorted_total_values[i][1])+"\n")
+    top = sorted_total_values[i][1]
+
+    # 1) index must be lower than length of the list and desired number of players listed
+    # 2) value must be greater than 0
+    # 3) value must be at least 50% of top value        
+    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
+        print_string = sorted_total_values[i][0]+": "+str(sorted_total_values[i][1])
+        myprint(output_file, print_string)
         i += 1
-    print("\n")
-    output_file.write("\n")
-    
+    myprint(output_file, "\n")
     
 if __name__ == '__main__':
     debug = False # enable / disable debug output
@@ -88,11 +109,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="Minimum duration of a fight in s. Shorter fights will be ignored. Defaults to 30s.", default=30)
     parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="Minimum of allied players in a fight. Fights with less players will be ignored. Defaults to 10.", default=10)
-    parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top 3 stats. Defaults to 3.", default=3)
-    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_true', help="Print players with the top percentage of reaching top 3 stats. Defaults to False.")    
-
+    parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top <num_top_stats> for most stats. Special cases: Distance to tag and damage. Defaults to 5.", default=5)
+    parser.add_argument('-m', '--num_top_stats_dmg_dist', dest="num_top_stats_dmg_dist", type=int, help="Number of players that will be printed for achieving top <num_top_stats_dmg_dist> damage and distance to tag. Defaults to 10.", default=10)    
+    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_true', help="Print players with the top percentage of reaching top x stats. Defaults to False.")    
+    
     args = parser.parse_args()
 
     if not os.path.isdir(args.xml_directory):
@@ -100,11 +123,17 @@ if __name__ == '__main__':
         sys.exit()
     if args.output_filename is None:
         args.output_filename = args.xml_directory+"/top_stats.txt"
+    if args.log_file is None:
+        args.log_file = args.xml_directory+"/log.txt"
 
-    print("Using xml directory ",args.xml_directory+", writing output to", args.output_filename)
     output = open(args.output_filename, "w")
+    log = open(args.log_file, "w")
 
-    print("considering fights with more than", args.minimum_ally_numbers, "allied players that took longer than", args.minimum_duration, "s. Printing the top", args.num_top_stats, "performing players.")
+        
+    print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
+    myprint(log, print_string)
+    print_string = "Considering fights with more than "+str(args.minimum_ally_numbers)+" allied players that took longer than "+str(args.minimum_duration)+" s."
+    myprint(log, print_string)
         
     top_damage_x_times = collections.defaultdict(int)
     top_strips_x_times = collections.defaultdict(int)
@@ -124,16 +153,18 @@ if __name__ == '__main__':
     
     stab_id = "1122"
     used_fights = 0
+    total_fights = 0
     
     # iterating over all fights in directory
     for xml_filename in listdir(args.xml_directory):
-
         # skip non xml files
         if not ".xml" in xml_filename:
             continue
-
+        total_fights += 1
+        
         # create xml tree
-        print("parsing",xml_filename)
+        print_string = "parsing "+xml_filename
+        print(print_string)
         xml_file_path = "".join((args.xml_directory,"/",xml_filename))
         xml_tree = ET.parse(xml_file_path)
         
@@ -149,15 +180,19 @@ if __name__ == '__main__':
             print("duration: ", mins, "m", secs, "s")
         duration = mins*60 + secs
 
-        # skip fights that last less than 30s
+        # skip fights that last less than minimum_duration seconds
         if(duration < args.minimum_duration):
-            print("Fight only took", mins, "m", secs, "s. Skipping fight.")
+            log.write(print_string)
+            print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
+            myprint(log, print_string)
             continue
         
-        # skip fights with less than 10 allies
+        # skip fights with less than minimum_ally_numbers allies
         num_allies = len(xml_root.findall('players'))
         if num_allies < args.minimum_ally_numbers:
-            print("only",num_allies,"allied players involved. Skipping fight.")
+            log.write(print_string)
+            print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
+            myprint(log, print_string)
             continue
 
         used_fights += 1
@@ -181,7 +216,7 @@ if __name__ == '__main__':
             num_fights_present[name] += 1
 
             # get damage
-            dmg_xml = xml_player.find('dpsAll').find('damage')#.find('damage')
+            dmg_xml = xml_player.find('dpsAll').find('damage')
             damage[name] = int(dmg_xml.text)
 
             # get strips and cleanses
@@ -238,7 +273,7 @@ if __name__ == '__main__':
             if dist[name] >= 0:
                 total_dist[name] += dist[name]
             
-        print("\n")
+        #print("\n")
 
         # create dictionaries sorted according to stats
         sortedDamage = sorted(damage, key=damage.get, reverse=True)
@@ -257,52 +292,66 @@ if __name__ == '__main__':
             print("sorted healing:", sortedHealing,"\n")
             print("sorted dist:", sortedDist, "\n")
         
-        # increase number of times top 3 was achieved for top 3 players in each stat
-        for i in range(min(len(sortedDamage), 3)):
+        # increase number of times top x was achieved for top x players in each stat
+        for i in range(min(len(sortedDamage), args.num_top_stats_dmg_dist)):
             top_damage_x_times[sortedDamage[i]] += 1
+            
+        for i in range(min(len(sortedStrips), args.num_top_stats)):
             top_strips_x_times[sortedStrips[i]] += 1
             top_cleanses_x_times[sortedCleanses[i]] += 1
             top_stab_x_times[sortedStab[i]] += 1
 
         # might not have entries for healing -> separate loop
-        for i in range(min(len(sortedHealing), 3)):
+        for i in range(min(len(sortedHealing), args.num_top_stats)):
             top_healing_x_times[sortedHealing[i]] += 1
 
-        # get top 4 for dist bc first is always the com. Also throw out negative dist.
+        # get top x+1 for dist bc first is always the com. Also throw out negative dist.
         valid_dist = 0
         i = 0
-        while i < len(sortedDist) and valid_dist < 4:
+        while i < len(sortedDist) and valid_dist < args.num_top_stats_dmg_dist+1:
             if sortedDist[i][1] >= 0:
                 top_dist_x_times[sortedDist[i][0]] += 1
                 valid_dist += 1
             i += 1
 
-    # print top x players for all stats. If less then 3
-    # players, print all. If 3rd place doubled, print all with the
-    # same amount of top 3 achieved.
+    # print top x players for all stats. If less then x
+    # players, print all. If x-th place doubled, print all with the
+    # same amount of top x achieved.
 
-    print("\n")
-    print("The following stats are computed over",used_fights,"fights.\n")
+    myprint(log, "\n")
+    #print("The following stats are computed over",used_fights,"out of",total_fights,"fights.\n")
+    #print("For damage and distance to tag, the best", args.num_top_stats_dmg_dist, "players are shown. For all other stats, the best", args.num_top_stats, "players are shown. For total values, only the best three players are shown. Everything is cut at 50% of the highest value.\n")
 
-    write_sorted_top_3(output, top_damage_x_times, total_damage, "damage", args.num_top_stats)
-    write_sorted_top_3(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
-    write_sorted_top_3(output, top_cleanses_x_times, total_cleanses, "cleanses", args.num_top_stats)
-    write_sorted_top_3(output, top_stab_x_times, total_stab, "stab output", args.num_top_stats)        
-    write_sorted_top_3(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
-    write_sorted_top_3(output, top_dist_x_times, total_dist, "dist", args.num_top_stats, 1) # dist handled slightly differently.
+    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."
+    myprint(output, print_string)
+    print_string = "For damage and distance to tag, the best "+str(args.num_top_stats_dmg_dist)+" players are shown. For all other stats, the best "+str(args.num_top_stats)+" players are shown. For total values, only the best three players are shown. Everything is cut at 50% of the highest value."
+    myprint(output, print_string)
+
+    write_sorted_top_x(output, top_damage_x_times, total_damage, "damage", args.num_top_stats_dmg_dist)
+    write_sorted_top_x(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
+    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, "cleanses", args.num_top_stats)
+    write_sorted_top_x(output, top_stab_x_times, total_stab, "stab output", args.num_top_stats)        
+    write_sorted_top_x(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
+    write_sorted_top_x(output, top_dist_x_times, total_dist, "dist", args.num_top_stats_dmg_dist, 1)
     
-    write_sorted_total(output, total_damage, "damage", args.num_top_stats)
-    write_sorted_total(output, total_strips, "strips", args.num_top_stats)
-    write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
-    write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
-    write_sorted_total(output, total_healing, "healing", args.num_top_stats)
+    #write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg_dist)
+    #write_sorted_total(output, total_strips, "strips", args.num_top_stats)
+    #write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
+    #write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
+    #write_sorted_total(output, total_healing, "healing", args.num_top_stats)
+    ## dist to tag total doesn't make much sense
+    write_sorted_total(output, total_damage, "damage", 3)
+    write_sorted_total(output, total_strips, "strips", 3)
+    write_sorted_total(output, total_cleanses, "cleanses", 3)
+    write_sorted_total(output, total_stab, "stab output", 3)
+    write_sorted_total(output, total_healing, "healing", 3)
     # dist to tag total doesn't make much sense
 
     if args.print_percentage:
-        write_sorted_top_3_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats)
-        write_sorted_top_3_percentage(output, top_strips_x_times, num_fights_present, "strips", args.num_top_stats)
-        write_sorted_top_3_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses", args.num_top_stats)
-        write_sorted_top_3_percentage(output, top_stab_x_times, num_fights_present, "stab", args.num_top_stats)
-        write_sorted_top_3_percentage(output, top_healing_x_times, num_fights_present, "healing", args.num_top_stats)
-        write_sorted_top_3_percentage(output, top_dist_x_times, num_fights_present, "dist", args.num_top_stats, 1)        
+        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats_dmg_dist)
+        write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, "strips", args.num_top_stats)
+        write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses", args.num_top_stats)
+        write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, "stab", args.num_top_stats)
+        write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, "healing", args.num_top_stats)
+        write_sorted_top_x_percentage(output, top_dist_x_times, num_fights_present, "dist", args.num_top_stats_dmg_dist, 1)        
     
