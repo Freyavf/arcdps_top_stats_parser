@@ -20,27 +20,34 @@ def myprint(output_file, output_string):
 # num_top_stats = number of players to print
 # omit = omit the first n players in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to x+1th most often.
 def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_stats, omit = 0):
-    if len(topx_x_times) == 0:
+    if len(topx_x_times) <= omit:
         return
 
     # sort players according to number of times top x was achieved for stat
     sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
 
-    print_string = "top "+str(num_top_stats)+" "+stat+" top "+str(num_top_stats)+" times"
+    if stat == "dist":
+        print_string = "Top "+str(num_top_stats)+" "+stat+" consistency"
+    else:
+        print_string = "Top "+stat+" Consistency (Max. "+str(num_top_stats)+" people, min 50% of most consistent)"
+    myprint(output_file, print_string)
+    print_string = "Reached top "+str(num_top_stats)+" in x fights"
     myprint(output_file, print_string)
 
     i = omit
-    top = sorted_topx[i][1]
+    top = total_values[sorted_topx[i][0]] #sorted_topx[i][1]
 
     # 1) index must be lower than length of the list
     # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
     # 3) value must be greater than 0
-    # 4) value must be at least 50% of top value
-    while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0 and sorted_topx[i][1] > top * Decimal(0.5):
+    while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
         if stat == "dist":
-            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1]) 
-        else:
+            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])
+        # 4) value must be at least 50% of top value for everything except dist
+        elif total_values[sorted_topx[i][0]] > top * Decimal(0.5):
             print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" (total "+str(total_values[sorted_topx[i][0]])+")"
+        else:
+            break
         myprint(output_file, print_string)
         i += 1
     myprint(output_file, "\n")
@@ -61,8 +68,10 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
         percentages[name] = topx_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
 
-    print_string = "top "+str(num_top_stats)+" "+stat+" top "+str(num_top_stats)+" percentage"
+    print_string = "Top "+stat+" percentage (Max. " +str(num_top_stats)+" people, min 50% of top percentage)"
     myprint(output_file, print_string)
+    print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
+    myprint(output_file, print_string)    
 
     i = omit
     top = sorted_percentages[i][1]
@@ -70,7 +79,7 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
     # 1) index must be lower than length of the list
     # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
     # x) value must be greater than 0
-    # 4) value must be at least 50% of top value    
+    # 4) percentage value must be at least 50% of top percentage value
     while i < len(sorted_percentages) and (i < num_top_stats+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0 and sorted_percentages[i][1] > top * 0.5:
         name = sorted_percentages[i][0]
         print_string = name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
@@ -89,7 +98,7 @@ def write_sorted_total(output_file, total_values, stat, num_top_stats = 3):
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
 
-    print_string = "top "+str(num_top_stats)+" total "+stat
+    print_string = "Top overall "+stat+" (Max. "+str(num_top_stats)+" people, min 50% of 1st place)"
     myprint(output_file, print_string)
     i = 0
     top = sorted_total_values[i][1]
@@ -334,17 +343,11 @@ if __name__ == '__main__':
     write_sorted_top_x(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
     write_sorted_top_x(output, top_dist_x_times, total_dist, "dist", args.num_top_stats_dmg_dist, 1)
     
-    #write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg_dist)
-    #write_sorted_total(output, total_strips, "strips", args.num_top_stats)
-    #write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
-    #write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
-    #write_sorted_total(output, total_healing, "healing", args.num_top_stats)
-    ## dist to tag total doesn't make much sense
-    write_sorted_total(output, total_damage, "damage", 3)
-    write_sorted_total(output, total_strips, "strips", 3)
-    write_sorted_total(output, total_cleanses, "cleanses", 3)
-    write_sorted_total(output, total_stab, "stab output", 3)
-    write_sorted_total(output, total_healing, "healing", 3)
+    write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg_dist)
+    write_sorted_total(output, total_strips, "strips", args.num_top_stats)
+    write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
+    write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
+    write_sorted_total(output, total_healing, "healing", args.num_top_stats)
     # dist to tag total doesn't make much sense
 
     if args.print_percentage:
