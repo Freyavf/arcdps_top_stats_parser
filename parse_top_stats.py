@@ -18,7 +18,7 @@ def myprint(output_file, output_string):
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-# omit = omit the first n players in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to x+1th most often.
+# omit = omit the first n players in the list. Mostly used for distance to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to x+1th most often.
 def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_stats, omit = 0):
     if len(topx_x_times) <= omit:
         return
@@ -26,10 +26,10 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
     # sort players according to number of times top x was achieved for stat
     sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
 
-    if stat == "dist":
+    if stat == "distance":
         print_string = "Top "+str(num_top_stats)+" "+stat+" consistency"
     else:
-        print_string = "Top "+stat+" Consistency (Max. "+str(num_top_stats)+" people, min 50% of most consistent)"
+        print_string = "Top "+stat+" consistency (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
     myprint(output_file, print_string)
     print_string = "Reached top "+str(num_top_stats)+" in x fights"
     myprint(output_file, print_string)
@@ -41,9 +41,9 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
     # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
     # 3) value must be greater than 0
     while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
-        if stat == "dist":
+        if stat == "distance":
             print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])
-        # 4) value must be at least 50% of top value for everything except dist
+        # 4) value must be at least 50% of top value for everything except distance
         elif total_values[sorted_topx[i][0]] > top * Decimal(0.5):
             print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" (total "+str(total_values[sorted_topx[i][0]])+")"
         else:
@@ -58,7 +58,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
 # num_fights_present = in how many fights was the player present
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-# omit = omit the first x player in the list. Mostly used for dist to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to 4th most often.    
+# omit = omit the first x player in the list. Mostly used for distance to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to 4th most often.    
 def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, stat, num_top_stats, omit = 0):
     if len(topx_x_times) == 0:
         return
@@ -68,7 +68,7 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
         percentages[name] = topx_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
 
-    print_string = "Top "+stat+" percentage (Max. " +str(num_top_stats)+" people, min 50% of top percentage)"
+    print_string = "Top "+stat+" percentage (Max. " +str(num_top_stats)+" people, min. 50% of top percentage)"
     myprint(output_file, print_string)
     print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
     myprint(output_file, print_string)    
@@ -98,7 +98,7 @@ def write_sorted_total(output_file, total_values, stat, num_top_stats = 3):
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
 
-    print_string = "Top overall "+stat+" (Max. "+str(num_top_stats)+" people, min 50% of 1st place)"
+    print_string = "Top overall "+stat+" (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
     myprint(output_file, print_string)
     i = 0
     top = sorted_total_values[i][1]
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--duration', dest="minimum_duration", type=int, help="Minimum duration of a fight in s. Shorter fights will be ignored. Defaults to 30s.", default=30)
     parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="Minimum of allied players in a fight. Fights with less players will be ignored. Defaults to 10.", default=10)
     parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top <num_top_stats> for most stats. Special cases: Distance to tag and damage. Defaults to 5.", default=5)
-    parser.add_argument('-m', '--num_top_stats_dmg_dist', dest="num_top_stats_dmg_dist", type=int, help="Number of players that will be printed for achieving top <num_top_stats_dmg_dist> damage and distance to tag. Defaults to 10.", default=10)    
+    parser.add_argument('-m', '--num_top_stats_dmg', dest="num_top_stats_dmg", type=int, help="Number of players that will be printed for achieving top <num_top_stats_dmg> damage. Defaults to 10.", default=10)    
     parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_true', help="Print players with the top percentage of reaching top x stats. Defaults to False.")    
     
     args = parser.parse_args()
@@ -149,14 +149,14 @@ if __name__ == '__main__':
     top_cleanses_x_times = collections.defaultdict(int)
     top_stab_x_times = collections.defaultdict(int)
     top_healing_x_times = collections.defaultdict(int)
-    top_dist_x_times = collections.defaultdict(int)
+    top_distance_x_times = collections.defaultdict(int)
 
     total_damage = collections.defaultdict(int)
     total_strips = collections.defaultdict(int)
     total_cleanses = collections.defaultdict(int)
     total_stab = collections.defaultdict(int)
     total_healing = collections.defaultdict(int)    
-    total_dist = collections.defaultdict(int)
+    total_distance = collections.defaultdict(int)
 
     num_fights_present = collections.defaultdict(int)
     
@@ -212,7 +212,7 @@ if __name__ == '__main__':
         strips = {}
         stab = {}
         healing = {}
-        dist = {}
+        distance = {}
 
         # healing only in xml if addon was installed
         found_healing = False
@@ -257,9 +257,9 @@ if __name__ == '__main__':
                         healing_xml = outgoing_healing_xml2.find('healing')
                         healing[name] += int(healing_xml.text)
 
-            # get dist to tag
-            dist_xml = xml_player.find('statsAll').find('distToCom')
-            dist[name] = Decimal(dist_xml.text)
+            # get distance to tag
+            distance_xml = xml_player.find('statsAll').find('distToCom')
+            distance[name] = Decimal(distance_xml.text)
 
             if debug:
                 print(name)
@@ -268,7 +268,7 @@ if __name__ == '__main__':
                 print("cleanses:",cleanses[name])
                 print("stab:",stab_generated)
                 print("healing:",healing[name])
-                print(f"dist: {dist[name]:.2f}")
+                print(f"distance: {distance[name]:.2f}")
                 print("\n")
                 
             # add new data from this fight to total stats
@@ -278,9 +278,9 @@ if __name__ == '__main__':
             total_stab[name] += stab[name]
             if found_healing:
                 total_healing[name] += healing[name]
-            # dist sometimes -1 for some reason
-            if dist[name] >= 0:
-                total_dist[name] += dist[name]
+            # distance sometimes -1 for some reason
+            if distance[name] >= 0:
+                total_distance[name] += distance[name]
             
         #print("\n")
 
@@ -290,8 +290,8 @@ if __name__ == '__main__':
         sortedCleanses = sorted(cleanses, key=cleanses.get, reverse=True)
         sortedStab = sorted(stab, key=stab.get, reverse=True)
         sortedHealing = sorted(healing, key=healing.get, reverse=True)
-        # small dist = good -> don't reverse sorting. Need to check for -1 -> keep values
-        sortedDist = sorted(dist.items(), key=lambda x:x[1])
+        # small distance = good -> don't reverse sorting. Need to check for -1 -> keep values
+        sortedDistance = sorted(distance.items(), key=lambda x:x[1])
 
         if debug:
             print("sorted dmg:", sortedDamage,"\n")
@@ -299,10 +299,10 @@ if __name__ == '__main__':
             print("sorted cleanses:",sortedCleanses,"\n")
             print("sorted stab:", sortedStab,"\n")
             print("sorted healing:", sortedHealing,"\n")
-            print("sorted dist:", sortedDist, "\n")
+            print("sorted distance:", sortedDistance, "\n")
         
         # increase number of times top x was achieved for top x players in each stat
-        for i in range(min(len(sortedDamage), args.num_top_stats_dmg_dist)):
+        for i in range(min(len(sortedDamage), args.num_top_stats_dmg)):
             top_damage_x_times[sortedDamage[i]] += 1
             
         for i in range(min(len(sortedStrips), args.num_top_stats)):
@@ -314,13 +314,13 @@ if __name__ == '__main__':
         for i in range(min(len(sortedHealing), args.num_top_stats)):
             top_healing_x_times[sortedHealing[i]] += 1
 
-        # get top x+1 for dist bc first is always the com. Also throw out negative dist.
-        valid_dist = 0
+        # get top x+1 for distance bc first is always the com. Also throw out negative distance.
+        valid_distance = 0
         i = 0
-        while i < len(sortedDist) and valid_dist < args.num_top_stats_dmg_dist+1:
-            if sortedDist[i][1] >= 0:
-                top_dist_x_times[sortedDist[i][0]] += 1
-                valid_dist += 1
+        while i < len(sortedDistance) and valid_distance < args.num_top_stats+1:
+            if sortedDistance[i][1] >= 0:
+                top_distance_x_times[sortedDistance[i][0]] += 1
+                valid_distance += 1
             i += 1
 
     # print top x players for all stats. If less then x
@@ -328,33 +328,31 @@ if __name__ == '__main__':
     # same amount of top x achieved.
 
     myprint(log, "\n")
-    #print("The following stats are computed over",used_fights,"out of",total_fights,"fights.\n")
-    #print("For damage and distance to tag, the best", args.num_top_stats_dmg_dist, "players are shown. For all other stats, the best", args.num_top_stats, "players are shown. For total values, only the best three players are shown. Everything is cut at 50% of the highest value.\n")
 
     print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."
     myprint(output, print_string)
-    print_string = "For damage and distance to tag, the best "+str(args.num_top_stats_dmg_dist)+" players are shown. For all other stats, the best "+str(args.num_top_stats)+" players are shown. For total values, only the best three players are shown. Everything is cut at 50% of the highest value."
+    print_string = "For damage, the best "+str(args.num_top_stats_dmg)+" players are shown. For all other stats, the best "+str(args.num_top_stats)+" players are shown. Everything is cut at 50% of the highest value.\n"
     myprint(output, print_string)
 
-    write_sorted_top_x(output, top_damage_x_times, total_damage, "damage", args.num_top_stats_dmg_dist)
+    write_sorted_top_x(output, top_damage_x_times, total_damage, "damage", args.num_top_stats_dmg)
     write_sorted_top_x(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
     write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, "cleanses", args.num_top_stats)
     write_sorted_top_x(output, top_stab_x_times, total_stab, "stab output", args.num_top_stats)        
     write_sorted_top_x(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
-    write_sorted_top_x(output, top_dist_x_times, total_dist, "dist", args.num_top_stats_dmg_dist, 1)
+    write_sorted_top_x(output, top_distance_x_times, total_distance, "distance", args.num_top_stats, 1)
     
-    write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg_dist)
+    write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg)
     write_sorted_total(output, total_strips, "strips", args.num_top_stats)
     write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
     write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
     write_sorted_total(output, total_healing, "healing", args.num_top_stats)
-    # dist to tag total doesn't make much sense
+    # distance to tag total doesn't make much sense
 
     if args.print_percentage:
-        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats_dmg_dist)
+        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats_dmg)
         write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, "strips", args.num_top_stats)
         write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses", args.num_top_stats)
         write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, "stab", args.num_top_stats)
         write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, "healing", args.num_top_stats)
-        write_sorted_top_x_percentage(output, top_dist_x_times, num_fights_present, "dist", args.num_top_stats_dmg_dist, 1)        
+        write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, "distance", args.num_top_stats, 1)        
     
