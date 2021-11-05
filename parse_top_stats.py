@@ -31,7 +31,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
     else:
         print_string = "Top "+stat+" consistency (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
     myprint(output_file, print_string)
-    print_string = "Reached top "+str(num_top_stats)+" in x fights"
+    print_string = "Reached top "+str(num_top_stats)+" most often"
     myprint(output_file, print_string)
 
     i = omit
@@ -42,12 +42,13 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
     # 3) value must be greater than 0
     while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
         if stat == "distance":
-            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])
+            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" times"
         # 4) value must be at least 50% of top value for everything except distance
         elif total_values[sorted_topx[i][0]] > top * Decimal(0.5):
-            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" (total "+str(total_values[sorted_topx[i][0]])+")"
+            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" times (total "+str(total_values[sorted_topx[i][0]])+")"
         else:
-            break
+            i += 1
+            continue
         myprint(output_file, print_string)
         i += 1
     myprint(output_file, "\n")
@@ -57,34 +58,42 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
 # topx_x_times = how often did each player achieve a topx spot in this stat
 # num_fights_present = in how many fights was the player present
 # stat = which stat are we looking at (dmg, cleanses, ...)
-# num_top_stats = number of players to print
 # omit = omit the first x player in the list. Mostly used for distance to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to 4th most often.    
-def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, stat, num_top_stats, omit = 0):
+def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, num_total_fights, stat, omit = 0):
     if len(topx_x_times) == 0:
         return
-
+    
     percentages = {}
     for name in topx_x_times.keys():
         percentages[name] = topx_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
 
-    print_string = "Top "+stat+" percentage (Max. " +str(num_top_stats)+" people, min. 50% of top percentage)"
-    myprint(output_file, print_string)
-    print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
-    myprint(output_file, print_string)    
-
     i = omit
     top = sorted_percentages[i][1]
 
+    # sort players according to number of times top x was achieved for stat. Top percentage = percentage of fights the top persistent player was in.
+    sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
+    comparison_percentage = sorted_topx[i][1]/num_fights_present[sorted_topx[i][0]]
+    #print(sorted_topx[i][0]+" was top and present for "+str(num_fights_present[sorted_topx[i][0]])+" out of "+str(num_total_fights)+" fights")
+
+    #print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
+    #myprint(output_file, print_string)    
+    
     # 1) index must be lower than length of the list
-    # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
-    # x) value must be greater than 0
-    # 4) percentage value must be at least 50% of top percentage value
-    while i < len(sorted_percentages) and (i < num_top_stats+omit or sorted_percentages[i][1] == sorted_percentages[i-1][1]) and sorted_percentages[i][1] > 0 and sorted_percentages[i][1] > top * 0.5:
+    # 2) percentage value must be at least top percentage value
+    first = True
+    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != sorted_topx[omit][0]:
         name = sorted_percentages[i][0]
-        print_string = name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
-        myprint(output_file, print_string)
+        if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
+            if first:
+                print_string = "Top "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
+                myprint(output_file, print_string)
+                first = False
+
+            print_string = name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
+            myprint(output_file, print_string)
         i += 1
+    if not first:
     myprint(output_file, "\n")
     
 # Write the top x people who achieved top total stat.
@@ -331,8 +340,6 @@ if __name__ == '__main__':
 
     print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."
     myprint(output, print_string)
-    print_string = "For damage, the best "+str(args.num_top_stats_dmg)+" players are shown. For all other stats, the best "+str(args.num_top_stats)+" players are shown. Everything is cut at 50% of the highest value.\n"
-    myprint(output, print_string)
 
     write_sorted_top_x(output, top_damage_x_times, total_damage, "damage", args.num_top_stats_dmg)
     write_sorted_top_x(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
@@ -349,10 +356,10 @@ if __name__ == '__main__':
     # distance to tag total doesn't make much sense
 
     if args.print_percentage:
-        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, "damage", args.num_top_stats_dmg)
-        write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, "strips", args.num_top_stats)
-        write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, "cleanses", args.num_top_stats)
-        write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, "stab", args.num_top_stats)
-        write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, "healing", args.num_top_stats)
-        write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, "distance", args.num_top_stats, 1)        
+        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, used_fights, "damage")
+        write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, used_fights, "strips")
+        write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, used_fights, "cleanses")
+        write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, used_fights, "stab")
+        write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, used_fights, "healing")
+        write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, used_fights, "distance", 1)        
     
