@@ -94,7 +94,7 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
             myprint(output_file, print_string)
         i += 1
     if not first:
-    myprint(output_file, "\n")
+        myprint(output_file, "\n")
     
 # Write the top x people who achieved top total stat.
 # Input:
