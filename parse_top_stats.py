@@ -128,7 +128,10 @@ def get_topx_percentage_players(sorted_percentages, comparison_percentage, top_p
     
     # 1) index must be lower than length of the list
     # 2) percentage value must be at least top percentage value
-    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != top_player:
+    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage: #*0.5:
+        if sorted_percentages[i][0] == top_player:
+            i += 1
+            continue
         name = sorted_percentages[i][0]
         if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
             top_percentage_players.append(name)
@@ -155,7 +158,7 @@ def get_profession_and_length(names, professions):
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_top_x(output_file, topx_x_times, total_values, professions, stat, num_top_stats):
+def write_sorted_top_x(output_file, topx_x_times, total_values, professions, attendance_percentage, stat, num_top_stats):
     if len(topx_x_times) == 0:
         return
 
@@ -172,20 +175,30 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, sta
     print_string = "------------------------------------------------------------------------"
     myprint(output_file, print_string)
 
-    i = 0
-    top = total_values[sorted_topx[i][0]] 
+    top = total_values[sorted_topx[0][0]] 
 
     # get names that get on the list and their professions
     top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats)
     profession_strings, profession_length = get_profession_and_length(top_consistent_players, professions)
+
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times"
+    if stat != "distance":
+        print_string += f" {'Total':>8}"
+    myprint(output_file, print_string)    
+
+    
+    place = 0
+    last_val = 0
     
     for name in top_consistent_players:
-        #professions_str = get_professions(name, professions)                
-        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {topx_x_times[name]:>2} times"
+        if topx_x_times[name] != last_val:
+            place += 1
+        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {attendance_percentage[name]:>9}% "+f" {topx_x_times[name]:>5}"
         if stat != "distance":
-            print_string += " (total "+str(total_values[name])+")"
+            print_string += f" {total_values[name]:>8}"
             #print_string += " | total "+str(total_values[name])
         myprint(output_file, print_string)
+        last_val = topx_x_times[name]
         
                 
 # Write the top x people who achieved top x in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top x spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top x spot in 1 of them.
@@ -209,9 +222,24 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
     top_percentage_players, name_length = get_topx_percentage_players(sorted_percentages, comparison_percentage, top_player, num_total_fights)
     profession_strings, profession_length = get_profession_and_length(top_percentage_players, professions)
 
-    for name in top_percentage_players:
-        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {percentages[name]*100:.0f>3}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
+    place = 0
+    last_val = 0
+
+    if len(top_percentage_players) > 0:
+        print_string = "\nTop "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
         myprint(output_file, print_string)
+        print_string = "------------------------------------------------------------------------"                
+        myprint(output_file, print_string)                
+        print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times':>5} " + f"{'out of':>6}"
+        myprint(output_file, print_string)    
+    
+    for name in top_percentage_players:
+        if percentages[name] != last_val:
+            place += 1
+        percentage = int(percentages[name]*100)
+        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} " +f" {percentage:>10}% " +f"{topx_x_times[name]:>5}" +f"{num_fights_present[name]:>6}"
+        myprint(output_file, print_string)
+        last_val = percentages[name]
     
 
 # Write the top x people who achieved top total stat.
@@ -219,7 +247,7 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
 # total_values = stat summed up over all fights
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_total(output_file, total_values, professions, stat, num_top_stats = 3):
+def write_sorted_total(output_file, total_values, professions, attendance_percentage, stat, num_top_stats = 3):
     if len(total_values) == 0:
         return
 
@@ -228,14 +256,23 @@ def write_sorted_total(output_file, total_values, professions, stat, num_top_sta
     print_string = "\nTop overall "+stat+" (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
     myprint(output_file, print_string)
     print_string = "------------------------------------------------------------------------"                
-    myprint(output_file, print_string)                
+    myprint(output_file, print_string)
 
     top_total_players, name_length = get_topx_total_players(sorted_total_values, num_top_stats)
     profession_strings, profession_length = get_profession_and_length(top_total_players, professions)
 
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance"+f" {'Total':>8}"
+    myprint(output_file, print_string)    
+    
+    place = 0
+    last_val = 0
+    
     for name in top_total_players:
-        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f"{total_values[name]:>8}"
+        if total_values[name] != last_val:
+            place += 1
+        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {attendance_percentage[name]:>9}% "+f"{total_values[name]:>8}"
         myprint(output_file, print_string)
+        last_val = total_values[name]
     
     
 if __name__ == '__main__':
@@ -458,6 +495,11 @@ if __name__ == '__main__':
                 valid_distance += 1
             i += 1
 
+
+    attendance_percentage = {}
+    for name in num_fights_present.keys():
+        attendance_percentage[name] = int(num_fights_present[name]/used_fights*100)
+
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
@@ -468,42 +510,42 @@ if __name__ == '__main__':
     myprint(output, print_string)
 
     myprint(output, "DAMAGE\n")
-    write_sorted_top_x(output, top_damage_x_times, total_damage, professions, "damage", args.num_top_stats_dmg)
-    write_sorted_total(output, total_damage, professions, "damage", args.num_top_stats_dmg)
+    write_sorted_top_x(output, top_damage_x_times, total_damage, professions, attendance_percentage, "damage", args.num_top_stats_dmg)
+    write_sorted_total(output, total_damage, professions, attendance_percentage, "damage", args.num_top_stats_dmg)
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, used_fights, professions, "damage")
     myprint(output, "\n")    
         
     myprint(output, "BOON STRIPS\n")        
-    write_sorted_top_x(output, top_strips_x_times, total_strips, professions, "strips", args.num_top_stats)
-    write_sorted_total(output, total_strips, professions, "strips", args.num_top_stats)
+    write_sorted_top_x(output, top_strips_x_times, total_strips, professions, attendance_percentage, "strips", args.num_top_stats)
+    write_sorted_total(output, total_strips, professions, attendance_percentage, "strips", args.num_top_stats)
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, used_fights, professions, "strips")
     myprint(output, "\n")            
 
     myprint(output, "CONDITION CLEANSES\n")        
-    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, "cleanses", args.num_top_stats)
-    write_sorted_total(output, total_cleanses, professions, "cleanses", args.num_top_stats)
+    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, attendance_percentage, "cleanses", args.num_top_stats)
+    write_sorted_total(output, total_cleanses, professions, attendance_percentage, "cleanses", args.num_top_stats)
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, used_fights, professions, "cleanses")
     myprint(output, "\n")    
         
     myprint(output, "STABILITY OUTPUT\n")        
-    write_sorted_top_x(output, top_stab_x_times, total_stab, professions, "stab output", args.num_top_stats)        
-    write_sorted_total(output, total_stab, professions, "stab output", args.num_top_stats)
+    write_sorted_top_x(output, top_stab_x_times, total_stab, professions, attendance_percentage, "stab output", args.num_top_stats)        
+    write_sorted_total(output, total_stab, professions, attendance_percentage, "stab output", args.num_top_stats)
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, used_fights, professions, "stab")
     myprint(output, "\n")    
         
     myprint(output, "HEALING\n")        
-    write_sorted_top_x(output, top_healing_x_times, total_healing, professions, "healing", args.num_top_stats)
-    write_sorted_total(output, total_healing, professions, "healing", args.num_top_stats)
+    write_sorted_top_x(output, top_healing_x_times, total_healing, professions, attendance_percentage, "healing", args.num_top_stats)
+    write_sorted_total(output, total_healing, professions, attendance_percentage, "healing", args.num_top_stats)
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, used_fights, professions, "healing")
     myprint(output, "\n")    
 
     myprint(output, "DISTANCE TO TAG\n")        
-    write_sorted_top_x(output, top_distance_x_times, total_distance, professions, "distance", args.num_top_stats)
+    write_sorted_top_x(output, top_distance_x_times, total_distance, professions, attendance_percentage, "distance", args.num_top_stats)
     # distance to tag total doesn't make much sense
     if args.print_percentage:
         write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, used_fights, professions, "distance")        
