@@ -61,6 +61,7 @@ def myprint(output_file, output_string):
     print(output_string)
     output_file.write(output_string+"\n")
 
+    
 def get_name_and_professions(name, professions):
     name_and_professions = name+" ("
     for p in range(len(professions[name])-1):
@@ -68,12 +69,14 @@ def get_name_and_professions(name, professions):
     name_and_professions += profession_abbreviations[professions[name][-1]]+")"
     return name_and_professions
 
+
 def get_professions(name, profession_dict):
     professions = ""
     for p in range(len(profession_dict[name])-1):
         professions += profession_abbreviations[profession_dict[name][p]]+" / "
     professions += profession_abbreviations[profession_dict[name][-1]]
     return professions
+
 
 def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
     i = 0
@@ -98,6 +101,7 @@ def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
         i += 1
     return top_consistent_players, name_length
 
+
 def get_topx_total_players(sorted_total_values, num_top_stats):
     i = 0
     top = sorted_total_values[i][1]
@@ -115,6 +119,7 @@ def get_topx_total_players(sorted_total_values, num_top_stats):
         i += 1
     return top_total_players, name_length
 
+
 def get_topx_percentage_players(sorted_percentages, comparison_percentage, top_player, num_total_fights):
     i = 0
     top = sorted_percentages[i][1]
@@ -131,7 +136,8 @@ def get_topx_percentage_players(sorted_percentages, comparison_percentage, top_p
                 name_length = len(name)
         i += 1
     return top_percentage_players, name_length
-        
+
+
 def get_profession_and_length(names, professions):
     profession_strings = {}
     profession_length = 0
@@ -141,7 +147,8 @@ def get_profession_and_length(names, professions):
         if len(professions_str) > profession_length:
             profession_length = len(professions_str)
     return profession_strings, profession_length
-    
+
+
 # Write the top x people who achieved top x in stat most often.
 # Input:
 # topx_x_times = how often did each player achieve a top x spot in this stat
@@ -172,12 +179,6 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, sta
     top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats)
     profession_strings, profession_length = get_profession_and_length(top_consistent_players, professions)
     
-    ## get length of longest name on list
-    #name_length = 0
-    #for name in top_consistent_players:
-    #    if len(name) > name_length:
-    #        name_length = len(name)
-
     for name in top_consistent_players:
         #professions_str = get_professions(name, professions)                
         print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {topx_x_times[name]:>2} times"
@@ -186,29 +187,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, sta
             #print_string += " | total "+str(total_values[name])
         myprint(output_file, print_string)
         
-        
-    ## 1) index must be lower than length of the list
-    ## 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
-    ## 3) value must be greater than 0
-    #while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
-    #    name = sorted_topx[i][0]
-    #    #name_and_profession = get_name_and_professions(name, professions)
-    #    professions_str = get_professions(name, professions)        
-    #    x = 20
-    #    
-    #    print_string = f"{name:<{x}}"+f"| {professions_str:<10} | "+f"{sorted_topx[i][1]:<2} times"
-    #    if stat != "distance":
-    #        # 4) value must be at least 50% of top value for everything except distance
-    #        if total_values[name] > top * Decimal(0.5):
-    #            #print_string += " | (total "+str(total_values[name])+")"
-    #            print_string += " | total "+str(total_values[name])
-    #        else:
-    #            i += 1
-    #            continue
-    #    myprint(output_file, print_string)
-    #    i += 1
-    ##myprint(output_file, "\n")
-
+                
 # Write the top x people who achieved top x in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top x spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top x spot in 1 of them.
 # Input:
 # topx_x_times = how often did each player achieve a topx spot in this stat
@@ -234,34 +213,7 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
         print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {percentages[name]*100:.0f>3}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
         myprint(output_file, print_string)
     
-    #top = sorted_percentages[i][1]
-    #
-    ## sort players according to number of times top x was achieved for stat. Top percentage = percentage of fights the top persistent player was in.
-    #sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
-    #comparison_percentage = sorted_topx[i][1]/num_fights_present[sorted_topx[i][0]]
-    ##print(sorted_topx[i][0]+" was top and present for "+str(num_fights_present[sorted_topx[i][0]])+" out of "+str(num_total_fights)+" fights")
-    #
-    ##print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
-    ##myprint(output_file, print_string)    
-    #
-    ## 1) index must be lower than length of the list
-    ## 2) percentage value must be at least top percentage value
-    #first = True
-    #while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != sorted_topx[omit][0]:
-    #    name = sorted_percentages[i][0]
-    #    if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
-    #        if first:
-    #            print_string = "\nTop "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
-    #            myprint(output_file, print_string)
-    #            print_string = "------------------------------------------------------------------------"                
-    #            myprint(output_file, print_string)                
-    #            first = False
-    #
-    #        name_and_profession = get_name_and_professions(name, professions)
-    #        print_string = name_and_profession+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
-    #        myprint(output_file, print_string)
-    #    i += 1
-    
+
 # Write the top x people who achieved top total stat.
 # Input:
 # total_values = stat summed up over all fights
@@ -285,18 +237,6 @@ def write_sorted_total(output_file, total_values, professions, stat, num_top_sta
         print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f"{total_values[name]:>8}"
         myprint(output_file, print_string)
     
-    #i = 0
-    #top = sorted_total_values[i][1]
-    #
-    ## 1) index must be lower than length of the list and desired number of players listed
-    ## 2) value must be greater than 0
-    ## 3) value must be at least 50% of top value        
-    #while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
-    #    name = sorted_total_values[i][0]
-    #    name_and_profession = get_name_and_professions(name, professions)
-    #    print_string = name_and_profession+": "+str(sorted_total_values[i][1])
-    #    myprint(output_file, print_string)
-    #    i += 1
     
 if __name__ == '__main__':
     debug = False # enable / disable debug output
