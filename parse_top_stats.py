@@ -8,19 +8,148 @@ import sys
 import xml.etree.ElementTree as ET
 from decimal import *
 
+
+profession_abbreviations = {}
+profession_abbreviations["Guardian"] = "Guard"
+profession_abbreviations["Dragonhunter"] = "DH"
+profession_abbreviations["Firebrand"] = "FB"
+profession_abbreviations["Willbender"] = "WB"
+
+profession_abbreviations["Revenant"] = "Rev"
+profession_abbreviations["Herald"] = "Herald"
+profession_abbreviations["Renegade"] = "Ren"
+profession_abbreviations["Vindicator"] = "Vin"    
+
+profession_abbreviations["Warrior"] = "Warrior"
+profession_abbreviations["Berserker"] = "Berserker"
+profession_abbreviations["Spellbreaker"] = "SpB"
+profession_abbreviations["Bladesworn"] = "Bl"
+
+profession_abbreviations["Engineer"] = "Engy"
+profession_abbreviations["Scrapper"] = "Scrap"
+profession_abbreviations["Holosmith"] = "Holo"
+profession_abbreviations["Mechanist"] = "Mec"    
+
+profession_abbreviations["Ranger"] = "Ranger"
+profession_abbreviations["Druid"] = "Druid"
+profession_abbreviations["Soulbeast"] = "Soulbeast"
+profession_abbreviations["Untamed"] = "UT"    
+
+profession_abbreviations["Thief"] = "Th"
+profession_abbreviations["Daredevil"] = "DD"
+profession_abbreviations["Deadeye"] = "Deadeye"
+profession_abbreviations["Specter"] = "Spe"
+
+profession_abbreviations["Elementalist"] = "Ele"
+profession_abbreviations["Tempest"] = "Tempest"
+profession_abbreviations["Weaver"] = "Weaver"
+profession_abbreviations["Catalyst"] = "Cata"
+
+profession_abbreviations["Mesmer"] = "Mes"
+profession_abbreviations["Chronomancer"] = "Chrono"
+profession_abbreviations["Mirage"] = "Mir"
+profession_abbreviations["Virtuoso"] = "Vir"
+    
+profession_abbreviations["Necromancer"] = "Necro"
+profession_abbreviations["Reaper"] = "Reaper"
+profession_abbreviations["Scourge"] = "Scourge"
+profession_abbreviations["Harbinger"] = "Harbinger"
+
+
+
 def myprint(output_file, output_string):
     print(output_string)
     output_file.write(output_string+"\n")
 
+def get_name_and_professions(name, professions):
+    name_and_professions = name+" ("
+    for p in range(len(professions[name])-1):
+        name_and_professions += profession_abbreviations[professions[name][p]]+" / "
+    name_and_professions += profession_abbreviations[professions[name][-1]]+")"
+    return name_and_professions
+
+def get_professions(name, profession_dict):
+    professions = ""
+    for p in range(len(profession_dict[name])-1):
+        professions += profession_abbreviations[profession_dict[name][p]]+" / "
+    professions += profession_abbreviations[profession_dict[name][-1]]
+    return professions
+
+def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
+    i = 0
+    top = total_values[sorted_topx[i][0]]
+    top_consistent_players = list()
+    name_length = 0
+
+    # 1) index must be lower than length of the list
+    # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
+    # 3) value must be greater than 0    
+    while i < len(sorted_topx) and (i < num_top_stats or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
+        name = sorted_topx[i][0]
+        if stat == "distance":
+            top_consistent_players.append(name)
+            if len(name) > name_length:
+                name_length = len(name)
+        elif total_values[name] > top * Decimal(0.5):
+            # 4) value must be at least 50% of top value for everything except distance
+            top_consistent_players.append(name)
+            if len(name) > name_length:
+                name_length = len(name)
+        i += 1
+    return top_consistent_players, name_length
+
+def get_topx_total_players(sorted_total_values, num_top_stats):
+    i = 0
+    top = sorted_total_values[i][1]
+    top_total_players = list()
+    name_length = 0
+    
+    # 1) index must be lower than length of the list and desired number of players listed
+    # 2) value must be greater than 0
+    # 3) value must be at least 50% of top value        
+    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
+        name = sorted_total_values[i][0]
+        top_total_players.append(name)
+        if len(name) > name_length:
+            name_length = len(name)
+        i += 1
+    return top_total_players, name_length
+
+def get_topx_percentage_players(sorted_percentages, comparison_percentage, top_player, num_total_fights):
+    i = 0
+    top = sorted_percentages[i][1]
+    top_percentage_players = list()
+    name_length = 0
+    
+    # 1) index must be lower than length of the list
+    # 2) percentage value must be at least top percentage value
+    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != top_player:
+        name = sorted_percentages[i][0]
+        if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
+            top_percentage_players.append(name)
+            if len(name) > name_length:
+                name_length = len(name)
+        i += 1
+    return top_percentage_players, name_length
+        
+def get_profession_and_length(names, professions):
+    profession_strings = {}
+    profession_length = 0
+    for name in names:
+        professions_str = get_professions(name, professions)
+        profession_strings[name] = professions_str
+        if len(professions_str) > profession_length:
+            profession_length = len(professions_str)
+    return profession_strings, profession_length
+    
 # Write the top x people who achieved top x in stat most often.
 # Input:
 # topx_x_times = how often did each player achieve a top x spot in this stat
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-# omit = omit the first n players in the list. Mostly used for distance to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to x+1th most often.
-def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_stats, omit = 0):
-    if len(topx_x_times) <= omit:
+def write_sorted_top_x(output_file, topx_x_times, total_values, professions, stat, num_top_stats):
+    if len(topx_x_times) == 0:
         return
 
     # sort players according to number of times top x was achieved for stat
@@ -33,33 +162,59 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, stat, num_top_st
     myprint(output_file, print_string)
     print_string = "Reached top "+str(num_top_stats)+" most often"
     myprint(output_file, print_string)
+    print_string = "------------------------------------------------------------------------"
+    myprint(output_file, print_string)
 
-    i = omit
-    top = total_values[sorted_topx[i][0]] #sorted_topx[i][1]
+    i = 0
+    top = total_values[sorted_topx[i][0]] 
 
-    # 1) index must be lower than length of the list
-    # 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
-    # 3) value must be greater than 0
-    while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
-        if stat == "distance":
-            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" times"
-        # 4) value must be at least 50% of top value for everything except distance
-        elif total_values[sorted_topx[i][0]] > top * Decimal(0.5):
-            print_string = sorted_topx[i][0]+": "+str(sorted_topx[i][1])+" times (total "+str(total_values[sorted_topx[i][0]])+")"
-        else:
-            i += 1
-            continue
+    # get names that get on the list and their professions
+    top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats)
+    profession_strings, profession_length = get_profession_and_length(top_consistent_players, professions)
+    
+    ## get length of longest name on list
+    #name_length = 0
+    #for name in top_consistent_players:
+    #    if len(name) > name_length:
+    #        name_length = len(name)
+
+    for name in top_consistent_players:
+        #professions_str = get_professions(name, professions)                
+        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {topx_x_times[name]:>2} times"
+        if stat != "distance":
+            print_string += " (total "+str(total_values[name])+")"
+            #print_string += " | total "+str(total_values[name])
         myprint(output_file, print_string)
-        i += 1
-    myprint(output_file, "\n")
+        
+        
+    ## 1) index must be lower than length of the list
+    ## 2) index must be lower than number of output desired + number of omitted entries (don't output more than desired number of players) OR list entry has same value as previous entry, i.e. double place
+    ## 3) value must be greater than 0
+    #while i < len(sorted_topx) and (i < num_top_stats+omit or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
+    #    name = sorted_topx[i][0]
+    #    #name_and_profession = get_name_and_professions(name, professions)
+    #    professions_str = get_professions(name, professions)        
+    #    x = 20
+    #    
+    #    print_string = f"{name:<{x}}"+f"| {professions_str:<10} | "+f"{sorted_topx[i][1]:<2} times"
+    #    if stat != "distance":
+    #        # 4) value must be at least 50% of top value for everything except distance
+    #        if total_values[name] > top * Decimal(0.5):
+    #            #print_string += " | (total "+str(total_values[name])+")"
+    #            print_string += " | total "+str(total_values[name])
+    #        else:
+    #            i += 1
+    #            continue
+    #    myprint(output_file, print_string)
+    #    i += 1
+    ##myprint(output_file, "\n")
 
 # Write the top x people who achieved top x in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top x spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top x spot in 1 of them.
 # Input:
 # topx_x_times = how often did each player achieve a topx spot in this stat
 # num_fights_present = in how many fights was the player present
 # stat = which stat are we looking at (dmg, cleanses, ...)
-# omit = omit the first x player in the list. Mostly used for distance to tag since closest is always the com. Add corresponding number of players at the end, i.e., if omit = 1, print players that had top x stat 2nd to 4th most often.    
-def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, num_total_fights, stat, omit = 0):
+def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present, num_total_fights, professions, stat):
     if len(topx_x_times) == 0:
         return
     
@@ -68,58 +223,80 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, num_fights_present,
         percentages[name] = topx_x_times[name] / num_fights_present[name]
     sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
 
-    i = omit
-    top = sorted_percentages[i][1]
+    # get names that get on the list and their professions
+    sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)    
+    comparison_percentage = sorted_topx[0][1]/num_fights_present[sorted_topx[0][0]]
+    top_player = sorted_topx[0][0]
+    top_percentage_players, name_length = get_topx_percentage_players(sorted_percentages, comparison_percentage, top_player, num_total_fights)
+    profession_strings, profession_length = get_profession_and_length(top_percentage_players, professions)
 
-    # sort players according to number of times top x was achieved for stat. Top percentage = percentage of fights the top persistent player was in.
-    sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
-    comparison_percentage = sorted_topx[i][1]/num_fights_present[sorted_topx[i][0]]
-    #print(sorted_topx[i][0]+" was top and present for "+str(num_fights_present[sorted_topx[i][0]])+" out of "+str(num_total_fights)+" fights")
-
-    #print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
-    #myprint(output_file, print_string)    
+    for name in top_percentage_players:
+        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {percentages[name]*100:.0f>3}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
+        myprint(output_file, print_string)
     
-    # 1) index must be lower than length of the list
-    # 2) percentage value must be at least top percentage value
-    first = True
-    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != sorted_topx[omit][0]:
-        name = sorted_percentages[i][0]
-        if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
-            if first:
-                print_string = "Top "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
-                myprint(output_file, print_string)
-                first = False
-
-            print_string = name+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
-            myprint(output_file, print_string)
-        i += 1
-    if not first:
-        myprint(output_file, "\n")
+    #top = sorted_percentages[i][1]
+    #
+    ## sort players according to number of times top x was achieved for stat. Top percentage = percentage of fights the top persistent player was in.
+    #sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)
+    #comparison_percentage = sorted_topx[i][1]/num_fights_present[sorted_topx[i][0]]
+    ##print(sorted_topx[i][0]+" was top and present for "+str(num_fights_present[sorted_topx[i][0]])+" out of "+str(num_total_fights)+" fights")
+    #
+    ##print_string = "Achieved top "+str(num_top_stats)+" in x% of the fights they were in"
+    ##myprint(output_file, print_string)    
+    #
+    ## 1) index must be lower than length of the list
+    ## 2) percentage value must be at least top percentage value
+    #first = True
+    #while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage and sorted_percentages[i][0] != sorted_topx[omit][0]:
+    #    name = sorted_percentages[i][0]
+    #    if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
+    #        if first:
+    #            print_string = "\nTop "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
+    #            myprint(output_file, print_string)
+    #            print_string = "------------------------------------------------------------------------"                
+    #            myprint(output_file, print_string)                
+    #            first = False
+    #
+    #        name_and_profession = get_name_and_professions(name, professions)
+    #        print_string = name_and_profession+f": {sorted_percentages[i][1]*100:.0f}% ("+str(topx_x_times[name])+" / " + str(num_fights_present[name]) +")"
+    #        myprint(output_file, print_string)
+    #    i += 1
     
 # Write the top x people who achieved top total stat.
 # Input:
 # total_values = stat summed up over all fights
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_total(output_file, total_values, stat, num_top_stats = 3):
+def write_sorted_total(output_file, total_values, professions, stat, num_top_stats = 3):
     if len(total_values) == 0:
         return
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
 
-    print_string = "Top overall "+stat+" (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
+    print_string = "\nTop overall "+stat+" (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
     myprint(output_file, print_string)
-    i = 0
-    top = sorted_total_values[i][1]
+    print_string = "------------------------------------------------------------------------"                
+    myprint(output_file, print_string)                
 
-    # 1) index must be lower than length of the list and desired number of players listed
-    # 2) value must be greater than 0
-    # 3) value must be at least 50% of top value        
-    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
-        print_string = sorted_total_values[i][0]+": "+str(sorted_total_values[i][1])
+    top_total_players, name_length = get_topx_total_players(sorted_total_values, num_top_stats)
+    profession_strings, profession_length = get_profession_and_length(top_total_players, professions)
+
+    for name in top_total_players:
+        print_string = f"{name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f"{total_values[name]:>8}"
         myprint(output_file, print_string)
-        i += 1
-    myprint(output_file, "\n")
+    
+    #i = 0
+    #top = sorted_total_values[i][1]
+    #
+    ## 1) index must be lower than length of the list and desired number of players listed
+    ## 2) value must be greater than 0
+    ## 3) value must be at least 50% of top value        
+    #while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
+    #    name = sorted_total_values[i][0]
+    #    name_and_profession = get_name_and_professions(name, professions)
+    #    print_string = name_and_profession+": "+str(sorted_total_values[i][1])
+    #    myprint(output_file, print_string)
+    #    i += 1
     
 if __name__ == '__main__':
     debug = False # enable / disable debug output
@@ -132,7 +309,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="Minimum of allied players in a fight. Fights with less players will be ignored. Defaults to 10.", default=10)
     parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top <num_top_stats> for most stats. Special cases: Distance to tag and damage. Defaults to 5.", default=5)
     parser.add_argument('-m', '--num_top_stats_dmg', dest="num_top_stats_dmg", type=int, help="Number of players that will be printed for achieving top <num_top_stats_dmg> damage. Defaults to 10.", default=10)    
-    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_true', help="Print players with the top percentage of reaching top x stats. Defaults to False.")    
+    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_false', help="Disable printing players with the top percentage of reaching top x stats.")    
     
     args = parser.parse_args()
 
@@ -149,7 +326,7 @@ if __name__ == '__main__':
 
         
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
-    myprint(log, print_string)
+    print(print_string)
     print_string = "Considering fights with more than "+str(args.minimum_ally_numbers)+" allied players that took longer than "+str(args.minimum_duration)+" s."
     myprint(log, print_string)
         
@@ -168,6 +345,7 @@ if __name__ == '__main__':
     total_distance = collections.defaultdict(int)
 
     num_fights_present = collections.defaultdict(int)
+    professions = collections.defaultdict(list)
     
     stab_id = "1122"
     used_fights = 0
@@ -232,6 +410,10 @@ if __name__ == '__main__':
             name_xml = xml_player.find('name')
             name = name_xml.text
             num_fights_present[name] += 1
+            profession = xml_player.find('profession').text
+            if not profession in professions[name]:
+                professions[name].append(profession)
+            #print(professions[name])
 
             # get damage
             dmg_xml = xml_player.find('dpsAll').find('damage')
@@ -325,10 +507,14 @@ if __name__ == '__main__':
 
         # get top x+1 for distance bc first is always the com. Also throw out negative distance.
         valid_distance = 0
+        first_valid = True
         i = 0
         while i < len(sortedDistance) and valid_distance < args.num_top_stats+1:
             if sortedDistance[i][1] >= 0:
-                top_distance_x_times[sortedDistance[i][0]] += 1
+                if first_valid:
+                    first_valid  = False
+                else:
+                    top_distance_x_times[sortedDistance[i][0]] += 1
                 valid_distance += 1
             i += 1
 
@@ -338,28 +524,47 @@ if __name__ == '__main__':
 
     myprint(log, "\n")
 
-    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."
+    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights.\n"
     myprint(output, print_string)
 
-    write_sorted_top_x(output, top_damage_x_times, total_damage, "damage", args.num_top_stats_dmg)
-    write_sorted_top_x(output, top_strips_x_times, total_strips, "strips", args.num_top_stats)
-    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, "cleanses", args.num_top_stats)
-    write_sorted_top_x(output, top_stab_x_times, total_stab, "stab output", args.num_top_stats)        
-    write_sorted_top_x(output, top_healing_x_times, total_healing, "healing", args.num_top_stats)
-    write_sorted_top_x(output, top_distance_x_times, total_distance, "distance", args.num_top_stats, 1)
-    
-    write_sorted_total(output, total_damage, "damage", args.num_top_stats_dmg)
-    write_sorted_total(output, total_strips, "strips", args.num_top_stats)
-    write_sorted_total(output, total_cleanses, "cleanses", args.num_top_stats)
-    write_sorted_total(output, total_stab, "stab output", args.num_top_stats)
-    write_sorted_total(output, total_healing, "healing", args.num_top_stats)
-    # distance to tag total doesn't make much sense
-
+    myprint(output, "DAMAGE\n")
+    write_sorted_top_x(output, top_damage_x_times, total_damage, professions, "damage", args.num_top_stats_dmg)
+    write_sorted_total(output, total_damage, professions, "damage", args.num_top_stats_dmg)
     if args.print_percentage:
-        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, used_fights, "damage")
-        write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, used_fights, "strips")
-        write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, used_fights, "cleanses")
-        write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, used_fights, "stab")
-        write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, used_fights, "healing")
-        write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, used_fights, "distance", 1)        
+        write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, used_fights, professions, "damage")
+    myprint(output, "\n")    
+        
+    myprint(output, "BOON STRIPS\n")        
+    write_sorted_top_x(output, top_strips_x_times, total_strips, professions, "strips", args.num_top_stats)
+    write_sorted_total(output, total_strips, professions, "strips", args.num_top_stats)
+    if args.print_percentage:
+        write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, used_fights, professions, "strips")
+    myprint(output, "\n")            
+
+    myprint(output, "CONDITION CLEANSES\n")        
+    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, "cleanses", args.num_top_stats)
+    write_sorted_total(output, total_cleanses, professions, "cleanses", args.num_top_stats)
+    if args.print_percentage:
+        write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, used_fights, professions, "cleanses")
+    myprint(output, "\n")    
+        
+    myprint(output, "STABILITY OUTPUT\n")        
+    write_sorted_top_x(output, top_stab_x_times, total_stab, professions, "stab output", args.num_top_stats)        
+    write_sorted_total(output, total_stab, professions, "stab output", args.num_top_stats)
+    if args.print_percentage:
+        write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, used_fights, professions, "stab")
+    myprint(output, "\n")    
+        
+    myprint(output, "HEALING\n")        
+    write_sorted_top_x(output, top_healing_x_times, total_healing, professions, "healing", args.num_top_stats)
+    write_sorted_total(output, total_healing, professions, "healing", args.num_top_stats)
+    if args.print_percentage:
+        write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, used_fights, professions, "healing")
+    myprint(output, "\n")    
+
+    myprint(output, "DISTANCE TO TAG\n")        
+    write_sorted_top_x(output, top_distance_x_times, total_distance, professions, "distance", args.num_top_stats)
+    # distance to tag total doesn't make much sense
+    if args.print_percentage:
+        write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, used_fights, professions, "distance")        
     
