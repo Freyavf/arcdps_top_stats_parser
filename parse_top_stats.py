@@ -168,7 +168,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, att
     if stat == "distance":
         print_string = "Top "+str(num_top_stats)+" "+stat+" consistency awards"
     else:
-        print_string = "Top "+stat+" consistency (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
+        print_string = "Top "+stat+" consistency awards (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
     myprint(output_file, print_string)
     print_string = "Most times placed in the top "+str(num_top_stats)
     myprint(output_file, print_string)
@@ -506,7 +506,8 @@ if __name__ == '__main__':
 
     myprint(log, "\n")
 
-    print_string = "Welcome to the CARROT AWARDS!"
+    print_string = "Welcome to the CARROT AWARDS!\n"
+    myprint(output, print_string)
     
     print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights.\n"
     myprint(output, print_string)
