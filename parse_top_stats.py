@@ -170,9 +170,11 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     else:
         print_string = "Top "+stat+" consistency awards (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
     myprint(output_file, print_string)
-    print_string = "Most times placed in the top "+str(num_top_stats)+". Attendance = number of fights a player was present out of "+used_fights+" total fights."
+    #print_string = "Most times placed in the top "+str(num_top_stats)+". Attendance = number of fights a player was present out of "+str(used_fights)+" total fights."
+    print_string = "Most times placed in the top "+str(num_top_stats)+". \nAttendance = number of fights a player was present out of "+str(used_fights)+" total fights."    
     myprint(output_file, print_string)
-    print_string = "------------------------------------------------------------------------"
+    #print_string = "-----------------------------------------------------------------------------------------------------------"
+    print_string = "-------------------------------------------------------------------------------"    
     myprint(output_file, print_string)
 
     top = total_values[sorted_topx[0][0]] 
@@ -181,7 +183,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats)
     profession_strings, profession_length = get_profession_and_length(top_consistent_players, professions)
 
-    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times"
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times Top"
     if stat != "distance":
         print_string += f" {'Total':>8}"
     myprint(output_file, print_string)    
@@ -193,7 +195,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     for name in top_consistent_players:
         if topx_x_times[name] != last_val:
             place += 1
-        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {num_fights_present[name]:>9}% "+f" {topx_x_times[name]:>5}"
+        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {num_fights_present[name]:>10} "+f" {topx_x_times[name]:>9}"
         if stat != "distance":
             print_string += f" {total_values[name]:>8}"
             #print_string += " | total "+str(total_values[name])
@@ -256,17 +258,18 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
     print_string = "\nTop overall "+stat+" awards (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
     myprint(output_file, print_string)
     print_string = "Attendance = total duration of fights attended out of "
-    if total_fight_duration[h] > 0:
-        print_string += str(total_fight_duration[h])+"h "
-    print_string += str(total_fight_duration[m])+"m "+str(total_fight_duration[s])+"s"    
+    if total_fight_duration["h"] > 0:
+        print_string += str(total_fight_duration["h"])+"h "
+    print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s"    
     myprint(output_file, print_string)
     print_string = "------------------------------------------------------------------------"                
     myprint(output_file, print_string)
 
     top_total_players, name_length = get_topx_total_players(sorted_total_values, num_top_stats)
     profession_strings, profession_length = get_profession_and_length(top_total_players, professions)
-
-    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance"+f" {'Total':>8}"
+    profession_length = max(profession_length, 5)
+    
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>8}"
     myprint(output_file, print_string)    
     
     place = 0
@@ -275,7 +278,16 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
     for name in top_total_players:
         if total_values[name] != last_val:
             place += 1
-        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {duration_fights_present[name]:>9}% "+f"{total_values[name]:>8}"
+
+        fight_time_h = int(duration_fights_present[name]/3600)
+        fight_time_m = int((duration_fights_present[name] - fight_time_h*3600)/60)
+        fight_time_s = int(duration_fights_present[name] - fight_time_h*3600 - fight_time_m*60)
+        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "
+        if fight_time_h > 0:
+            print_string += f" {fight_time_h:>2}h {fight_time_m:>2}m {fight_time_s:>2}s"
+        else:
+            print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
+        print_string += f" {total_values[name]:>8}"
         myprint(output_file, print_string)
         last_val = total_values[name]
     
@@ -529,8 +541,8 @@ if __name__ == '__main__':
     #get total duration in h, m, s
     total_fight_duration = {}
     total_fight_duration["h"] = int(used_fights_duration/3600)
-    total_fight_duration["m"] = int((used_fights_duration - total_h*3600) / 60)
-    total_fight_duration["s"] = int(used_fights_duration - total_h*3600 - total_m*60)
+    total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
+    total_fight_duration["s"] = int(used_fights_duration - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
         
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
@@ -541,7 +553,7 @@ if __name__ == '__main__':
     print_string = "Welcome to the CARROT AWARDS!\n"
     myprint(output, print_string)
     
-    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+"."# fights with a total duration of "+used_fights_duration+".\n"
+    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."# fights with a total duration of "+used_fights_duration+".\n"
     myprint(output, print_string)
 
     print_string = "Squad overall did "+str(all_damage)+" damage, ripped "+str(all_strips)+" boons, cleansed "+str(all_cleanses)+" conditions"        
@@ -549,38 +561,38 @@ if __name__ == '__main__':
         print_string += ", generated "+str(all_stab)+" stability and healed for "+str(all_healing)
     else:
         print_string += " and generated "+str(all_stab)
-    print_string += " over a total time of "+str(total_h)+"h "+str(total_m)+"m "+str(total_s)+"s in "+str(used_fights)+" fights.\n"
+    print_string += " over a total time of "+str(total_fight_duration["h"])+"h "+str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(used_fights)+" fights.\n"
         
     myprint(output, print_string)
 
     
     myprint(output, "DAMAGE AWARDS\n")
-    write_sorted_top_x(output, top_damage_x_times, total_damage, professions, attendance_percentage, "damage", args.num_top_stats_dmg)
-    write_sorted_total(output, total_damage, professions, attendance_percentage, "damage", args.num_top_stats_dmg)
+    write_sorted_top_x(output, top_damage_x_times, total_damage, professions, num_fights_present, used_fights, "damage", args.num_top_stats_dmg)
+    write_sorted_total(output, total_damage, professions, duration_fights_present, total_fight_duration, "damage", args.num_top_stats_dmg)
     myprint(output, "\n")    
         
     myprint(output, "BOON STRIPS AWARDS\n")        
-    write_sorted_top_x(output, top_strips_x_times, total_strips, professions, attendance_percentage, "strips", args.num_top_stats)
-    write_sorted_total(output, total_strips, professions, attendance_percentage, "strips", args.num_top_stats)
+    write_sorted_top_x(output, top_strips_x_times, total_strips, professions, num_fights_present, used_fights, "strips", args.num_top_stats)
+    write_sorted_total(output, total_strips, professions, duration_fights_present, total_fight_duration, "strips", args.num_top_stats)
     myprint(output, "\n")            
 
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
-    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, attendance_percentage, "cleanses", args.num_top_stats)
-    write_sorted_total(output, total_cleanses, professions, attendance_percentage, "cleanses", args.num_top_stats)
+    write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, num_fights_present, used_fights, "cleanses", args.num_top_stats)
+    write_sorted_total(output, total_cleanses, professions, duration_fights_present, total_fight_duration, "cleanses", args.num_top_stats)
     myprint(output, "\n")    
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
-    write_sorted_top_x(output, top_stab_x_times, total_stab, professions, attendance_percentage, "stab output", args.num_top_stats)        
-    write_sorted_total(output, total_stab, professions, attendance_percentage, "stab output", args.num_top_stats)
+    write_sorted_top_x(output, top_stab_x_times, total_stab, professions, num_fights_present, used_fights, "stab output", args.num_top_stats)        
+    write_sorted_total(output, total_stab, professions, duration_fights_present, total_fight_duration, "stab output", args.num_top_stats)
     myprint(output, "\n")    
         
     myprint(output, "HEALING AWARDS\n")        
-    write_sorted_top_x(output, top_healing_x_times, total_healing, professions, attendance_percentage, "healing", args.num_top_stats)
-    write_sorted_total(output, total_healing, professions, attendance_percentage, "healing", args.num_top_stats)
+    write_sorted_top_x(output, top_healing_x_times, total_healing, professions, num_fights_present, used_fights, "healing", args.num_top_stats)
+    write_sorted_total(output, total_healing, professions, duration_fights_present, total_fight_duration, "healing", args.num_top_stats)
     myprint(output, "\n")    
 
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")        
-    write_sorted_top_x(output, top_distance_x_times, total_distance, professions, attendance_percentage, "distance", args.num_top_stats)
+    write_sorted_top_x(output, top_distance_x_times, total_distance, professions, num_fights_present, used_fights, "distance", args.num_top_stats)
     # distance to tag total doesn't make much sense
     myprint(output, "\n")
     
