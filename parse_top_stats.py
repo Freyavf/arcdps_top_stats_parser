@@ -542,9 +542,8 @@ if __name__ == '__main__':
     # distance to tag total doesn't make much sense
     myprint(output, "\n")
     
-    myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
-
     if args.print_percentage:
+        myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
         write_sorted_top_x_percentage(output, top_damage_x_times, num_fights_present, used_fights, professions, "damage")
         write_sorted_top_x_percentage(output, top_strips_x_times, num_fights_present, used_fights, professions, "strips")
         write_sorted_top_x_percentage(output, top_cleanses_x_times, num_fights_present, used_fights, professions, "cleanses")
