@@ -322,10 +322,24 @@ if __name__ == '__main__':
     total_distance = collections.defaultdict(int)
 
     num_fights_present = collections.defaultdict(int)
+    duration_fights_present = collections.defaultdict(int)
     professions = collections.defaultdict(list)
+
+    # healing only in xml if addon was installed
+    found_healing = False
+
+    # overall stats over whole squad
+    all_damage = 0
+    all_strips = 0
+    all_cleanses = 0
+    all_stab = 0
+    all_healing = 0
+    all_deaths = 0
+    all_kills = 0
     
     stab_id = "1122"
     used_fights = 0
+    used_fights_duration = 0
     total_fights = 0
     
     # iterating over all fights in directory
@@ -369,6 +383,7 @@ if __name__ == '__main__':
             continue
 
         used_fights += 1
+        used_fights_duration += duration
 
         # dictionaries for stats for each player in this fight
         damage = {}
@@ -378,15 +393,13 @@ if __name__ == '__main__':
         healing = {}
         distance = {}
 
-        # healing only in xml if addon was installed
-        found_healing = False
-        
         # get stats for each player
         for xml_player in xml_root.iter('players'):
             # get player name -> was present in this fight
             name_xml = xml_player.find('name')
             name = name_xml.text
             num_fights_present[name] += 1
+            duration_fights_present[name] += duration
             profession = xml_player.find('profession').text
             if not profession in professions[name]:
                 professions[name].append(profession)
@@ -449,6 +462,13 @@ if __name__ == '__main__':
             # distance sometimes -1 for some reason
             if distance[name] >= 0:
                 total_distance[name] += distance[name]
+
+            all_damage += damage[name]
+            all_strips += strips[name]
+            all_cleanses += cleanses[name]
+            all_stab += stab[name]
+            if found_healing:
+                all_healing += healing[name]
             
         #print("\n")
 
@@ -500,6 +520,8 @@ if __name__ == '__main__':
     for name in num_fights_present.keys():
         attendance_percentage[name] = int(num_fights_present[name]/used_fights*100)
 
+
+        
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
@@ -550,3 +572,17 @@ if __name__ == '__main__':
         write_sorted_top_x_percentage(output, top_stab_x_times, num_fights_present, used_fights, professions, "stab")
         write_sorted_top_x_percentage(output, top_healing_x_times, num_fights_present, used_fights, professions, "healing")        
         write_sorted_top_x_percentage(output, top_distance_x_times, num_fights_present, used_fights, professions, "distance")        
+
+    #get total duration in h, m, s
+    total_h = int(used_fights_duration/3600)
+    total_m = int((used_fights_duration - total_h*3600) / 60)
+    total_s = int(used_fights_duration - total_h*3600 - total_m*60)
+        
+    print_string = "\nSquad overall did "+str(all_damage)+" damage, ripped "+str(all_strips)+" boons, cleansed "+str(all_cleanses)+" conditions"        
+    if found_healing:
+        print_string += ", generated "+str(all_stab)+" stability and healed for "+str(all_healing)
+    else:
+        print_string += " and generated "+str(all_stab)
+    print_string += " over a total time of "+str(total_h)+"h "+str(total_m)+"m "+str(total_s)+"s in "+str(used_fights)+" fights."
+        
+    myprint(output, print_string)
