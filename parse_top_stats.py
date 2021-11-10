@@ -186,6 +186,9 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times Top"
     if stat != "distance":
         print_string += f" {'Total':>8}"
+    if stat == "stab output":
+        print_string += f"  {'Average':>7}"
+        
     myprint(output_file, print_string)    
 
     
@@ -197,8 +200,12 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
             place += 1
         print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {num_fights_present[name]:>10} "+f" {topx_x_times[name]:>9}"
         if stat != "distance":
-            print_string += f" {total_values[name]:>8}"
+            print_string += f" {round(total_values[name], 2):>8}"
             #print_string += " | total "+str(total_values[name])
+        if stat == "stab output":
+            average = round(total_values[name]/duration_fights_present[name], 2)
+            print_string += f" {average:>8}"
+
         myprint(output_file, print_string)
         last_val = topx_x_times[name]
 
@@ -277,6 +284,8 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
     profession_length = max(profession_length, 5)
     
     print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>8}"
+    if stat == "stab output":
+        print_string += f"  {'Average':>7}"
     myprint(output_file, print_string)    
     
     place = 0
@@ -294,7 +303,13 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
             print_string += f" {fight_time_h:>2}h {fight_time_m:>2}m {fight_time_s:>2}s"
         else:
             print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
-        print_string += f" {total_values[name]:>8}"
+
+        if stat == "stab output":
+            print_string += f" {round(total_values[name], 2):>8}"
+            average = round(total_values[name]/duration_fights_present[name], 2)
+            print_string += f" {average:>8}"
+        else:
+            print_string += f" {total_values[name]:>8}"
         myprint(output_file, print_string)
         last_val = total_values[name]
 
@@ -487,7 +502,7 @@ if __name__ == '__main__':
             total_damage[name] += damage[name]
             total_strips[name] += strips[name]
             total_cleanses[name] += cleanses[name]
-            total_stab[name] += stab[name]
+            total_stab[name] += stab[name]*duration
             if found_healing:
                 total_healing[name] += healing[name]
             # distance sometimes -1 for some reason
@@ -497,7 +512,7 @@ if __name__ == '__main__':
             all_damage += damage[name]
             all_strips += strips[name]
             all_cleanses += cleanses[name]
-            all_stab += stab[name]
+            all_stab += stab[name]*duration
             if found_healing:
                 all_healing += healing[name]
             
@@ -557,7 +572,12 @@ if __name__ == '__main__':
     total_fight_duration["h"] = int(used_fights_duration/3600)
     total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
     total_fight_duration["s"] = int(used_fights_duration - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
-        
+
+    total_stab_duration = {}
+    total_stab_duration["h"] = int(all_stab/3600)
+    total_stab_duration["m"] = int((all_stab - total_stab_duration["h"]*3600)/60)
+    total_stab_duration["s"] = int(all_stab - total_stab_duration["h"]*3600 - total_stab_duration["m"]*60)    
+    
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
@@ -567,14 +587,17 @@ if __name__ == '__main__':
     print_string = "Welcome to the CARROT AWARDS!\n"
     myprint(output, print_string)
     
-    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights."# fights with a total duration of "+used_fights_duration+".\n"
+    print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights.\n"# fights with a total duration of "+used_fights_duration+".\n"
     myprint(output, print_string)
 
     # print total squad stats
-    print_string = "Squad overall did "+str(all_damage)+" damage, ripped "+str(all_strips)+" boons, cleansed "+str(all_cleanses)+" conditions, \ngenerated "+str(all_stab)+" stability"        
+    print_string = "Squad overall did "+str(all_damage)+" damage, ripped "+str(all_strips)+" boons, cleansed "+str(all_cleanses)+" conditions, \ngenerated "
+    if total_stab_duration["h"] > 0:
+        print_string += str(total_stab_duration["h"])+"h "
+    print_string += str(total_stab_duration["m"])+"m "+str(total_stab_duration["s"])+"s of stability"        
     if found_healing:
         print_string += ", healed for "+str(all_healing)
-    print_string += ", killed "+str(all_kills)+" enemies and had "+str(all_deaths)+" deaths \nover a total time of "
+    print_string += ", \nkilled "+str(all_kills)+" enemies and had "+str(all_deaths)+" deaths \nover a total time of "
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(used_fights)+" fights.\n"
