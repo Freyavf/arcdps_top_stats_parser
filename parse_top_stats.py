@@ -185,7 +185,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
 
     print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times Top"
     if stat != "distance":
-        print_string += f" {'Total':>8}"
+        print_string += f" {'Total':>9}"
     if stat == "stab output":
         print_string += f"  {'Average':>7}"
         
@@ -199,12 +199,13 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
         if topx_x_times[name] != last_val:
             place += 1
         print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} "+f" {num_fights_present[name]:>10} "+f" {topx_x_times[name]:>9}"
-        if stat != "distance":
+        if stat != "distance" and stat != "stab output":
             print_string += f" {round(total_values[name], 2):>8}"
             #print_string += " | total "+str(total_values[name])
         if stat == "stab output":
             average = round(total_values[name]/duration_fights_present[name], 2)
-            print_string += f" {average:>8}"
+            total = round(total_values[name], 2)
+            print_string += f" {total:>8}s"+f" {average:>8}"
 
         myprint(output_file, print_string)
         last_val = topx_x_times[name]
@@ -283,7 +284,7 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
     profession_strings, profession_length = get_profession_and_length(top_total_players, professions)
     profession_length = max(profession_length, 5)
     
-    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>8}"
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>9}"
     if stat == "stab output":
         print_string += f"  {'Average':>7}"
     myprint(output_file, print_string)    
@@ -305,7 +306,7 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
             print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
 
         if stat == "stab output":
-            print_string += f" {round(total_values[name], 2):>8}"
+            print_string += f" {round(total_values[name], 2):>8}s"
             average = round(total_values[name]/duration_fights_present[name], 2)
             print_string += f" {average:>8}"
         else:
@@ -361,6 +362,8 @@ if __name__ == '__main__':
     total_healing = collections.defaultdict(int)    
     total_distance = collections.defaultdict(int)
 
+    num_players_per_fight = list()
+    
     num_fights_present = collections.defaultdict(int)
     duration_fights_present = collections.defaultdict(int)
     professions = collections.defaultdict(list)
@@ -424,6 +427,7 @@ if __name__ == '__main__':
 
         used_fights += 1
         used_fights_duration += duration
+        num_players_per_fight.append(num_allies)
 
         # dictionaries for stats for each player in this fight
         damage = {}
@@ -601,6 +605,7 @@ if __name__ == '__main__':
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(used_fights)+" fights.\n"
+    print_string += "There were between "+str(min(num_players_per_fight))+" and "+str(max(num_players_per_fight))+" allied players involved.\n"    
         
     myprint(output, print_string)
 
