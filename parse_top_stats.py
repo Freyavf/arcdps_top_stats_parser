@@ -2,21 +2,22 @@
 from dataclasses import dataclass,field
 
 import argparse
-import collections
+from collections import namedtuple,defaultdict
 import os.path
 from os import listdir
 import sys
 import xml.etree.ElementTree as ET
 from decimal import *
 
-@dataclass
-class Stats:
-    dmg: float
-    rips: float
-    stab: float
-    cleanses: float
-    heal: float
-    dist: float
+#@dataclass
+#class Stats:
+Stats = namedtuple('Stats', 'dmg rips stab cleanses heal dist')
+#    dmg: float
+#    rips: float
+#    stab: float
+#    cleanses: float
+#    heal: float
+#    dist: float
 
 @dataclass
 class Player:
@@ -25,7 +26,8 @@ class Player:
     profession: str
     num_fights_present: int
     duration_fights_present: int
-
+    num_other_professions: int
+    
     total_stats: Stats
     #total_dmg: int = 0
     #total_rips: int = 0
@@ -70,81 +72,103 @@ def myprint(output_file, output_string):
     print(output_string)
     output_file.write(output_string+"\n")
 
-    
-def get_name_and_professions(name, professions):
-    name_and_professions = name+" ("
-    for p in range(len(professions[name])-1):
-        name_and_professions += profession_abbreviations[professions[name][p]]+" / "
-    name_and_professions += profession_abbreviations[professions[name][-1]]+")"
-    return name_and_professions
+ 
+#def get_name_and_professions(name, professions):
+#    name_and_professions = name+" ("
+#    for p in range(len(professions[name])-1):
+#        name_and_professions += profession_abbreviations[professions[name][p]]+" / "
+#    name_and_professions += profession_abbreviations[professions[name][-1]]+")"
+#    return name_and_professions
+#
+#
+#def get_professions(name, profession_dict):
+#    professions = ""
+#    for p in range(len(profession_dict[name])-1):
+#        professions += profession_abbreviations[profession_dict[name][p]]+" / "
+#    professions += profession_abbreviations[profession_dict[name][-1]]
+#    return professions
 
-
-def get_professions(name, profession_dict):
-    professions = ""
-    for p in range(len(profession_dict[name])-1):
-        professions += profession_abbreviations[profession_dict[name][p]]+" / "
-    professions += profession_abbreviations[profession_dict[name][-1]]
-    return professions
-
-
-def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats, percentage_of_top):
+# players = list of Players
+# sorting = list of indices corresponding to players in players list
+# config = the configuration being used to determine topx consistent players
+# stat = which stat are we considering
+def get_topx_consistent_players(players, sorting, config, stat):
     i = 0
-    top = total_values[sorted_topx[i][0]]
+    top = players[sorting[0]].total_stats(stat)
     top_consistent_players = list()
     name_length = 0
 
     # 1) index must be lower than length of the list
     # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
     # 3) value must be greater than 0    
-    while i < len(sorted_topx) and (i < num_top_stats or sorted_topx[i][1] == sorted_topx[i-1][1]) and sorted_topx[i][1] > 0:
-        name = sorted_topx[i][0]
+    while i < len(sorting) and (i < config.num_players_listed or players[sorting[i]].total_stats(stat) == players[sorting[i-1]].total_stats(stat)) and players[sorting[i]].total_stats(stat) > 0:
+        name = players[sorting[i]].name
         if stat == "distance":
-            top_consistent_players.append(name)
+            top_consistent_players.append(sorting[i])
             if len(name) > name_length:
                 name_length = len(name)
-        elif total_values[name] > top * Decimal(percentage_of_top):
+        elif players[sorting[i]].total_stats(stat) > top * Decimal(config.percentage_of_top_for_consistent):
             # 4) value must be at least 50% of top value for everything except distance
-            top_consistent_players.append(name)
+            top_consistent_players.append(sorting[i])
             if len(name) > name_length:
                 name_length = len(name)
         i += 1
-    return top_consistent_players, name_length
+    return top_consistent_players, name_length    
+    
 
-
-def get_topx_total_players(sorted_total_values, num_top_stats, percentage_of_top):
+# players = list of Players
+# sorting = list of indices corresponding to players in players list
+# config = the configuration being used to determine topx consistent players
+# stat = which stat are we considering
+def get_topx_total_players(players, sorting, config, stat):
     i = 0
-    top = sorted_total_values[i][1]
+    top = players[sorting[0]].total_stats(stat)
     top_total_players = list()
     name_length = 0
     
     # 1) index must be lower than length of the list and desired number of players listed
     # 2) value must be greater than 0
     # 3) value must be at least 50% of top value        
-    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(percentage_of_top):
-        name = sorted_total_values[i][0]
-        top_total_players.append(name)
+    while i < min(len(sorting), config.num_players_listed(stat)) and players[sorting[i]].total_stats(stat) > 0 and players[sorting[i]].total_stats(stat) > top * Decimal(config.percentage_of_top_for_total):
+        name = players[sorting[i]].name
+        top_total_players.append(sorting[i])
         if len(name) > name_length:
             name_length = len(name)
         i += 1
     return top_total_players, name_length
 
 
-def get_topx_percentage_players(sorted_percentages, comparison_percentage, num_total_fights, top_consistent_players, top_total_players):
+# players = list of Players
+# sorting = list of indices corresponding to players in players list
+# config = the configuration being used to determine topx consistent players
+# stat = which stat are we considering
+def get_topx_percentage_players(players, sorting, config, stat, comparison_percentage, late_or_swapping, num_total_fights, top_consistent_players, top_total_players):
+    #sorted_percentages, comparison_percentage, num_total_fights, top_consistent_players, top_total_players):
     i = 0
-    top = sorted_percentages[i][1]
+    top = players[sorting[0]].total_stats(stat)
     top_percentage_players = list()
     name_length = 0
     
-    # 1) index must be lower than length of the list
-    # 2) percentage value must be at least top percentage value
-    while i < len(sorted_percentages) and sorted_percentages[i][1] >= comparison_percentage: #*0.5:
-        if sorted_percentages[i][0] in top_consistent_players or sorted_percentages[i][0] in top_total_players:
+    comparison_value = 0
+    min_attendance = 0
+    if late_or_swapping == "late":
+        comparison_value = comparison_percentage * config.percentage_of_top_for_late/100
+        min_attendance = config.attendance_percentage_for_late/100 * num_total_fights
+    else:
+        comparison_value = comparison_percentage * config.percentage_of_top_for_buildswap/100
+        min_attendance = config.attendance_percentage_for_buildswap/100 * num_total_fights        
+
+        
+     # 1) index must be lower than length of the list
+    # 2) percentage value must be at least comparison percentage value
+   while i < len(sorting) and players[sorting[i]].percentage_stats(stat) >= comparison_value:
+        if sorting[i] in top_consistent_players or sorting[i] in top_total_players:
             i += 1
             continue
-        name = sorted_percentages[i][0]
-        if num_fights_present[name] < num_total_fights and num_fights_present[name] > 0.5*num_total_fights:
-            top_percentage_players.append(name)
-            if len(name) > name_length:
+        player = players[sorting[i]]
+        if player.num_fights_present < num_total_fights and player.num_fights_present > min_attendance
+            top_percentage_players.append(sorting[i])
+            if len(player.name) > name_length:
                 name_length = len(name)
         i += 1
     return top_percentage_players, name_length
