@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from dataclasses import dataclass,field
 
 import argparse
 import collections
@@ -8,9 +9,63 @@ import sys
 import xml.etree.ElementTree as ET
 from decimal import *
 
+@dataclass
+class Stats:
+    dmg: float
+    rips: float
+    stab: float
+    cleanses: float
+    heal: float
+    dist: float
+
+@dataclass
+class Player:
+    account: str
+    name: str
+    profession: str
+    num_fights_present: int
+    duration_fights_present: int
+
+    total_stats: Stats
+    #total_dmg: int = 0
+    #total_rips: int = 0
+    #total_stab: float = 0.
+    #total_cleanses: int = 0
+    #total_heal: int = 0
+
+    num_top_x_stats: Stats
+    #num_top_x_dmg: int = 0
+    #num_top_x_rips: int = 0
+    #num_top_x_stab: int = 0
+    #num_top_x_cleanses: int = 0
+    #num_top_x_heal: int = 0
+    #num_top_x_dist: int = 0
+
+    percentage_top_x_stats: Stats
+    #percentage_top_x_dmg: int = 0
+    #percentage_top_x_rips: int = 0
+    #percentage_top_x_stab: int = 0
+    #percentage_top_x_cleanses: int = 0
+    #percentage_top_x_heal: int = 0
+    #percentage_top_x_dist: int = 0
+
+@dataclass
+class Config:
+    num_players_listed:  Stats
+    num_players_considered_top: Stats
+    
+    attendance_percentage_for_late: float
+    attendance_percentage_for_buildswap: float
+    
+    percentage_of_top_for_late: float
+    percentage_of_top_for_buildswap: float
+
+    min_allied_players: int
+    min_fight_duration: int
+    min_enemy_players: int
 
 
-
+    
 def myprint(output_file, output_string):
     print(output_string)
     output_file.write(output_string+"\n")
