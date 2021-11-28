@@ -9,52 +9,6 @@ import xml.etree.ElementTree as ET
 from decimal import *
 
 
-profession_abbreviations = {}
-profession_abbreviations["Guardian"] = "Guard"
-profession_abbreviations["Dragonhunter"] = "DH"
-profession_abbreviations["Firebrand"] = "FB"
-profession_abbreviations["Willbender"] = "WB"
-
-profession_abbreviations["Revenant"] = "Rev"
-profession_abbreviations["Herald"] = "Herald"
-profession_abbreviations["Renegade"] = "Ren"
-profession_abbreviations["Vindicator"] = "Vin"    
-
-profession_abbreviations["Warrior"] = "Warrior"
-profession_abbreviations["Berserker"] = "Berserker"
-profession_abbreviations["Spellbreaker"] = "SpB"
-profession_abbreviations["Bladesworn"] = "Bl"
-
-profession_abbreviations["Engineer"] = "Engy"
-profession_abbreviations["Scrapper"] = "Scrap"
-profession_abbreviations["Holosmith"] = "Holo"
-profession_abbreviations["Mechanist"] = "Mec"    
-
-profession_abbreviations["Ranger"] = "Ranger"
-profession_abbreviations["Druid"] = "Druid"
-profession_abbreviations["Soulbeast"] = "Soulbeast"
-profession_abbreviations["Untamed"] = "UT"    
-
-profession_abbreviations["Thief"] = "Th"
-profession_abbreviations["Daredevil"] = "DD"
-profession_abbreviations["Deadeye"] = "Deadeye"
-profession_abbreviations["Specter"] = "Spe"
-
-profession_abbreviations["Elementalist"] = "Ele"
-profession_abbreviations["Tempest"] = "Tempest"
-profession_abbreviations["Weaver"] = "Weaver"
-profession_abbreviations["Catalyst"] = "Cata"
-
-profession_abbreviations["Mesmer"] = "Mes"
-profession_abbreviations["Chronomancer"] = "Chrono"
-profession_abbreviations["Mirage"] = "Mir"
-profession_abbreviations["Virtuoso"] = "Vir"
-    
-profession_abbreviations["Necromancer"] = "Necro"
-profession_abbreviations["Reaper"] = "Reaper"
-profession_abbreviations["Scourge"] = "Scourge"
-profession_abbreviations["Harbinger"] = "Harbinger"
-
 
 
 def myprint(output_file, output_string):
