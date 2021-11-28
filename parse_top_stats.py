@@ -78,7 +78,7 @@ def get_professions(name, profession_dict):
     return professions
 
 
-def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
+def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats, percentage_of_top):
     i = 0
     top = total_values[sorted_topx[i][0]]
     top_consistent_players = list()
@@ -93,7 +93,7 @@ def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
             top_consistent_players.append(name)
             if len(name) > name_length:
                 name_length = len(name)
-        elif total_values[name] > top * Decimal(0.5):
+        elif total_values[name] > top * Decimal(percentage_of_top):
             # 4) value must be at least 50% of top value for everything except distance
             top_consistent_players.append(name)
             if len(name) > name_length:
@@ -102,7 +102,7 @@ def get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats):
     return top_consistent_players, name_length
 
 
-def get_topx_total_players(sorted_total_values, num_top_stats):
+def get_topx_total_players(sorted_total_values, num_top_stats, percentage_of_top):
     i = 0
     top = sorted_total_values[i][1]
     top_total_players = list()
@@ -111,7 +111,7 @@ def get_topx_total_players(sorted_total_values, num_top_stats):
     # 1) index must be lower than length of the list and desired number of players listed
     # 2) value must be greater than 0
     # 3) value must be at least 50% of top value        
-    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(0.5):
+    while i < min(len(sorted_total_values), num_top_stats) and sorted_total_values[i][1] > 0 and sorted_total_values[i][1] > top * Decimal(percentage_of_top):
         name = sorted_total_values[i][0]
         top_total_players.append(name)
         if len(name) > name_length:
@@ -158,7 +158,8 @@ def get_profession_and_length(names, professions):
 # total_values = what's the summed up value over all fights for this stat for each player
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num_fights_present, used_fights, stat, num_top_stats):
+def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num_fights_present, used_fights, stat, num_top_stats, percentage_of_top):
+    
     if len(topx_x_times) == 0:
         return
 
@@ -168,7 +169,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     if stat == "distance":
         print_string = "Top "+str(num_top_stats)+" "+stat+" consistency awards"
     else:
-        print_string = "Top "+stat+" consistency awards (Max. "+str(num_top_stats)+" people, min. 50% of most consistent)"
+        print_string = "Top "+stat+" consistency awards (Max. "+str(num_top_stats)+" people, min. "+str(round(percentage_of_top*100.))+"% of most consistent)"
     myprint(output_file, print_string)
     #print_string = "Most times placed in the top "+str(num_top_stats)+". Attendance = number of fights a player was present out of "+str(used_fights)+" total fights."
     print_string = "Most times placed in the top "+str(num_top_stats)+". \nAttendance = number of fights a player was present out of "+str(used_fights)+" total fights."    
@@ -180,7 +181,7 @@ def write_sorted_top_x(output_file, topx_x_times, total_values, professions, num
     top = total_values[sorted_topx[0][0]] 
 
     # get names that get on the list and their professions
-    top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats)
+    top_consistent_players, name_length = get_topx_consistent_players(sorted_topx, total_values, stat, num_top_stats, percentage_of_top)
     profession_strings, profession_length = get_profession_and_length(top_consistent_players, professions)
 
     print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times Top"
@@ -264,13 +265,13 @@ def write_sorted_top_x_percentage(output_file, topx_x_times, total_values, num_f
 # total_values = stat summed up over all fights
 # stat = which stat are we looking at (dmg, cleanses, ...)
 # num_top_stats = number of players to print
-def write_sorted_total(output_file, total_values, professions, duration_fights_present, total_fight_duration, stat, num_top_stats = 3):
+def write_sorted_total(output_file, total_values, professions, duration_fights_present, total_fight_duration, stat, num_top_stats, percentage_of_top):
     if len(total_values) == 0:
         return
 
     sorted_total_values = sorted(total_values.items(), key=lambda x:x[1], reverse=True)    
 
-    print_string = "\nTop overall "+stat+" awards (Max. "+str(num_top_stats)+" people, min. 50% of 1st place)"
+    print_string = "\nTop overall "+stat+" awards (Max. "+str(num_top_stats)+" people, min. "+str(round(percentage_of_top*100.))+"% of 1st place)"
     myprint(output_file, print_string)
     print_string = "Attendance = total duration of fights attended out of "
     if total_fight_duration["h"] > 0:
@@ -280,7 +281,7 @@ def write_sorted_total(output_file, total_values, professions, duration_fights_p
     print_string = "------------------------------------------------------------------------"                
     myprint(output_file, print_string)
 
-    top_total_players, name_length = get_topx_total_players(sorted_total_values, num_top_stats)
+    top_total_players, name_length = get_topx_total_players(sorted_total_values, num_top_stats, percentage_of_top)
     profession_strings, profession_length = get_profession_and_length(top_total_players, professions)
     profession_length = max(profession_length, 5)
     
@@ -327,7 +328,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--ally_numbers', dest="minimum_ally_numbers", type=int, help="Minimum of allied players in a fight. Fights with less players will be ignored. Defaults to 10.", default=10)
     parser.add_argument('-n', '--num_top_stats', dest="num_top_stats", type=int, help="Number of players that will be printed for achieving top <num_top_stats> for most stats. Special cases: Distance to tag and damage. Defaults to 5.", default=5)
     parser.add_argument('-m', '--num_top_stats_dmg', dest="num_top_stats_dmg", type=int, help="Number of players that will be printed for achieving top <num_top_stats_dmg> damage. Defaults to 10.", default=10)    
-    parser.add_argument('-p', '--print_percentage', dest="print_percentage", action='store_false', help="Disable printing players with the top percentage of reaching top x stats.")    
+    parser.add_argument('-p', '--percentage_of_top', dest="percentage_of_top", type=int, help="Minimum percentage of the top player that has to be reached to get an award. Defaults to 50%.", default=50)    
     
     args = parser.parse_args()
 
@@ -341,7 +342,7 @@ if __name__ == '__main__':
 
     output = open(args.output_filename, "w")
     log = open(args.log_file, "w")
-
+    top_percentage_frac = args.percentage_of_top/100.
         
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
@@ -611,44 +612,43 @@ if __name__ == '__main__':
 
     
     myprint(output, "DAMAGE AWARDS\n")
-    top_consistent_damagers = write_sorted_top_x(output, top_damage_x_times, total_damage, professions, num_fights_present, used_fights, "damage", args.num_top_stats_dmg)
-    top_total_damagers = write_sorted_total(output, total_damage, professions, duration_fights_present, total_fight_duration, "damage", args.num_top_stats_dmg)
+    top_consistent_damagers = write_sorted_top_x(output, top_damage_x_times, total_damage, professions, num_fights_present, used_fights, "damage", args.num_top_stats_dmg, top_percentage_frac)
+    top_total_damagers = write_sorted_total(output, total_damage, professions, duration_fights_present, total_fight_duration, "damage", args.num_top_stats_dmg, top_percentage_frac)
     myprint(output, "\n")    
         
     myprint(output, "BOON STRIPS AWARDS\n")        
-    top_consistent_strippers = write_sorted_top_x(output, top_strips_x_times, total_strips, professions, num_fights_present, used_fights, "strips", args.num_top_stats)
-    top_total_strippers = write_sorted_total(output, total_strips, professions, duration_fights_present, total_fight_duration, "strips", args.num_top_stats)
+    top_consistent_strippers = write_sorted_top_x(output, top_strips_x_times, total_strips, professions, num_fights_present, used_fights, "strips", args.num_top_stats, top_percentage_frac)
+    top_total_strippers = write_sorted_total(output, total_strips, professions, duration_fights_present, total_fight_duration, "strips", args.num_top_stats, top_percentage_frac)
     myprint(output, "\n")            
 
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
-    top_consistens_cleaners = write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, num_fights_present, used_fights, "cleanses", args.num_top_stats)
-    top_total_cleaners = write_sorted_total(output, total_cleanses, professions, duration_fights_present, total_fight_duration, "cleanses", args.num_top_stats)
+    top_consistens_cleaners = write_sorted_top_x(output, top_cleanses_x_times, total_cleanses, professions, num_fights_present, used_fights, "cleanses", args.num_top_stats, top_percentage_frac)
+    top_total_cleaners = write_sorted_total(output, total_cleanses, professions, duration_fights_present, total_fight_duration, "cleanses", args.num_top_stats, top_percentage_frac)
     myprint(output, "\n")    
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
-    top_consistent_stabbers = write_sorted_top_x(output, top_stab_x_times, total_stab, professions, num_fights_present, used_fights, "stab output", args.num_top_stats)        
-    top_total_stabbers = write_sorted_total(output, total_stab, professions, duration_fights_present, total_fight_duration, "stab output", args.num_top_stats)
+    top_consistent_stabbers = write_sorted_top_x(output, top_stab_x_times, total_stab, professions, num_fights_present, used_fights, "stab output", args.num_top_stats, top_percentage_frac)        
+    top_total_stabbers = write_sorted_total(output, total_stab, professions, duration_fights_present, total_fight_duration, "stab output", args.num_top_stats, top_percentage_frac)
     myprint(output, "\n")    
 
     top_consistent_healers = list()
     top_total_healers = list()    
     if found_healing:
         myprint(output, "HEALING AWARDS\n")        
-        top_consistent_healers = write_sorted_top_x(output, top_healing_x_times, total_healing, professions, num_fights_present, used_fights, "healing", args.num_top_stats)
-        top_total_healers = write_sorted_total(output, total_healing, professions, duration_fights_present, total_fight_duration, "healing", args.num_top_stats)
+        top_consistent_healers = write_sorted_top_x(output, top_healing_x_times, total_healing, professions, num_fights_present, used_fights, "healing", args.num_top_stats, top_percentage_frac)
+        top_total_healers = write_sorted_total(output, total_healing, professions, duration_fights_present, total_fight_duration, "healing", args.num_top_stats, top_percentage_frac)
         myprint(output, "\n")    
 
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")        
-    top_consistent_distancers = write_sorted_top_x(output, top_distance_x_times, total_distance, professions, num_fights_present, used_fights, "distance", args.num_top_stats)
+    top_consistent_distancers = write_sorted_top_x(output, top_distance_x_times, total_distance, professions, num_fights_present, used_fights, "distance", args.num_top_stats, top_percentage_frac)
     # distance to tag total doesn't make much sense
     myprint(output, "\n")
     
-    if args.print_percentage:
-        myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
-        write_sorted_top_x_percentage(output, top_damage_x_times, total_damage, num_fights_present, used_fights, professions, "damage", top_consistent_damagers, top_total_damagers)
-        write_sorted_top_x_percentage(output, top_strips_x_times, total_strips, num_fights_present, used_fights, professions, "strips", top_consistent_strippers, top_total_strippers)
-        write_sorted_top_x_percentage(output, top_cleanses_x_times, total_cleanses, num_fights_present, used_fights, professions, "cleanses", top_consistens_cleaners, top_total_cleaners)
-        write_sorted_top_x_percentage(output, top_stab_x_times, total_stab, num_fights_present, used_fights, professions, "stab", top_consistent_stabbers, top_total_stabbers)
-        write_sorted_top_x_percentage(output, top_healing_x_times, total_healing, num_fights_present, used_fights, professions, "healing", top_consistent_healers, top_total_healers)        
-        write_sorted_top_x_percentage(output, top_distance_x_times, total_distance, num_fights_present, used_fights, professions, "distance", top_consistent_distancers)        
+    myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
+    write_sorted_top_x_percentage(output, top_damage_x_times, total_damage, num_fights_present, used_fights, professions, "damage", top_consistent_damagers, top_total_damagers)
+    write_sorted_top_x_percentage(output, top_strips_x_times, total_strips, num_fights_present, used_fights, professions, "strips", top_consistent_strippers, top_total_strippers)
+    write_sorted_top_x_percentage(output, top_cleanses_x_times, total_cleanses, num_fights_present, used_fights, professions, "cleanses", top_consistens_cleaners, top_total_cleaners)
+    write_sorted_top_x_percentage(output, top_stab_x_times, total_stab, num_fights_present, used_fights, professions, "stab", top_consistent_stabbers, top_total_stabbers)
+    write_sorted_top_x_percentage(output, top_healing_x_times, total_healing, num_fights_present, used_fights, professions, "healing", top_consistent_healers, top_total_healers)        
+    write_sorted_top_x_percentage(output, top_distance_x_times, total_distance, num_fights_present, used_fights, professions, "distance", top_consistent_distancers)        
 
