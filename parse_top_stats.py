@@ -66,13 +66,13 @@ class Config:
     num_players_listed:  Stats
     num_players_considered_top: Stats
     
-    attendance_percentage_for_late: float
-    attendance_percentage_for_buildswap: float
+    min_attendance_portion_for_late: float
+    min_attendance_portion_for_buildswap: float
 
-    percentage_of_top_for_total: float
-    percentage_of_top_for_consistent: float
-    percentage_of_top_for_late: float
-    percentage_of_top_for_buildswap: float
+    portion_of_top_for_total: float
+    portion_of_top_for_consistent: float
+    portion_of_top_for_late: float
+    portion_of_top_for_buildswap: float
 
     min_allied_players: int
     min_fight_duration: int
@@ -99,8 +99,9 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
         percentage = Decimal(config.percentage_of_top_for_total)
     else:
         print("ERROR: Called get_topx_players for stats that are not total or consistent")
+        return
 
-    top = players[sorting[0]].total_stats(stat)
+    top = players[sorting[0]].total_stats(stat) # using total value for both top consistent and top total 
     top_players = list()
     name_length = 0
 
@@ -123,57 +124,10 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
             if len(name) > name_length:
                 name_length = len(name)
         i += 1
-                
-# players = list of Players
-# sorting = list of indices corresponding to players in players list
-# config = the configuration being used to determine topx consistent players
-# stat = which stat are we considering
-def get_topx_consistent_players(players, sorting, config, stat):
-    i = 0
-    top = players[sorting[0]].total_stats(stat)
-    top_consistent_players = list()
-    name_length = 0
+        
+    return top_players, name_length
 
-    # 1) index must be lower than length of the list
-    # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
-    # 3) value must be greater than 0    
-    while i < len(sorting) and (i < config.num_players_listed(stat) or players[sorting[i]].total_stats(stat) == players[sorting[i-1]].total_stats(stat)) and players[sorting[i]].total_stats(stat) > 0:
-        name = players[sorting[i]].name
-        if stat == "distance":
-            top_consistent_players.append(sorting[i])
-            if len(name) > name_length:
-                name_length = len(name)
-        elif players[sorting[i]].total_stats(stat) > top * Decimal(config.percentage_of_top_for_consistent):
-            # 4) value must be at least 50% of top value for everything except distance
-            top_consistent_players.append(sorting[i])
-            if len(name) > name_length:
-                name_length = len(name)
-        i += 1
-    return top_consistent_players, name_length    
-    
-
-# players = list of Players
-# sorting = list of indices corresponding to players in players list
-# config = the configuration being used to determine topx consistent players
-# stat = which stat are we considering
-def get_topx_total_players(players, sorting, config, stat):
-    i = 0
-    top = players[sorting[0]].total_stats(stat)
-    top_total_players = list()
-    name_length = 0
-    
-    # 1) index must be lower than length of the list and desired number of players listed
-    # 2) value must be greater than 0
-    # 3) value must be at least 50% of top value        
-    while i < min(len(sorting), config.num_players_listed(stat)) and players[sorting[i]].total_stats(stat) > 0 and players[sorting[i]].total_stats(stat) > top * Decimal(config.percentage_of_top_for_total):
-        name = players[sorting[i]].name
-        top_total_players.append(sorting[i])
-        if len(name) > name_length:
-            name_length = len(name)
-        i += 1
-    return top_total_players, name_length
-
-
+        
 # players = list of Players
 # sorting = list of indices corresponding to players in players list
 # config = the configuration being used to determine topx consistent players
@@ -181,23 +135,25 @@ def get_topx_total_players(players, sorting, config, stat):
 def get_topx_percentage_players(players, sorting, config, stat, comparison_percentage, late_or_swapping, num_total_fights, top_consistent_players, top_total_players):
     #sorted_percentages, comparison_percentage, num_total_fights, top_consistent_players, top_total_players):
     i = 0
-    top = players[sorting[0]].total_stats(stat)
     top_percentage_players = list()
     name_length = 0
     
     comparison_value = 0
     min_attendance = 0
-    if late_or_swapping == "late":
-        comparison_value = comparison_percentage * config.percentage_of_top_for_late/100
-        min_attendance = config.attendance_percentage_for_late/100 * num_total_fights
-    else:
+    if late_or_swapping == StatType.LATE_PERCENTAGE:
+        comparison_value = comparison_percentage * config.percentage_of_top_for_total/100
+        min_attendance = config.min_attendance_portion_for_late/100 * num_total_fights
+    elif late_or_swapping == StatType.SWAPPED_PERCENTAGE:
         comparison_value = comparison_percentage * config.percentage_of_top_for_buildswap/100
-        min_attendance = config.attendance_percentage_for_buildswap/100 * num_total_fights        
+        min_attendance = config.min_attendance_portion_for_buildswap/100 * num_total_fights
+    else:
+        print("ERROR: Called get_topx_percentag_players for stats that are not late_percentage or swapped_percentage")
+        return 
 
         
-     # 1) index must be lower than length of the list
+    # 1) index must be lower than length of the list
     # 2) percentage value must be at least comparison percentage value
-   while i < len(sorting) and players[sorting[i]].percentage_stats(stat) >= comparison_value:
+    while i < len(sorting) and players[sorting[i]].percentage_stats(stat) >= comparison_value:
         if sorting[i] in top_consistent_players or sorting[i] in top_total_players:
             i += 1
             continue
