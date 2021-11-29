@@ -1,5 +1,5 @@
-num_players_listed = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5}
-num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5}
+num_players_listed = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
 
 attendance_percentage_for_late = 50
 attendance_percentage_for_buildswap = 30
