@@ -8,6 +8,9 @@ from os import listdir
 import sys
 import xml.etree.ElementTree as ET
 from decimal import *
+from enum import Enum
+
+import parser_config
 
 #@dataclass
 #class Stats:
@@ -18,6 +21,13 @@ Stats = namedtuple('Stats', 'dmg rips stab cleanses heal dist')
 #    cleanses: float
 #    heal: float
 #    dist: float
+
+class StatType(Enum):
+    TOTAL = 1
+    CONSISTENT = 2
+    LATE_PERCENTAGE = 3
+    SWAPPED_PERCENTAGE = 4
+    
 
 @dataclass
 class Player:
@@ -58,7 +68,9 @@ class Config:
     
     attendance_percentage_for_late: float
     attendance_percentage_for_buildswap: float
-    
+
+    percentage_of_top_for_total: float
+    percentage_of_top_for_consistent: float
     percentage_of_top_for_late: float
     percentage_of_top_for_buildswap: float
 
@@ -66,28 +78,52 @@ class Config:
     min_fight_duration: int
     min_enemy_players: int
 
+    output_file: str
+    input_dir: str
 
     
 def myprint(output_file, output_string):
     print(output_string)
     output_file.write(output_string+"\n")
 
- 
-#def get_name_and_professions(name, professions):
-#    name_and_professions = name+" ("
-#    for p in range(len(professions[name])-1):
-#        name_and_professions += profession_abbreviations[professions[name][p]]+" / "
-#    name_and_professions += profession_abbreviations[professions[name][-1]]+")"
-#    return name_and_professions
-#
-#
-#def get_professions(name, profession_dict):
-#    professions = ""
-#    for p in range(len(profession_dict[name])-1):
-#        professions += profession_abbreviations[profession_dict[name][p]]+" / "
-#    professions += profession_abbreviations[profession_dict[name][-1]]
-#    return professions
 
+# players = list of Players
+# sorting = list of indices corresponding to players in players list
+# config = the configuration being used to determine topx consistent players
+# stat = which stat are we considering
+def get_topx_players(players, sorting, config, stat, total_or_consistent):
+    percentage = 0.
+    if total_or_consistent == StatType.TOTAL:
+        percentage = Decimal(config.percentage_of_top_for_consistent)
+    elif total_or_consistent == StatType.CONSISTENT:
+        percentage = Decimal(config.percentage_of_top_for_total)
+    else:
+        print("ERROR: Called get_topx_players for stats that are not total or consistent")
+
+    top = players[sorting[0]].total_stats(stat)
+    top_players = list()
+    name_length = 0
+
+    # 1) index must be lower than length of the list
+    # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
+    # 3) value must be greater than 0    
+    i = 0
+    while i < len(sorting) and (i < config.num_players_listed(stat) or players[sorting[i]].total_stats(stat) == players[sorting[i-1]].total_stats(stat)) and players[sorting[i]].total_stats(stat) > 0:
+        is_top = false
+        if stat != "dist":
+            # 4) value must be at least percentage% of top value for everything except distance
+            if players[sorting[i]].total_stats(stat) > top * percentage:
+                is_top = True
+        else: # dist stats
+            is_top = True
+
+        if append:
+            top_players.append(sorting[i])
+            name = players[sorting[i]].name
+            if len(name) > name_length:
+                name_length = len(name)
+        i += 1
+                
 # players = list of Players
 # sorting = list of indices corresponding to players in players list
 # config = the configuration being used to determine topx consistent players
@@ -101,7 +137,7 @@ def get_topx_consistent_players(players, sorting, config, stat):
     # 1) index must be lower than length of the list
     # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
     # 3) value must be greater than 0    
-    while i < len(sorting) and (i < config.num_players_listed or players[sorting[i]].total_stats(stat) == players[sorting[i-1]].total_stats(stat)) and players[sorting[i]].total_stats(stat) > 0:
+    while i < len(sorting) and (i < config.num_players_listed(stat) or players[sorting[i]].total_stats(stat) == players[sorting[i-1]].total_stats(stat)) and players[sorting[i]].total_stats(stat) > 0:
         name = players[sorting[i]].name
         if stat == "distance":
             top_consistent_players.append(sorting[i])
@@ -174,12 +210,16 @@ def get_topx_percentage_players(players, sorting, config, stat, comparison_perce
     return top_percentage_players, name_length
 
 
-def get_profession_and_length(names, professions):
-    profession_strings = {}
+# get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
+# players = list of all players
+# indices = list of relevant indices
+def get_professions_and_length(players, indices):
+    profession_strings = list()
     profession_length = 0
-    for name in names:
-        professions_str = get_professions(name, professions)
-        profession_strings[name] = professions_str
+    for i in indices:
+        player = players[indices[i]]
+        professions_str = profession_abbreviations[player.profession]
+        profession_strings.append(professions_str)
         if len(professions_str) > profession_length:
             profession_length = len(professions_str)
     return profession_strings, profession_length
