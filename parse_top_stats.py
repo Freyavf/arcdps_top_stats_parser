@@ -145,15 +145,14 @@ def get_topx_percentage_players(players, sorting, config, stat, comparison_perce
     min_attendance = 0
     if late_or_swapping == StatType.LATE_PERCENTAGE:
         #comparison_value = comparison_percentage * config.portion_of_top_for_late
-        min_attendance = config.min_attendance_portion_for_late/100 * num_total_fights
+        min_attendance = config.min_attendance_portion_for_late * num_total_fights
     elif late_or_swapping == StatType.SWAPPED_PERCENTAGE:
         #comparison_value = comparison_percentage * config.portion_of_top_for_buildswap
-        min_attendance = config.min_attendance_portion_for_buildswap/100 * num_total_fights
+        min_attendance = config.min_attendance_portion_for_buildswap * num_total_fights
     else:
         print("ERROR: Called get_topx_percentag_players for stats that are not late_percentage or swapped_percentage")
         return 
 
-        
     # 1) index must be lower than length of the list
     # 2) percentage value must be at least comparison percentage value
     while i < len(sorting) and players[sorting[i]].percentage_top_stats[stat] >= comparison_percentage:
@@ -280,7 +279,7 @@ def write_sorted_top_x_percentage(players, config, num_used_fights, stat, output
     profession_length = max(profession_length, 5)
     
     if len(top_percentage_players) <= 0:
-        return
+        return top_percentage_players
 
     print_string = "Top "+parser_config.stat_names[stat]+" percentage (Minimum percentage = "+f"{comparison_percentage*100:.0f}%)"
     myprint(output_file, print_string)
@@ -425,7 +424,7 @@ if __name__ == '__main__':
 
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
-    print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" that took longer than "+str(config.min_fight_duration)+" s."
+    print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
     
     num_players_per_fight = list()

@@ -10,7 +10,7 @@ percentage_of_top_for_late = 100
 percentage_of_top_for_buildswap = 100
 
 min_allied_players = 10
-min_fight_duration = 10
+min_fight_duration = 30
 min_enemy_players = 10
 
 profession_abbreviations = {}
