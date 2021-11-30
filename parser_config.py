@@ -58,3 +58,11 @@ profession_abbreviations["Necromancer"] = "Necro"
 profession_abbreviations["Reaper"] = "Reaper"
 profession_abbreviations["Scourge"] = "Scourge"
 profession_abbreviations["Harbinger"] = "Harbinger"
+
+stat_names = {}
+stat_names["dmg"] = "damage"
+stat_names["rips"] = "boon strips"
+stat_names["stab"] = "stability output"
+stat_names["cleanses"] = "condition cleanses"
+stat_names["heal"] = "healing"
+stat_names["dist"] = "distance to tab"

@@ -135,19 +135,19 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
 # sorting = list of indices corresponding to players in players list
 # config = the configuration being used to determine topx consistent players
 # stat = which stat are we considering
-def get_topx_percentage_players(players, sorting, config, stat, comparison_percentage, late_or_swapping, num_total_fights, top_consistent_players, top_total_players):
+def get_topx_percentage_players(players, sorting, config, stat, comparison_percentage, late_or_swapping, num_total_fights, top_consistent_players, top_total_players, top_late_players):
     #sorted_percentages, comparison_percentage, num_total_fights, top_consistent_players, top_total_players):
     i = 0
     top_percentage_players = list()
     name_length = 0
     
-    comparison_value = 0
+    #comparison_value = 0
     min_attendance = 0
     if late_or_swapping == StatType.LATE_PERCENTAGE:
-        comparison_value = comparison_percentage * config.portion_of_top_for_late
+        #comparison_value = comparison_percentage * config.portion_of_top_for_late
         min_attendance = config.min_attendance_portion_for_late/100 * num_total_fights
     elif late_or_swapping == StatType.SWAPPED_PERCENTAGE:
-        comparison_value = comparison_percentage * config.portion_of_top_for_buildswap
+        #comparison_value = comparison_percentage * config.portion_of_top_for_buildswap
         min_attendance = config.min_attendance_portion_for_buildswap/100 * num_total_fights
     else:
         print("ERROR: Called get_topx_percentag_players for stats that are not late_percentage or swapped_percentage")
@@ -156,8 +156,8 @@ def get_topx_percentage_players(players, sorting, config, stat, comparison_perce
         
     # 1) index must be lower than length of the list
     # 2) percentage value must be at least comparison percentage value
-    while i < len(sorting) and players[sorting[i]].percentage_top_stats(stat) >= comparison_value:
-        if sorting[i] in top_consistent_players or sorting[i] in top_total_players:
+    while i < len(sorting) and players[sorting[i]].percentage_top_stats[stat] >= comparison_percentage:
+        if sorting[i] in top_consistent_players or sorting[i] in top_total_players or sorting[i] in top_late_players:
             i += 1
             continue
         player = players[sorting[i]]
@@ -167,7 +167,8 @@ def get_topx_percentage_players(players, sorting, config, stat, comparison_perce
                 continue                
             top_percentage_players.append(sorting[i])
             if len(player.name) > name_length:
-                name_length = len(name)
+                name_length = len(player.name)
+
         i += 1
     return top_percentage_players, name_length
 
@@ -201,10 +202,10 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
     sorted_topx = [i for consistency, i, player in decorated] 
     #print("top stats for consistency",stat,":", sorted_topx)
 
-    if stat == "distance":
-        print_string = "Top "+str(config.num_players_considered_top[stat])+" "+stat+" consistency awards"
+    if stat == "dist":
+        print_string = "Top "+str(config.num_players_considered_top[stat])+" "+parser_config.stat_names[stat]+" consistency awards"
     else:
-        print_string = "Top "+stat+" consistency awards (Max. "+str(config.num_players_considered_top[stat])+" people, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
+        print_string = "Top "+parser_config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_considered_top[stat])+" people, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
     myprint(output_file, print_string)
     #print_string = "Most times placed in the top "+str(num_top_stats)+". Attendance = number of fights a player was present out of "+str(used_fights)+" total fights."
     print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."    
@@ -251,48 +252,64 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
                 
 ## Write the top x people who achieved top x in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top x spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top x spot in 1 of them.
 ## Input:
-## topx_x_times = how often did each player achieve a topx spot in this stat
-## num_fights_present = in how many fights was the player present
-## stat = which stat are we looking at (dmg, cleanses, ...)
-#def write_sorted_top_x_percentage(output_file, topx_x_times, total_values, num_fights_present, num_total_fights, professions, stat, top_consistent_players, top_total_players = list()):
-#    if len(topx_x_times) == 0:
-#        return
-#    
-#    percentages = {}
-#    for name in topx_x_times.keys():
-#        percentages[name] = topx_x_times[name] / num_fights_present[name]
-#    sorted_percentages = sorted(percentages.items(), key=lambda x:x[1], reverse=True)
-#
-#    # get names that get on the list and their professions
-#    sorted_topx = sorted(topx_x_times.items(), key=lambda x:x[1], reverse=True)    
-#    comparison_percentage = sorted_topx[0][1]/num_fights_present[sorted_topx[0][0]]
-#
-#    top_percentage_players, name_length = get_topx_percentage_players(sorted_percentages, comparison_percentage, num_total_fights, top_consistent_players, top_total_players)
-#    profession_strings, profession_length = get_profession_and_length(top_percentage_players, professions)
-#
-#    if len(top_percentage_players) > 0:
-#        print_string = "\nTop "+stat+" percentage (Min. top consistent player percentage = "+f"{comparison_percentage*100:.0f}%)"
-#        myprint(output_file, print_string)
-#        print_string = "------------------------------------------------------------------------"                
-#        myprint(output_file, print_string)                
-#        print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times Top':>9} " + f" {'Out of':>6}"
-#        if stat != "distance":
-#            print_string += f" {'Total':>8}"
-#        myprint(output_file, print_string)    
-#
-#    place = 0
-#    last_val = 0
-#    
-#    for name in top_percentage_players:
-#        if percentages[name] != last_val:
-#            place += 1
-#
-#        percentage = int(percentages[name]*100)
-#        print_string = f"{place:>2}"+f". {name:<{name_length}} "+f" {profession_strings[name]:<{profession_length}} " +f" {percentage:>10}% " +f" {topx_x_times[name]:>9} "+f" {num_fights_present[name]:>6} "
-#        if stat != "distance":
-#            print_string += f" {total_values[name]:>7}"
-#        myprint(output_file, print_string)
-#        last_val = percentages[name]
+# players = list of Players
+# config = the configuration being used to determine topx consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = file to write to
+# top_consistent_players = list with indices of top consistent players
+# top_total_players = list with indices of top total players
+def write_sorted_top_x_percentage(players, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players = list(), top_late_players = list()):
+    # TODO check this gives the first
+    comparison_percentage = 0
+    if late_or_swapping == StatType.LATE_PERCENTAGE:
+        comparison_percentage = players[top_consistent_players[0]].percentage_top_stats[stat] * config.portion_of_top_for_late
+    elif late_or_swapping == StatType.SWAPPED_PERCENTAGE:
+        comparison_percentage = players[top_consistent_players[0]].percentage_top_stats[stat] * config.portion_of_top_for_buildswap
+    else:
+        print("ERROR: Called write_sorted_top_x_percentage with stats that are neither for late players nor for players who swapped build")
+    
+    # sort players according to percentage of top x achieved for stat
+    decorated = [(player.percentage_top_stats[stat], i, player) for i, player in enumerate(players)]
+    decorated.sort(reverse=True)
+    sorted_top_percentage = [i for percentage, i, player in decorated] 
+
+    # get names that get on the list and their professions
+    top_percentage_players, name_length = get_topx_percentage_players(players, sorted_top_percentage, config, stat, comparison_percentage, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_late_players)
+    profession_strings, profession_length = get_professions_and_length(players, top_percentage_players)
+    profession_length = max(profession_length, 5)
+    
+    if len(top_percentage_players) <= 0:
+        return
+
+    print_string = "Top "+parser_config.stat_names[stat]+" percentage (Minimum percentage = "+f"{comparison_percentage*100:.0f}%)"
+    myprint(output_file, print_string)
+    print_string = "------------------------------------------------------------------------"     
+    myprint(output_file, print_string)                
+
+    print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times Top':>9} " + f" {'Out of':>6}"
+    if stat != "distance":
+        print_string += f" {'Total':>8}"
+    myprint(output_file, print_string)    
+
+    place = 0
+    last_val = 0
+    
+    for i in range(len(top_percentage_players)):
+        player = players[top_percentage_players[i]]
+        if player.percentage_top_stats[stat] != last_val:
+            place += 1
+
+        percentage = int(player.percentage_top_stats[stat]*100)
+        print_string = f"{place:>2}"+f". {player.name:<{name_length}} "+f" {profession_strings[i]:<{profession_length}} " +f" {percentage:>10}% " +f" {round(player.consistency_stats[stat]):>9} "+f" {player.num_fights_present:>6} "
+
+        if stat != "dist":
+            print_string += f" {round(player.total_stats[stat]):>7}"
+        myprint(output_file, print_string)
+        last_val = player.percentage_top_stats[stat]
+
+    return top_percentage_players
+
 #    
 #
 # Write the top x people who achieved top total stat.
@@ -310,7 +327,7 @@ def write_sorted_total(players, config, total_fight_duration, stat, output_file)
     sorted_topx = [i for total, i, player in decorated] 
     #print("top stats for total",stat,":", sorted_topx)
 
-    print_string = "\nTop overall "+stat+" awards (Max. "+str(config.num_players_listed[stat])+" people, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
+    print_string = "\nTop overall "+parser_config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" people, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
     myprint(output_file, print_string)
     print_string = "Attendance = total duration of fights attended out of "
     if total_fight_duration["h"] > 0:
@@ -469,11 +486,11 @@ if __name__ == '__main__':
 
         # skip fights with less than min_enemy_players enemies
         num_enemies = len(xml_root.findall('targets')) # technically would need to check whether enemyPlayer == True
-        #if num_enemies < config.min_enemy_players:
-        #    log.write(print_string)
-        #    print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
-        #    myprint(log, print_string)
-        #    continue
+        if num_enemies < config.min_enemy_players:
+            log.write(print_string)
+            print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
+            myprint(log, print_string)
+            continue
 
         used_fights += 1
         used_fights_duration += duration
@@ -546,18 +563,13 @@ if __name__ == '__main__':
             
             name_and_prof = name+" "+profession
             if name_and_prof not in player_index.keys():
-                print("creating new player")
+                print("creating new player",name_and_prof)
                 create_new_player = True
                 
             if account not in account_index.keys():
                 account_index[account] = [len(players)]
             else:
                 for ind in range(len(account_index[account])):
-                    print(ind)
-                    print(account_index[account])
-                    print(account_index[account][ind])
-                    print(len(players))
-                    print(players[account_index[account][ind]])
                     players[account_index[account][ind]].swapped_build = True
                 if create_new_player:
                     account_index[account].append(len(players))
@@ -588,8 +600,7 @@ if __name__ == '__main__':
             deaths_per_player[name_and_prof] = deaths
             kills_per_player[name_and_prof] = kills                 
 
-            #player = players[-1]
-            print("present:", players[player_index[name_and_prof]].num_fights_present)
+            #print("present:", players[player_index[name_and_prof]].num_fights_present)
             players[player_index[name_and_prof]].num_fights_present += 1
             players[player_index[name_and_prof]].duration_fights_present += duration
             players[player_index[name_and_prof]].swapped_build |= build_swapped
@@ -603,27 +614,7 @@ if __name__ == '__main__':
                 players[player_index[name_and_prof]].total_stats['dist'] += distance
             players[player_index[name_and_prof]].total_stats['deaths'] += deaths
             players[player_index[name_and_prof]].total_stats['kills'] += kills
-            #players[player_index[name_and_prof]] = player
                         
-            #players[-1].num_fights_present += 1
-            #players[-1].duration_fights_present += duration
-            #players[-1].swapped_build |= build_swapped
-            #players[-1].total_stats.dmg += damage
-            #players[-1].total_stats['rips'] += strips
-            #players[-1].total_stats['stab'] += stab_generated*duration
-            #players[-1].total_stats['cleanses'] += cleanses
-            #if found_healing:
-            #    players[-1].total_stats['heal'] += heal
-            #if distance > 0: # distance sometimes -1 for some reason
-            #    players[-1].total_stats['dist'] += distance
-            #players[-1].total_stats['deaths'] += deaths
-            #players[-1].total_stats['kills'] += kills                 
-
-
-            # deaths and kills
-            #overall_squad_stats = Stats(overall_squad_stats.dmg + damage, overall_squad_stats.rips + strips, overall_squad_stats.stab + stab_generated*duration,
-            #                            overall_squad_stats.cleanses + cleanses, overall_squad_stats.heal + healing, overall_squad_stats.dist + distance,
-            #                            overall_squad_stats.deaths + deaths, overall_squad_stats.kills + kills)
             overall_squad_stats['dmg'] += damage
             overall_squad_stats['rips'] += strips
             overall_squad_stats['stab'] += stab_generated*duration
@@ -663,14 +654,14 @@ if __name__ == '__main__':
         increase_top_x_reached(players, sortedDeaths, player_index, config, 'deaths')
         increase_top_x_reached(players, sortedKills, player_index, config, 'kills')        
     
-        # get top x+1 for distance bc first is always the com. Also throw out negative distance.
-
-
     attendance_percentage = {}
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
-        #attendance_percentage[name] = int(num_fights_present[name]/used_fights*100)
+        #player.percentage_top_stats = player.consistency_stats
+        for stat in player.consistency_stats.keys():
+            player.percentage_top_stats[stat] = player.consistency_stats[stat]/player.num_fights_present
 
+        
     #get total duration in h, m, s
     total_fight_duration = {}
     total_fight_duration["h"] = int(used_fights_duration/3600)
@@ -740,12 +731,18 @@ if __name__ == '__main__':
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = write_sorted_top_x(players, config, used_fights, 'dist', output)            
     myprint(output, "\n")
-   
-##    myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
-##    write_sorted_top_x_percentage(output, top_damage_x_times, total_damage, num_fights_present, used_fights, professions, "damage", top_consistent_damagers, top_total_damagers)
-##    write_sorted_top_x_percentage(output, top_strips_x_times, total_strips, num_fights_present, used_fights, professions, "strips", top_consistent_strippers, top_total_strippers)
-##    write_sorted_top_x_percentage(output, top_cleanses_x_times, total_cleanses, num_fights_present, used_fights, professions, "cleanses", top_consistens_cleaners, top_total_cleaners)
-##    write_sorted_top_x_percentage(output, top_stab_x_times, total_stab, num_fights_present, used_fights, professions, "stab", top_consistent_stabbers, top_total_stabbers)
-##    write_sorted_top_x_percentage(output, top_healing_x_times, total_healing, num_fights_present, used_fights, professions, "healing", top_consistent_healers, top_total_healers)        
-##    write_sorted_top_x_percentage(output, top_distance_x_times, total_distance, num_fights_present, used_fights, professions, "distance", top_consistent_distancers)        
 
+    myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
+    top_late_damagers = write_sorted_top_x_percentage(players, config, used_fights, 'dmg', output, StatType.LATE_PERCENTAGE, top_consistent_damagers, top_total_damagers)
+#    write_sorted_top_x_percentage(output, top_strips_x_times, total_strips, num_fights_present, used_fights, professions, "strips", top_consistent_strippers, top_total_strippers)
+#    write_sorted_top_x_percentage(output, top_cleanses_x_times, total_cleanses, num_fights_present, used_fights, professions, "cleanses", top_consistens_cleaners, top_total_cleaners)
+#    write_sorted_top_x_percentage(output, top_stab_x_times, total_stab, num_fights_present, used_fights, professions, "stab", top_consistent_stabbers, top_total_stabbers)
+#    write_sorted_top_x_percentage(output, top_healing_x_times, total_healing, num_fights_present, used_fights, professions, "healing", top_consistent_healers, top_total_healers)        
+#    write_sorted_top_x_percentage(output, top_distance_x_times, total_distance, num_fights_present, used_fights, professions, "distance", top_consistent_distancers)        
+#
+    myprint(output, "\n")
+
+    myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n')        
+    write_sorted_top_x_percentage(players, config, used_fights, 'dmg', output, StatType.SWAPPED_PERCENTAGE, top_consistent_damagers, top_total_damagers, top_late_damagers)
+    myprint(output, "\n")
+    
