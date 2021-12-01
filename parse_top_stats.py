@@ -7,8 +7,9 @@ from os import listdir
 import sys
 import xml.etree.ElementTree as ET
 from enum import Enum
+import importlib
 
-import parser_config
+#import parser_config
 
 
 class StatType(Enum):
@@ -423,6 +424,7 @@ if __name__ == '__main__':
     parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
+    parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config")    
     args = parser.parse_args()
 
     if not os.path.isdir(args.xml_directory):
@@ -435,7 +437,9 @@ if __name__ == '__main__':
 
     output = open(args.output_filename, "w")
     log = open(args.log_file, "w")
-        
+
+    parser_config = importlib.import_module("parser_configs."+args.config_file , package=None) 
+    
     config = Config()
     config.num_players_listed = parser_config.num_players_listed
     config.num_players_considered_top = parser_config.num_players_considered_top

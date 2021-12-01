@@ -1,7 +1,7 @@
 #This file contains the configuration for computing the top stats.
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_listed = {'dmg': 50, 'rips': 50, 'stab': 50, 'cleanses': 50, 'heal': 50, 'dist': 50, 'deaths': 50, 'kills': 50}
 # How many players are considered to be "top" in each fight for each stat?
 num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
 
@@ -12,9 +12,9 @@ attendance_percentage_for_late = 50
 attendance_percentage_for_buildswap = 30
 
 # What portion of the top total player stat does someone need to reach to be considered for total awards?
-percentage_of_top_for_consistent = 50
+percentage_of_top_for_consistent = 0
 # What portion of the total stat of the top consistent player does someone need to reach to be considered for consistency awards?
-percentage_of_top_for_total = 50
+percentage_of_top_for_total = 0
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for late but great awards?
 percentage_of_top_for_late = 100
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for jack of all trades awards?
@@ -25,7 +25,7 @@ min_allied_players = 10
 # minimum duration of a fight to be considered in the stats
 min_fight_duration = 30
 # minimum number of enemies to consider a fight in the stats
-min_enemy_players = 1
+min_enemy_players = 10
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
