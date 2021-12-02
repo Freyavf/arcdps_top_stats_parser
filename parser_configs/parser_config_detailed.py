@@ -1,4 +1,4 @@
-#This file contains the configuration for computing the top stats.
+#This file contains the configuration for computing the detailed top stats.
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed = {'dmg': 50, 'rips': 50, 'stab': 50, 'cleanses': 50, 'heal': 50, 'dist': 50, 'deaths': 50, 'kills': 50}

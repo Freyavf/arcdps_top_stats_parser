@@ -434,6 +434,20 @@ def write_sorted_top_x_percentage(players, config, num_used_fights, stat, output
     return top_percentage_players
 
 
+
+# Collect the top stats data.
+# Input:
+# args = cmd line arguments
+# config = configuration to use for top stats computation
+# log = log file to write to
+# Output:
+# list of Players with their stats
+# overall stats for the whole squads
+# duration of the fights that were used in the top stats computation
+# number of used fights
+# number of total fights
+# number of players per fight
+# was healing found in the logs?
 def collect_stat_data(args, config, log):
     # healing only in xml if addon was installed
     found_healing = False
@@ -674,6 +688,9 @@ def collect_stat_data(args, config, log):
     
     return players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, found_healing
 
+
+
+# print the overall squad stats
 def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_duration, total_fights, num_players_per_fight, found_healing, output):
     #get total duration in h, m, s
     total_fight_duration = {}

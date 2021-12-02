@@ -1,4 +1,4 @@
-#This file contains the configuration for computing the top stats.
+#This file contains the configuration for computing the overview top stats.
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
@@ -25,7 +25,7 @@ min_allied_players = 10
 # minimum duration of a fight to be considered in the stats
 min_fight_duration = 30
 # minimum number of enemies to consider a fight in the stats
-min_enemy_players = 1
+min_enemy_players = 10
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
