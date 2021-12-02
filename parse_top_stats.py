@@ -81,15 +81,20 @@ def myprint(output_file, output_string):
 def increase_top_x_reached(players, sortedList, player_index, config, stat):
     # if stat isn't dist, increase top stats reached for the first num_players_considered_top players
     if stat != 'dist':
-        for i in range(min(len(sortedList), config.num_players_considered_top[stat])):
-            players[player_index[sortedList[i]]].consistency_stats[stat] += 1
+        i = 0
+        last_val = 0
+        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val):
+            players[player_index[sortedList[i][0]]].consistency_stats[stat] += 1
+            last_val = sortedList[i][1]
+            i += 1
         return
 
     # different for dist
-    valid_distance = 0
+    valid_distances = 0
     first_valid = True
     i = 0
-    while i < len(sortedDistance) and valid_distance < config.num_players_considered_top[stat]+1:
+    last_val = 0
+    while i < len(sortedList) and (valid_distances < config.num_players_considered_top[stat]+1 or sortedList[i][1] == last_val):
         # sometimes dist is -1, filter these out
         if sortedList[i][1] >= 0:
             # first valid dist is the comm, don't consider
@@ -97,7 +102,8 @@ def increase_top_x_reached(players, sortedList, player_index, config, stat):
                 first_valid  = False
             else:
                 players[player_index[sortedList[i][0]]].consistency_stats[stat] += 1
-                valid_distance += 1
+                valid_distances += 1
+        last_val = sortedList[i][1]
         i += 1
 
 
@@ -127,10 +133,20 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
 
     # To be considered as top player:
     # 1) index must be lower than length of the list
-    # 2) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
-    # 3) value must be greater than 0    
+    # 2) value must be greater than 0    
     i = 0
-    while i < len(sorting) and (i < config.num_players_listed[stat] or players[sorting[i]].total_stats[stat] == players[sorting[i-1]].total_stats[stat]) and players[sorting[i]].total_stats[stat] > 0:
+    last_val = 0
+    
+    while i < len(sorting) and players[sorting[i]].total_stats[stat] > 0:
+        if total_or_consistent == StatType.TOTAL:
+            new_val = players[sorting[i]].total_stats[stat]
+        else:
+            new_val = players[sorting[i]].consistency_stats[stat]
+        # 3) index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
+        if i >= config.num_players_listed[stat] and new_val != last_val:
+            break
+        last_val = new_val
+        
         is_top = False
         if stat != "dist":
             # 4) value must be at least percentage% of top value for everything except distance
@@ -232,9 +248,9 @@ def get_professions_and_length(players, indices):
 # list of player indices that got a top consistency award
 def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
     # sort players according to number of times top was achieved for stat
-    decorated = [(player.consistency_stats[stat], i, player) for i, player in enumerate(players)]
+    decorated = [(player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]
     decorated.sort(reverse=True)
-    sorted_topx = [i for consistency, i, player in decorated] 
+    sorted_topx = [i for consistency, total, i, player in decorated] 
 
     if stat == "dist":
         print_string = "Top "+str(config.num_players_considered_top[stat])+" "+parser_config.stat_names[stat]+" consistency awards"
@@ -374,9 +390,9 @@ def write_sorted_top_x_percentage(players, config, num_used_fights, stat, output
         print("ERROR: Called write_sorted_top_x_percentage with stats that are neither for late players nor for players who swapped build")
     
     # sort players according to percentage of top achieved for stat
-    decorated = [(player.percentage_top_stats[stat], i, player) for i, player in enumerate(players)]
+    decorated = [(player.percentage_top_stats[stat], player.consistency_stats[stat], i, player) for i, player in enumerate(players)]
     decorated.sort(reverse=True)
-    sorted_top_percentage = [i for percentage, i, player in decorated] 
+    sorted_top_percentage = [i for percentage, consistency, i, player in decorated] 
 
     # get names that get on the list and their professions
     top_percentage_players, name_length = get_topx_percentage_players(players, sorted_top_percentage, config, stat, comparison_percentage, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_late_players)
@@ -662,15 +678,15 @@ if __name__ == '__main__':
 
             
         # create lists sorted according to stats
-        sortedDamage = sorted(damage_per_player, key=damage_per_player.get, reverse=True)
-        sortedStrips = sorted(strips_per_player, key=strips_per_player.get, reverse=True)
-        sortedCleanses = sorted(cleanses_per_player, key=cleanses_per_player.get, reverse=True)
-        sortedStab = sorted(stab_per_player, key=stab_per_player.get, reverse=True)
-        sortedHealing = sorted(healing_per_player, key=healing_per_player.get, reverse=True)
+        sortedDamage = sorted(damage_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedStrips = sorted(strips_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedCleanses = sorted(cleanses_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedStab = sorted(stab_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedHealing = sorted(healing_per_player.items(), key=lambda x:x[1], reverse=True)
         # small distance = good -> don't reverse sorting. Need to check for -1 -> keep values
         sortedDistance = sorted(distance_per_player.items(), key=lambda x:x[1])
-        sortedDeaths = sorted(deaths_per_player, key=deaths_per_player.get, reverse=True)
-        sortedKills = sorted(kills_per_player, key=kills_per_player.get, reverse=True)        
+        sortedDeaths = sorted(deaths_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedKills = sorted(kills_per_player.items(), key=lambda x:x[1], reverse=True)        
 
         if debug:
             print("sorted dmg:", sortedDamage,"\n")

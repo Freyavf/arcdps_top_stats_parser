@@ -24,9 +24,11 @@ Consistency awards are given for players with top scores in the most fights. Tot
 
 An output file containing the top stats is also generated. By default, it is created in the xml folder as top_stats.txt. The output file can be changed using the command line option ```-o <output_file>```, e.g., ```python parse_top_stats.py -o C:\Users\Example\Documents\test.txt xml_folder``` creates ```test.txt``` in C:\Users\Example\Documents\.
 
-A log file that contains information on which files were skipped and why is also created in the xml folder as log.txt. It can be changed with the command line option ```-l <log_file>, e.g., ```python parse_top_stats.py -l C:\Users\Example\Documents\test_log.txt xml_folder``` creates ```test_log.txt``` in C:\Users\Example\Documents\.
+A log file that contains information on which files were skipped and why is also created in the xml folder as log.txt. It can be changed with the command line option ```-l <log_file>```, e.g., ```python parse_top_stats.py -l C:\Users\Example\Documents\test_log.txt xml_folder``` creates ```test_log.txt``` in C:\Users\Example\Documents\.
 
-Settings are defined in the file parser_config.py. You can adjust it to your liking. These settings are available:
+Settings are defined in a config file. By default, the file parser_configs/parser_config.py is used. You can copy the config file and rename it in the same folder and adjust the settings to your liking. Using a different config file can be done by adding ```-c <config_file>``` in the command line call (without the .py ending of the filename).
+
+These settings are available:
 - num_players_listed: Maximum number of players listed for each stat in the consistency and damage awards (dictionary).
 - num_players_considered_top: Number of players considered "top" in each fight (dictionary).
 - percentage_of_top_for_consistent: Based on the total value that the top consistent player reached. Defines the percentage of this value that has to be achieved to be able to get a consistency award.
