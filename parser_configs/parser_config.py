@@ -25,7 +25,7 @@ min_allied_players = 10
 # minimum duration of a fight to be considered in the stats
 min_fight_duration = 30
 # minimum number of enemies to consider a fight in the stats
-min_enemy_players = 10
+min_enemy_players = 1
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
