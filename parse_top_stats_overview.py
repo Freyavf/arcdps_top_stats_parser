@@ -14,16 +14,16 @@ if __name__ == '__main__':
     parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
-    parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config")    
+    parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_overview")    
     args = parser.parse_args()
 
     if not os.path.isdir(args.xml_directory):
         print("Directory ",args.xml_directory," is not a directory or does not exist!")
         sys.exit()
     if args.output_filename is None:
-        args.output_filename = args.xml_directory+"/top_stats.txt"
+        args.output_filename = args.xml_directory+"/top_stats_overview.txt"
     if args.log_file is None:
-        args.log_file = args.xml_directory+"/log.txt"
+        args.log_file = args.xml_directory+"/log_overview.txt"
 
     output = open(args.output_filename, "w")
     log = open(args.log_file, "w")
