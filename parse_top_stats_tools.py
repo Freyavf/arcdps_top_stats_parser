@@ -289,7 +289,6 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
         print_string = f"{place:>2}"+f". {player.name:<{name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
         if stat != "dist" and stat != "stab":
             print_string += f" {round(player.total_stats[stat]):>9}"
-            #print_string += " | total "+str(total_values[name])
         if stat == "stab":
             average = round(player.total_stats[stat]/player.duration_fights_present, 2)
             total = round(player.total_stats[stat])

@@ -10,7 +10,7 @@ This project provides a tool for generating top stats from a set of arcdps logs.
 
 Healing output can only be analyzed when contained in the logs, i.e., the healing addon for arcdps is installed.
 
-Provided are two scripts: ```parse_top_stats_overview.py``` and ```parse_top_stats_detailed.py```. The first gives an overview of the best performing players. The second shows the performance of all players contributing to each stat.
+Provided are three scripts: ```parse_top_stats_sneak_peek.py```, ```parse_top_stats_overview.py``` and ```parse_top_stats_detailed.py```. The first gives an overview of the best performing players only in total damage, boon rips and cleanses. The second gives an overview of top players considering consistency and total values of all stats. The third shows the performance of all players contributing to each stat.
 
 To generate the top stats, do the following:
 - Install python3 if you don't have it yet (https://www.python.org/downloads/).
@@ -19,7 +19,7 @@ To generate the top stats, do the following:
 - Put all .xml files you want included in the top stats into one folder. We use the folder C:\Users\Example\Documents\xml_folder as an example here. Note that different file types will be ignored, so no need to move your logs elsewhere if you have them in the same folder.
 - Open a windows command line (press Windows key + r, type "cmd", enter).
 - Navigate to where the script is located using "cd", in our case this means ```cd Downloads\arcdps_top_stats_parser```.
-- Type ```python parse_top_stats_overview.py <folder>```, where \<folder> is the path to your folder with xml files. In our example case, we run ```python parse_top_stats_overview.py C:\Users\Example\Documents\xml_folder```. For the detailed version, use ```parse_top_stats_detailed.py``` instead of ```parse_top_stats_overview.py```.
+- Type ```python parse_top_stats_overview.py <folder>```, where \<folder> is the path to your folder with xml files. In our example case, we run ```python parse_top_stats_overview.py C:\Users\Example\Documents\xml_folder```. For the detailed version, use ```parse_top_stats_detailed.py``` instead of ```parse_top_stats_overview.py```, and for the sneak peak use ``parse_top_stats_sneak_peek.py```.
 
 The output shows you for each supported stat consistency and total awards, and "late but great" and "Jack of all trades" awards if applicable.
 Consistency awards are given for players with top scores in the most fights. Total awards are given for overall top stats. Late but great awards are given to players who weren't there for all fights, but who achieved great consistency in the time they were there. Jack of all trades awards are given to people who build swapped at least once and achieved great consistency on one of their builds.
@@ -28,7 +28,7 @@ An output file containing the top stats is also generated. By default, it is cre
 
 A log file that contains information on which files were skipped and why is also created in the xml folder as ```log_overview.txt``` or ```log_detailed.txt```. It can be changed with the command line option ```-l <log_file>```, e.g., ```python parse_top_stats_overview.py -l C:\Users\Example\Documents\test_log.txt xml_folder``` creates ```test_log.txt``` in ```C:\Users\Example\Documents\```.
 
-Settings are defined in a config file. By default, the overview parsing uses the file ```parser_configs/parser_config_overview.py```, and the detailed parsing uses ```parser_configs/parser_config_detailed.py```. You can copy one of the config files in the same folder, rename it and adjust the settings to your liking. Using a different config file can be done by adding ```-c <config_file>``` in the command line call (without the folder name and the ```.py``` ending of the filename).
+Settings are defined in a config file. By default, the overview parsing uses the file ```parser_configs/parser_config_overview.py```, the detailed parsing uses ```parser_configs/parser_config_detailed.py```, and the sneak peek parsing uses ```parser_configs/parser_config_sneak_peek.py```. You can copy one of the config files in the same folder, rename it and adjust the settings to your liking. Using a different config file can be done by adding ```-c <config_file>``` in the command line call (without the folder name and the ```.py``` ending of the filename).
 
 These settings are available:
 - num_players_listed: Maximum number of players listed for each stat in the consistency and damage awards (dictionary).
