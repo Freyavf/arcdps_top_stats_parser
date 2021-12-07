@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass,field
-
-#import argparse
 import os.path
 from os import listdir
 import sys
 import xml.etree.ElementTree as ET
 from enum import Enum
 import importlib
+#import xlwt
+import xlrd
+from xlutils.copy import copy
 
 debug = False # enable / disable debug output
 
@@ -139,7 +140,7 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
     i = 0
     last_val = 0
     
-    while i < len(sorting) and players[sorting[i]].total_stats[stat] > 0:
+    while i < len(sorting):# and players[sorting[i]].total_stats[stat] > 0:
         if total_or_consistent == StatType.TOTAL:
             new_val = players[sorting[i]].total_stats[stat]
         else:
@@ -152,7 +153,7 @@ def get_topx_players(players, sorting, config, stat, total_or_consistent):
         is_top = False
         if stat != "dist":
             # 4) value must be at least percentage% of top value for everything except distance
-            if players[sorting[i]].total_stats[stat] > top * percentage:
+            if players[sorting[i]].total_stats[stat] >= top * percentage:
                 is_top = True
         else: # dist stats
             is_top = True
@@ -206,7 +207,7 @@ def get_topx_percentage_players(players, sorting, config, stat, comparison_perce
             continue
         player = players[sorting[i]]
         # player can't be there for all fights, but has to be there for at least min_attendance fights
-        if player.num_fights_present < num_total_fights and player.num_fights_present > min_attendance:
+        if player.num_fights_present < num_total_fights and player.num_fights_present >= min_attendance:
             # Jack of all trades awards only when build / character was swapped at least once
             if late_or_swapping == StatType.SWAPPED_PERCENTAGE and player.swapped_build == False:
                 i += 1
@@ -304,11 +305,43 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
 # Write the top x people who achieved top total stat.
 # Input:
 # players = list of Players
+# top_total_players = list of indeces in players that are considered as top
+# stat = which stat are we considering
+# xls_output_filename = where to write to
+def write_total_stats_xls(players, top_total_players, stat, xls_output_filename):
+    book = xlrd.open_workbook(xls_output_filename)
+    wb = copy(book)
+    sheet1 = wb.add_sheet(stat)
+
+    sheet1.write(0, 0, "Name")
+    sheet1.write(0, 1, "Profession")
+    sheet1.write(0, 2, "Attendance (number of fights)")
+    sheet1.write(0, 3, "Attendance (duration fights)")
+    sheet1.write(0, 4, "Times Top")
+    sheet1.write(0, 5, "Total "+stat)
+    sheet1.write(0, 6, "Average "+stat+" per s")
+
+    for i in range(len(top_total_players)):
+        player = players[top_total_players[i]]
+        sheet1.write(i+1, 0, player.name)
+        sheet1.write(i+1, 1, player.profession)
+        sheet1.write(i+1, 2, player.num_fights_present)
+        sheet1.write(i+1, 3, player.duration_fights_present)
+        sheet1.write(i+1, 4, player.consistency_stats[stat])
+        sheet1.write(i+1, 5, player.total_stats[stat])
+        sheet1.write(i+1, 6, player.total_stats[stat]/player.duration_fights_present)        
+
+    wb.save(xls_output_filename)
+    
+
+# Write the top x people who achieved top total stat.
+# Input:
+# players = list of Players
 # config = the configuration being used to determine topx consistent players
 # total_fight_duration = the total duration of all fights
 # stat = which stat are we considering
 # output_file = where to write to
-def write_sorted_total(players, config, total_fight_duration, stat, output_file):
+def write_sorted_total(players, config, total_fight_duration, stat, output_file, xls_output_filename):
     # sort players according to number of times top x was achieved for stat
     decorated = [(player.total_stats[stat], i, player) for i, player in enumerate(players)]
     decorated.sort(reverse=True)
@@ -364,6 +397,8 @@ def write_sorted_total(players, config, total_fight_duration, stat, output_file)
         myprint(output_file, print_string)
         last_val = player.total_stats[stat]
 
+    write_total_stats_xls(players, top_total_players, stat, xls_output_filename)
+        
     return top_total_players
 
    
@@ -632,7 +667,7 @@ def collect_stat_data(args, config, log):
             players[player_index[name_and_prof]].total_stats['cleanses'] += cleanses
             if found_healing:
                 players[player_index[name_and_prof]].total_stats['heal'] += healing
-            if distance > 0: # distance sometimes player_index[name_and_prof] for some reason
+            if distance > 0: # distance sometimes -1 for some reason
                 players[player_index[name_and_prof]].total_stats['dist'] += distance
             players[player_index[name_and_prof]].total_stats['deaths'] += deaths
             players[player_index[name_and_prof]].total_stats['kills'] += kills

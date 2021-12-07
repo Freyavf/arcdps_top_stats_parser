@@ -6,6 +6,7 @@ import sys
 import xml.etree.ElementTree as ET
 from enum import Enum
 import importlib
+import xlwt
 
 from parse_top_stats_tools import *
 
@@ -13,6 +14,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Text file to write the computed top stats")    
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_sneak_peek")    
     args = parser.parse_args()
@@ -22,6 +24,8 @@ if __name__ == '__main__':
         sys.exit()
     if args.output_filename is None:
         args.output_filename = args.xml_directory+"/top_stats_sneak_peek.txt"
+    if args.xls_output_filename is None:
+        args.xls_output_filename = args.xml_directory+"/top_stats_sneak_peek.xls"        
     if args.log_file is None:
         args.log_file = args.xml_directory+"/log_sneak_peek.txt"
 
@@ -55,7 +59,11 @@ if __name__ == '__main__':
     total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
     total_fight_duration["s"] = int(used_fights_duration - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
 
-
+    # create xls file if it doesn't exist
+    book = xlwt.Workbook(encoding="utf-8")
+    book.add_sheet("dummy")
+    book.save(args.xls_output_filename)
+    
     print_string = "Welcome to the raid sneak peek!"
     myprint(output, print_string)
 
@@ -64,11 +72,11 @@ if __name__ == '__main__':
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
 
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)    
+    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output, args.xls_output_filename)    
     #myprint(output, "\n")    
         
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)    
+    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output, args.xls_output_filename)    
     #myprint(output, "\n")            
 
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
+    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output, args.xls_output_filename)
     #myprint(output, "\n")    

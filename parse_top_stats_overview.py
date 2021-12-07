@@ -6,6 +6,7 @@ import sys
 import xml.etree.ElementTree as ET
 from enum import Enum
 import importlib
+import xlwt
 
 from parse_top_stats_tools import *
 
@@ -13,6 +14,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Text file to write the computed top stats")
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_overview")    
     args = parser.parse_args()
@@ -22,6 +24,8 @@ if __name__ == '__main__':
         sys.exit()
     if args.output_filename is None:
         args.output_filename = args.xml_directory+"/top_stats_overview.txt"
+    if args.xls_output_filename is None:
+        args.xls_output_filename = args.xml_directory+"/top_stats_overview.xls"        
     if args.log_file is None:
         args.log_file = args.xml_directory+"/log_overview.txt"
 
@@ -56,6 +60,11 @@ if __name__ == '__main__':
 
     players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, found_healing = collect_stat_data(args, config, log)
 
+    # create xls file if it doesn't exist
+    book = xlwt.Workbook(encoding="utf-8")
+    book.add_sheet("dummy")
+    book.save(args.xls_output_filename)
+    
     print_string = "Welcome to the CARROT AWARDS!\n"
     myprint(output, print_string)
 
@@ -68,22 +77,22 @@ if __name__ == '__main__':
 
     myprint(output, "DAMAGE AWARDS\n")
     top_consistent_damagers = write_sorted_top_x(players, config, used_fights, 'dmg', output)
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)    
+    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output, args.xls_output_filename)    
     myprint(output, "\n")    
         
     myprint(output, "BOON STRIPS AWARDS\n")        
     top_consistent_strippers = write_sorted_top_x(players, config, used_fights, 'rips', output)
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)    
+    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output, args.xls_output_filename)    
     myprint(output, "\n")            
 
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
     top_consistent_cleansers = write_sorted_top_x(players, config, used_fights, 'cleanses', output)
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
+    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output, args.xls_output_filename)
     myprint(output, "\n")    
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
     top_consistent_stabbers = write_sorted_top_x(players, config, used_fights, 'stab', output)
-    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output)    
+    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output, args.xls_output_filename)    
     myprint(output, "\n")    
 
     #top_consistent_healers = list()
@@ -95,6 +104,7 @@ if __name__ == '__main__':
 
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = write_sorted_top_x(players, config, used_fights, 'dist', output)            
+    write_total_stats_xls(players, top_consistent_distancers, 'dist', args.xls_output_filename)
     myprint(output, "\n")
 
     myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
