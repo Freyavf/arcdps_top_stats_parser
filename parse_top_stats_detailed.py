@@ -95,12 +95,12 @@ if __name__ == '__main__':
     top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output, args.xls_output_filename)    
     myprint(output, "\n")    
 
-    #top_consistent_healers = list()
-    #if found_healing:
-    #    myprint(output, "HEALING AWARDS\n")        
-    #    top_consistent_healers = write_sorted_top_x(players, config, used_fights, 'heal', output)
-    #    top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)   
-    #    myprint(output, "\n")    
+    top_consistent_healers = list()
+    if found_healing:
+        myprint(output, "HEALING AWARDS\n")        
+        top_consistent_healers = write_sorted_top_x(players, config, used_fights, 'heal', output)
+        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output, args.xls_output_filename)   
+        myprint(output, "\n")    
 
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = write_sorted_top_x(players, config, used_fights, 'dist', output)

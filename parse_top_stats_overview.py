@@ -95,12 +95,12 @@ if __name__ == '__main__':
     top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output, args.xls_output_filename)    
     myprint(output, "\n")    
 
-    #top_consistent_healers = list()
-    #if found_healing:
-    #    myprint(output, "HEALING AWARDS\n")        
-    #    top_consistent_healers = write_sorted_top_x(players, config, used_fights, 'heal', output)
-    #    top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)   
-    #    myprint(output, "\n")    
+    top_consistent_healers = list()
+    if found_healing:
+        myprint(output, "HEALING AWARDS\n")        
+        top_consistent_healers = write_sorted_top_x(players, config, used_fights, 'heal', output)
+        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output, args.xls_output_filename)   
+        myprint(output, "\n")    
 
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = write_sorted_top_x(players, config, used_fights, 'dist', output)            
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     top_late_strippers = write_sorted_top_x_percentage(players, config, used_fights, 'rips', output, StatType.LATE_PERCENTAGE, top_consistent_strippers, top_total_strippers)
     top_late_cleansers = write_sorted_top_x_percentage(players, config, used_fights, 'cleanses', output, StatType.LATE_PERCENTAGE, top_consistent_cleansers, top_total_cleansers)
     top_late_stabbers = write_sorted_top_x_percentage(players, config, used_fights, 'stab', output, StatType.LATE_PERCENTAGE, top_consistent_stabbers, top_total_stabbers)
-    #top_late_healers = write_sorted_top_x_percentage(players, config, used_fights, 'heal', output, StatType.LATE_PERCENTAGE, top_consistent_healers, top_total_healers)
+    top_late_healers = write_sorted_top_x_percentage(players, config, used_fights, 'heal', output, StatType.LATE_PERCENTAGE, top_consistent_healers, top_total_healers)
     top_late_distancers = write_sorted_top_x_percentage(players, config, used_fights, 'dist', output, StatType.LATE_PERCENTAGE, top_consistent_distancers)    
     myprint(output, "\n")
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     write_sorted_top_x_percentage(players, config, used_fights, 'rips', output, StatType.SWAPPED_PERCENTAGE, top_consistent_strippers, top_total_strippers, top_late_strippers)
     write_sorted_top_x_percentage(players, config, used_fights, 'cleanses', output, StatType.SWAPPED_PERCENTAGE, top_consistent_cleansers, top_total_cleansers, top_late_cleansers)
     write_sorted_top_x_percentage(players, config, used_fights, 'stab', output, StatType.SWAPPED_PERCENTAGE, top_consistent_stabbers, top_total_stabbers, top_late_stabbers)
-    #write_sorted_top_x_percentage(players, config, used_fights, 'heal', output, StatType.SWAPPED_PERCENTAGE, top_consistent_healers, top_total_healers, top_late_healers)
+    write_sorted_top_x_percentage(players, config, used_fights, 'heal', output, StatType.SWAPPED_PERCENTAGE, top_consistent_healers, top_total_healers, top_late_healers)
     write_sorted_top_x_percentage(players, config, used_fights, 'dist', output, StatType.SWAPPED_PERCENTAGE, top_consistent_distancers, top_late_distancers)    
     myprint(output, "\n")
     
