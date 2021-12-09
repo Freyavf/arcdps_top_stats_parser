@@ -332,7 +332,7 @@ def write_total_stats_xls(players, top_total_players, stat, xls_output_filename)
         sheet1.write(i+1, 6, player.total_stats[stat]/player.duration_fights_present)        
 
     wb.save(xls_output_filename)
-    
+
 
 # Write the top x people who achieved top total stat.
 # Input:
@@ -668,7 +668,7 @@ def collect_stat_data(args, config, log):
             if found_healing:
                 players[player_index[name_and_prof]].total_stats['heal'] += healing
             if distance > 0: # distance sometimes -1 for some reason
-                players[player_index[name_and_prof]].total_stats['dist'] += distance
+                players[player_index[name_and_prof]].total_stats['dist'] += distance*duration
             players[player_index[name_and_prof]].total_stats['deaths'] += deaths
             players[player_index[name_and_prof]].total_stats['kills'] += kills
 
@@ -678,7 +678,7 @@ def collect_stat_data(args, config, log):
             overall_squad_stats['stab'] += stab_generated*duration
             overall_squad_stats['cleanses'] += cleanses
             overall_squad_stats['heal'] += healing
-            overall_squad_stats['dist'] += distance
+            overall_squad_stats['dist'] += distance*duration
             overall_squad_stats['deaths'] += deaths
             overall_squad_stats['kills'] += kills
 
