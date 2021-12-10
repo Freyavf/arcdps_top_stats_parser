@@ -52,7 +52,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, found_healing = collect_stat_data(args, config, log)
+    players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing = collect_stat_data(args, config, log)
 
     total_fight_duration = {}
     total_fight_duration["h"] = int(used_fights_duration/3600)

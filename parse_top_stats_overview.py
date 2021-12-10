@@ -58,7 +58,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, found_healing = collect_stat_data(args, config, log)
+    players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing = collect_stat_data(args, config, log)
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     myprint(output, print_string)
 
     # print overall stats
-    total_fight_duration = print_total_squad_stats(overall_squad_stats, used_fights, used_fights_duration, total_fights, num_players_per_fight, found_healing, output)
+    total_fight_duration = print_total_squad_stats(overall_squad_stats, used_fights, used_fights_duration, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing, output)
     
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the

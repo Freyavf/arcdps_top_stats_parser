@@ -494,6 +494,7 @@ def collect_stat_data(args, config, log):
     account_index = {}  # dictionary that matches each account name to a list of its indices in players list
     
     num_players_per_fight = list()
+    num_enemies_per_fight = list()    
     stab_id = "1122"
     used_fights = 0
     used_fights_duration = 0
@@ -540,7 +541,13 @@ def collect_stat_data(args, config, log):
             continue
 
         # skip fights with less than min_enemy_players enemies
-        num_enemies = len(xml_root.findall('targets')) # technically would need to check whether enemyPlayer == True
+        num_enemies = 0
+        for enemy in xml_root.iter('targets'):
+            is_enemy_player_xml = enemy.find('enemyPlayer')
+            if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
+                num_enemies += 1
+
+        #len(xml_root.findall('targets')) # technically would need to check whether enemyPlayer == True
         if num_enemies < config.min_enemy_players:
             log.write(print_string)
             print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
@@ -550,6 +557,7 @@ def collect_stat_data(args, config, log):
         used_fights += 1
         used_fights_duration += duration
         num_players_per_fight.append(num_allies)
+        num_enemies_per_fight.append(num_enemies)        
 
         # dictionaries for stats for each player in this fight
         damage_per_player = {}
@@ -720,12 +728,12 @@ def collect_stat_data(args, config, log):
 
     myprint(log, "\n")
     
-    return players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, found_healing
+    return players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing
 
 
 
 # print the overall squad stats
-def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_duration, total_fights, num_players_per_fight, found_healing, output):
+def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_duration, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing, output):
     #get total duration in h, m, s
     total_fight_duration = {}
     total_fight_duration["h"] = int(used_fights_duration/3600)
@@ -736,6 +744,9 @@ def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_durati
     total_stab_duration["h"] = int(overall_squad_stats['stab']/3600)
     total_stab_duration["m"] = int((overall_squad_stats['stab'] - total_stab_duration["h"]*3600)/60)
     total_stab_duration["s"] = int(overall_squad_stats['stab'] - total_stab_duration["h"]*3600 - total_stab_duration["m"]*60)    
+
+    mean_players = sum(num_players_per_fight)/len(num_players_per_fight)
+    mean_enemies = sum(num_enemies_per_fight)/len(num_enemies_per_fight)
     
     print_string = "The following stats are computed over "+str(used_fights)+" out of "+str(total_fights)+" fights.\n"# fights with a total duration of "+used_fights_duration+".\n"
     myprint(output, print_string)
@@ -751,7 +762,8 @@ def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_durati
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(used_fights)+" fights.\n"
-    print_string += "There were between "+str(min(num_players_per_fight))+" and "+str(max(num_players_per_fight))+" allied players involved.\n"    
+    print_string += "There were between "+str(min(num_players_per_fight))+" and "+str(max(num_players_per_fight))+" allied players involved (mean "+str(round(mean_players, 1))+" players).\n"
+    print_string += "The squad faced between "+str(min(num_enemies_per_fight))+" and "+str(max(num_enemies_per_fight))+" enemy players (mean "+str(round(mean_enemies, 1))+" players).\n"    
         
     myprint(output, print_string)
     return total_fight_duration
