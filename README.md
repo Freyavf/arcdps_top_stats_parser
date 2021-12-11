@@ -46,5 +46,4 @@ These settings are available:
 - profession_abbreviations: For each profession, the name it appears as in the stats.
 - stat_names: The name as which each stat appears.
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=C5CSPXYHBGR2U)
-
+If you find this tool helpful, consider sending me a few bucks via PayPal: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=C5CSPXYHBGR2U) Ingame donations are also welcome on the account Freya.1384. If you have any ideas or suggestions for further improvements, let me know ingame. Please note that I might not have time to reply right away, but I will try to come back to you. Thank you :)
