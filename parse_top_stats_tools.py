@@ -762,8 +762,8 @@ def print_total_squad_stats(overall_squad_stats, used_fights, used_fights_durati
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(used_fights)+" fights.\n"
-    print_string += "There were between "+str(min(num_players_per_fight))+" and "+str(max(num_players_per_fight))+" allied players involved (mean "+str(round(mean_players, 1))+" players).\n"
-    print_string += "The squad faced between "+str(min(num_enemies_per_fight))+" and "+str(max(num_enemies_per_fight))+" enemy players (mean "+str(round(mean_enemies, 1))+" players).\n"    
+    print_string += "There were between "+str(min(num_players_per_fight))+" and "+str(max(num_players_per_fight))+" allied players involved (average "+str(round(mean_players, 1))+" players).\n"
+    print_string += "The squad faced between "+str(min(num_enemies_per_fight))+" and "+str(max(num_enemies_per_fight))+" enemy players (average "+str(round(mean_enemies, 1))+" players).\n"    
         
     myprint(output, print_string)
     return total_fight_duration

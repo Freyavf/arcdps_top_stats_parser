@@ -1,6 +1,7 @@
-# arcdps_top_stats_parser
+# What is it all about?
 
-This project provides a tool for generating top stats from a set of arcdps logs. Currently supported stats are: 
+Did you ever wonder how well you or your squad mates did, not only in a single fight, but over the whole raid? Do you want to know who to ask for help with a specific class? Or do you want to hand out an award to a guildie who did the most damage in all raids over a whole week? This projects provides a tool for generating top stats from a set of arcdps logs, allowing you to easily identify top performing players in different stats.
+Currently supported stats are: 
 - all damage
 - boon rips
 - cleanses
@@ -11,6 +12,11 @@ This project provides a tool for generating top stats from a set of arcdps logs.
 Healing output can only be analyzed when contained in the logs, i.e., the healing addon for arcdps is installed.
 
 Provided are three scripts: ```parse_top_stats_sneak_peek.py```, ```parse_top_stats_overview.py``` and ```parse_top_stats_detailed.py```. The first gives an overview of the best performing players only in total damage, boon rips and cleanses. The second gives an overview of top players considering consistency and total values of all stats. The third shows the performance of all players contributing to each stat.
+
+Here is an example txt output file: ![example output](/example_output/top_stats_detailed.txt?raw=true)
+Output is also given as .xls file for further processing. I'm planning to add more example output files soon.
+
+# How does it work?
 
 To generate the top stats, do the following:
 - Install python3 if you don't have it yet (https://www.python.org/downloads/).
@@ -45,6 +51,8 @@ These settings are available:
 - min_enemy_players: The minimum number of enemy players to consider a fight in the stats computation.
 - profession_abbreviations: For each profession, the name it appears as in the stats.
 - stat_names: The name as which each stat appears.
+
+# Getting involved
 
 If you find this tool helpful, you can make a donation to support it: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=C5CSPXYHBGR2U) 
 
