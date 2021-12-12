@@ -1,4 +1,19 @@
-#This file contains the configuration for computing the overview top stats.
+#    This file contains the configuration for computing the overview of top stats in arcdps logs as parsed by Elite Insights.
+#    Copyright (C) 2021 Freya Fleckenstein
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
