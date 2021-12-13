@@ -69,8 +69,9 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, overall_squad_stats, used_fights_duration, used_fights, total_fights, num_players_per_fight, num_enemies_per_fight, found_healing = collect_stat_data(args, config, log)
+    players, fights, found_healing = collect_stat_data(args, config, log)
 
+    used_fights_duration = sum([f.duration for f in fights if not f.skipped])
     total_fight_duration = {}
     total_fight_duration["h"] = int(used_fights_duration/3600)
     total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
-    book.add_sheet("dummy")
+    book.add_sheet("fights overview")
     book.save(args.xls_output_filename)
     
     print_string = "Welcome to the raid sneak peek!"
