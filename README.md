@@ -15,9 +15,9 @@ Provided are three scripts: ```parse_top_stats_sneak_peek.py```, ```parse_top_st
 To generate the top stats, there are two options. For more manual control, proceed like this:
 1. Install python3 if you don't have it yet (https://www.python.org/downloads/).
 2. Install xlrd, xlutils and xlwt it you don't have them yet: Open a terminal (on windows press windows key + r, type "cmd", enter), and type ```pip3 install xlrd xlutils xlwt```, enter.
-3. Download this repository if you don't have it yet. We here assume the path is C:\Users\Example\Downloads\arcdps_top_stats_parser\.
+3. Download this repository if you don't have it yet. We here assume the path is ```C:\Users\Example\Downloads\arcdps_top_stats_parser\```.
 4. Generate .xml files from your arcdps logs by using Elite Insights (https://github.com/baaron4/GW2-Elite-Insights-Parser/releases). Enable detailed wvw parsing.
-5. Put all .xml files you want included in the top stats into one folder. We use the folder C:\Users\Example\Documents\xml_folder as an example here. Note that different file types will be ignored, so no need to move your logs elsewhere if you have them in the same folder.
+5. Put all .xml files you want included in the top stats into one folder. We use the folder ```C:\Users\Example\Documents\xml_folder``` as an example here. Note that different file types will be ignored, so no need to move your logs elsewhere if you have them in the same folder.
 6. Open a terminal / windows command line (press Windows key + r, type "cmd", enter).
 7. Navigate to where the script is located using "cd", in our case this means ```cd Downloads\arcdps_top_stats_parser```.
 8. Type ```python parse_top_stats_overview.py <folder>```, where \<folder> is the path to your folder with xml files. In our example case, we run ```python parse_top_stats_overview.py C:\Users\Example\Documents\xml_folder```. For the detailed version, use ```parse_top_stats_detailed.py``` instead of ```parse_top_stats_overview.py```, and for the sneak peak use ```parse_top_stats_sneak_peek.py```.
