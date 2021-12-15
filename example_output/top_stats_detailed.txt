@@ -1,0 +1,519 @@
+Welcome to the CARROT AWARDS!
+
+The following stats are computed over 29 out of 40 fights.
+
+Squad overall did 83165267 damage, ripped 17855 boons, cleansed 32660 conditions, 
+generated 1h 34m 0s of stability, healed for 10527302, 
+killed 596 enemies and had 164 deaths 
+over a total time of 51m 59s in 29 fights.
+There were between 26 and 36 allied players involved (average 33.2 players).
+The squad faced between 26 and 93 enemy players (average 61.9 players).
+
+DAMAGE AWARDS
+
+Top damage consistency awards (Max. 10 people, min. 0% of most consistent)
+Most times placed in the top 10. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top     Total
+ 1. anon1                Weaver                27         25   8290773
+ 1. anon2                Herald                28         25   6205642
+ 1. anon3                Scourge               29         25   4912533
+ 2. anon4                Dragonhunter          23         23   6241416
+ 2. anon5                Scourge               26         23   4846727
+ 2. anon6                Herald                29         23   4583664
+ 3. anon7                Scourge               29         21   4461950
+ 3. anon8                Herald                28         21   4375209
+ 4. anon9                Weaver                28         20   5084234
+ 5. anon10               Scourge               29         19   4812381
+ 5. anon11               Herald                29         19   3987173
+ 6. anon12               Herald                26         11   3619633
+ 7. anon13               Scourge               23          9   2490413
+ 8. anon14               Scourge               24          7   2882225
+ 8. anon15               Scourge               17          7   2210625
+ 9. anon16               Herald                20          5   2239724
+10. anon17               Scourge                6          3   1000521
+11. anon18               Tempest               27          2   1685153
+11. anon19               Herald                 9          2    764093
+12. anon20               Chronomancer          29          0   1078121
+12. anon21               Firebrand             27          0    727925
+12. anon22               Tempest               16          0    707077
+12. anon23               Spellbreaker          22          0    626009
+12. anon24               Firebrand             29          0    551776
+12. anon25               Firebrand             29          0    531830
+12. anon26               Spellbreaker          29          0    444893
+12. anon27               Scrapper              29          0    412300
+12. anon28               Scrapper              29          0    398375
+12. anon29               Scrapper              29          0    387654
+12. anon30               Firebrand             25          0    350410
+12. anon31               Scrapper              27          0    342463
+12. anon32               Firebrand             19          0    328266
+12. anon33               Firebrand             25          0    295729
+12. anon4                Firebrand              6          0    238309
+12. anon34               Scrapper              26          0    236832
+12. anon35               Firebrand             26          0    228583
+12. anon36               Chronomancer          26          0    224148
+12. anon37               Scrapper              29          0    192500
+12. anon38               Scrapper              29          0    167978
+
+Top overall damage awards (Max. 50 people, min. 0% of 1st place)
+Attendance = total duration of fights attended out of 51m 59s.
+------------------------------------------------------------------------
+    Name                 Class          Attendance     Total
+ 1. anon1                Weaver            50m 35s   8290773
+ 2. anon4                Dragonhunter      41m 23s   6241416
+ 3. anon2                Herald            49m 14s   6205642
+ 4. anon9                Weaver            51m 21s   5084234
+ 5. anon3                Scourge           51m 59s   4912533
+ 6. anon5                Scourge           46m 46s   4846727
+ 7. anon10               Scourge           51m 59s   4812381
+ 8. anon6                Herald            51m 59s   4583664
+ 9. anon7                Scourge           51m 59s   4461950
+10. anon8                Herald            51m 16s   4375209
+11. anon11               Herald            51m 59s   3987173
+12. anon12               Herald            47m 35s   3619633
+13. anon14               Scourge           45m  7s   2882225
+14. anon13               Scourge           41m 23s   2490413
+15. anon16               Herald            37m 19s   2239724
+16. anon15               Scourge           34m 22s   2210625
+17. anon18               Tempest           48m 25s   1685153
+18. anon20               Chronomancer      51m 59s   1078121
+19. anon17               Scourge           10m 36s   1000521
+20. anon19               Herald            15m  0s    764093
+21. anon21               Firebrand         48m 25s    727925
+22. anon22               Tempest           31m 37s    707077
+23. anon23               Spellbreaker      40m 18s    626009
+24. anon24               Firebrand         51m 59s    551776
+25. anon25               Firebrand         51m 59s    531830
+26. anon26               Spellbreaker      51m 59s    444893
+27. anon27               Scrapper          51m 59s    412300
+28. anon28               Scrapper          51m 59s    398375
+29. anon29               Scrapper          51m 59s    387654
+30. anon30               Firebrand         48m 43s    350410
+31. anon31               Scrapper          48m 25s    342463
+32. anon32               Firebrand         38m 26s    328266
+33. anon33               Firebrand         45m 50s    295729
+34. anon4                Firebrand         10m 36s    238309
+35. anon34               Scrapper          49m 52s    236832
+36. anon35               Firebrand         47m 37s    228583
+37. anon36               Chronomancer      49m 45s    224148
+38. anon37               Scrapper          51m 59s    192500
+39. anon38               Scrapper          51m 59s    167978
+
+
+BOON STRIPS AWARDS
+
+Top boon strips consistency awards (Max. 5 people, min. 0% of most consistent)
+Most times placed in the top 5. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top     Total
+ 1. anon20               Chronomancer          29         26      2600
+ 2. anon10               Scourge               29         23      2111
+ 3. anon5                Scourge               26         21      1798
+ 4. anon3                Scourge               29         20      1780
+ 5. anon7                Scourge               29         18      1792
+ 6. anon14               Scourge               24         13      1296
+ 7. anon15               Scourge               17          9       936
+ 8. anon26               Spellbreaker          29          5      1201
+ 9. anon13               Scourge               23          4       897
+10. anon17               Scourge                6          3       542
+11. anon29               Scrapper              29          2       537
+12. anon31               Scrapper              27          1       496
+12. anon27               Scrapper              29          1       294
+12. anon34               Scrapper              26          1       218
+13. anon23               Spellbreaker          22          0       354
+13. anon36               Chronomancer          26          0       339
+13. anon28               Scrapper              29          0       222
+13. anon37               Scrapper              29          0       165
+13. anon18               Tempest               27          0        39
+13. anon25               Firebrand             29          0        33
+13. anon21               Firebrand             27          0        31
+13. anon24               Firebrand             29          0        28
+13. anon2                Herald                28          0        26
+13. anon12               Herald                26          0        20
+13. anon30               Firebrand             25          0        18
+13. anon9                Weaver                28          0        18
+13. anon33               Firebrand             25          0         9
+13. anon6                Herald                29          0         9
+13. anon4                Dragonhunter          23          0         9
+13. anon32               Firebrand             19          0         8
+13. anon4                Firebrand              6          0         6
+13. anon1                Weaver                27          0         6
+13. anon16               Herald                20          0         4
+13. anon8                Herald                28          0         4
+13. anon11               Herald                29          0         3
+13. anon38               Scrapper              29          0         3
+13. anon35               Firebrand             26          0         2
+13. anon22               Tempest               16          0         1
+13. anon19               Herald                 9          0         0
+
+Top overall boon strips awards (Max. 50 people, min. 0% of 1st place)
+Attendance = total duration of fights attended out of 51m 59s.
+------------------------------------------------------------------------
+    Name                 Class          Attendance     Total
+ 1. anon20               Chronomancer      51m 59s      2600
+ 2. anon10               Scourge           51m 59s      2111
+ 3. anon5                Scourge           46m 46s      1798
+ 4. anon7                Scourge           51m 59s      1792
+ 5. anon3                Scourge           51m 59s      1780
+ 6. anon14               Scourge           45m  7s      1296
+ 7. anon26               Spellbreaker      51m 59s      1201
+ 8. anon15               Scourge           34m 22s       936
+ 9. anon13               Scourge           41m 23s       897
+10. anon17               Scourge           10m 36s       542
+11. anon29               Scrapper          51m 59s       537
+12. anon31               Scrapper          48m 25s       496
+13. anon23               Spellbreaker      40m 18s       354
+14. anon36               Chronomancer      49m 45s       339
+15. anon27               Scrapper          51m 59s       294
+16. anon28               Scrapper          51m 59s       222
+17. anon34               Scrapper          49m 52s       218
+18. anon37               Scrapper          51m 59s       165
+19. anon18               Tempest           48m 25s        39
+20. anon25               Firebrand         51m 59s        33
+21. anon21               Firebrand         48m 25s        31
+22. anon24               Firebrand         51m 59s        28
+23. anon2                Herald            49m 14s        26
+24. anon12               Herald            47m 35s        20
+25. anon30               Firebrand         48m 43s        18
+25. anon9                Weaver            51m 21s        18
+26. anon33               Firebrand         45m 50s         9
+26. anon6                Herald            51m 59s         9
+26. anon4                Dragonhunter      41m 23s         9
+27. anon32               Firebrand         38m 26s         8
+28. anon4                Firebrand         10m 36s         6
+28. anon1                Weaver            50m 35s         6
+29. anon16               Herald            37m 19s         4
+29. anon8                Herald            51m 16s         4
+30. anon11               Herald            51m 59s         3
+30. anon38               Scrapper          51m 59s         3
+31. anon35               Firebrand         47m 37s         2
+32. anon22               Tempest           31m 37s         1
+33. anon19               Herald            15m  0s         0
+
+
+CONDITION CLEANSES AWARDS
+
+Top condition cleanses consistency awards (Max. 5 people, min. 0% of most consistent)
+Most times placed in the top 5. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top     Total
+ 1. anon37               Scrapper              29         27      3603
+ 2. anon38               Scrapper              29         25      3078
+ 3. anon27               Scrapper              29         23      3292
+ 4. anon31               Scrapper              27         22      3228
+ 5. anon29               Scrapper              29         18      3194
+ 5. anon28               Scrapper              29         18      2975
+ 6. anon18               Tempest               27          6      1878
+ 7. anon34               Scrapper              26          5      1604
+ 8. anon22               Tempest               16          4       882
+ 9. anon36               Chronomancer          26          1       888
+ 9. anon25               Firebrand             29          1       798
+ 9. anon26               Spellbreaker          29          1       720
+ 9. anon23               Spellbreaker          22          1       340
+10. anon20               Chronomancer          29          0      1178
+10. anon21               Firebrand             27          0       736
+10. anon24               Firebrand             29          0       553
+10. anon30               Firebrand             25          0       383
+10. anon32               Firebrand             19          0       340
+10. anon10               Scourge               29          0       306
+10. anon33               Firebrand             25          0       277
+10. anon5                Scourge               26          0       256
+10. anon35               Firebrand             26          0       255
+10. anon4                Firebrand              6          0       224
+10. anon3                Scourge               29          0       216
+10. anon7                Scourge               29          0       197
+10. anon14               Scourge               24          0       188
+10. anon15               Scourge               17          0       184
+10. anon9                Weaver                28          0       144
+10. anon6                Herald                29          0        93
+10. anon11               Herald                29          0        89
+10. anon8                Herald                28          0        88
+10. anon13               Scourge               23          0        82
+10. anon2                Herald                28          0        81
+10. anon1                Weaver                27          0        76
+10. anon19               Herald                 9          0        69
+10. anon17               Scourge                6          0        66
+10. anon4                Dragonhunter          23          0        53
+10. anon12               Herald                26          0        31
+10. anon16               Herald                20          0        15
+
+Top overall condition cleanses awards (Max. 50 people, min. 0% of 1st place)
+Attendance = total duration of fights attended out of 51m 59s.
+------------------------------------------------------------------------
+    Name                 Class          Attendance     Total
+ 1. anon37               Scrapper          51m 59s      3603
+ 2. anon27               Scrapper          51m 59s      3292
+ 3. anon31               Scrapper          48m 25s      3228
+ 4. anon29               Scrapper          51m 59s      3194
+ 5. anon38               Scrapper          51m 59s      3078
+ 6. anon28               Scrapper          51m 59s      2975
+ 7. anon18               Tempest           48m 25s      1878
+ 8. anon34               Scrapper          49m 52s      1604
+ 9. anon20               Chronomancer      51m 59s      1178
+10. anon36               Chronomancer      49m 45s       888
+11. anon22               Tempest           31m 37s       882
+12. anon25               Firebrand         51m 59s       798
+13. anon21               Firebrand         48m 25s       736
+14. anon26               Spellbreaker      51m 59s       720
+15. anon24               Firebrand         51m 59s       553
+16. anon30               Firebrand         48m 43s       383
+17. anon23               Spellbreaker      40m 18s       340
+17. anon32               Firebrand         38m 26s       340
+18. anon10               Scourge           51m 59s       306
+19. anon33               Firebrand         45m 50s       277
+20. anon5                Scourge           46m 46s       256
+21. anon35               Firebrand         47m 37s       255
+22. anon4                Firebrand         10m 36s       224
+23. anon3                Scourge           51m 59s       216
+24. anon7                Scourge           51m 59s       197
+25. anon14               Scourge           45m  7s       188
+26. anon15               Scourge           34m 22s       184
+27. anon9                Weaver            51m 21s       144
+28. anon6                Herald            51m 59s        93
+29. anon11               Herald            51m 59s        89
+30. anon8                Herald            51m 16s        88
+31. anon13               Scourge           41m 23s        82
+32. anon2                Herald            49m 14s        81
+33. anon1                Weaver            50m 35s        76
+34. anon19               Herald            15m  0s        69
+35. anon17               Scourge           10m 36s        66
+36. anon4                Dragonhunter      41m 23s        53
+37. anon12               Herald            47m 35s        31
+38. anon16               Herald            37m 19s        15
+
+
+STABILITY OUTPUT AWARDS 
+
+Top stability output consistency awards (Max. 5 people, min. 0% of most consistent)
+Most times placed in the top 5. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top     Total  Average
+ 1. anon21               Firebrand             27         27      762s     0.26
+ 2. anon24               Firebrand             29         23      567s     0.18
+ 3. anon25               Firebrand             29         18      434s     0.14
+ 4. anon30               Firebrand             25         17      425s     0.15
+ 5. anon33               Firebrand             25         12      330s     0.12
+ 6. anon16               Herald                20         10      385s     0.17
+ 7. anon32               Firebrand             19          6      274s     0.12
+ 8. anon4                Firebrand              6          5      113s     0.18
+ 9. anon11               Herald                29          4      229s     0.07
+ 9. anon14               Scourge               24          4      204s     0.08
+ 9. anon15               Scourge               17          4      163s     0.08
+10. anon5                Scourge               26          3      172s     0.06
+10. anon2                Herald                28          3      169s     0.06
+11. anon8                Herald                28          2      207s     0.07
+11. anon10               Scourge               29          2      141s     0.05
+12. anon35               Firebrand             26          1      251s     0.09
+12. anon3                Scourge               29          1      196s     0.06
+12. anon6                Herald                29          1      157s     0.05
+12. anon17               Scourge                6          1       64s      0.1
+12. anon19               Herald                 9          1       38s     0.04
+13. anon13               Scourge               23          0      126s     0.05
+13. anon7                Scourge               29          0      117s     0.04
+13. anon12               Herald                26          0       98s     0.03
+13. anon37               Scrapper              29          0       14s      0.0
+13. anon31               Scrapper              27          0        1s      0.0
+13. anon28               Scrapper              29          0        1s      0.0
+13. anon27               Scrapper              29          0        1s      0.0
+13. anon29               Scrapper              29          0        1s      0.0
+13. anon38               Scrapper              29          0        0s      0.0
+13. anon34               Scrapper              26          0        0s      0.0
+13. anon23               Spellbreaker          22          0        0s      0.0
+13. anon22               Tempest               16          0        0s      0.0
+13. anon9                Weaver                28          0        0s      0.0
+13. anon36               Chronomancer          26          0        0s      0.0
+13. anon26               Spellbreaker          29          0        0s      0.0
+13. anon4                Dragonhunter          23          0        0s      0.0
+13. anon1                Weaver                27          0        0s      0.0
+13. anon18               Tempest               27          0        0s      0.0
+13. anon20               Chronomancer          29          0        0s      0.0
+
+Top overall stability output awards (Max. 50 people, min. 0% of 1st place)
+Attendance = total duration of fights attended out of 51m 59s.
+------------------------------------------------------------------------
+    Name                 Class          Attendance     Total  Average
+ 1. anon21               Firebrand         48m 25s      762s     0.26
+ 2. anon24               Firebrand         51m 59s      567s     0.18
+ 3. anon25               Firebrand         51m 59s      434s     0.14
+ 4. anon30               Firebrand         48m 43s      425s     0.15
+ 5. anon16               Herald            37m 19s      385s     0.17
+ 6. anon33               Firebrand         45m 50s      330s     0.12
+ 7. anon32               Firebrand         38m 26s      274s     0.12
+ 8. anon35               Firebrand         47m 37s      251s     0.09
+ 9. anon11               Herald            51m 59s      229s     0.07
+10. anon8                Herald            51m 16s      207s     0.07
+11. anon14               Scourge           45m  7s      204s     0.08
+12. anon3                Scourge           51m 59s      196s     0.06
+13. anon5                Scourge           46m 46s      172s     0.06
+14. anon2                Herald            49m 14s      169s     0.06
+15. anon15               Scourge           34m 22s      163s     0.08
+16. anon6                Herald            51m 59s      157s     0.05
+17. anon10               Scourge           51m 59s      141s     0.05
+18. anon13               Scourge           41m 23s      126s     0.05
+19. anon7                Scourge           51m 59s      117s     0.04
+20. anon4                Firebrand         10m 36s      113s     0.18
+21. anon12               Herald            47m 35s       98s     0.03
+22. anon17               Scourge           10m 36s       64s      0.1
+23. anon19               Herald            15m  0s       38s     0.04
+24. anon37               Scrapper          51m 59s       14s      0.0
+25. anon31               Scrapper          48m 25s        1s      0.0
+26. anon28               Scrapper          51m 59s        1s      0.0
+27. anon27               Scrapper          51m 59s        1s      0.0
+28. anon29               Scrapper          51m 59s        1s      0.0
+29. anon38               Scrapper          51m 59s        0s      0.0
+30. anon34               Scrapper          49m 52s        0s      0.0
+31. anon23               Spellbreaker      40m 18s        0s      0.0
+31. anon22               Tempest           31m 37s        0s      0.0
+31. anon9                Weaver            51m 21s        0s      0.0
+31. anon36               Chronomancer      49m 45s        0s      0.0
+31. anon26               Spellbreaker      51m 59s        0s      0.0
+31. anon4                Dragonhunter      41m 23s        0s      0.0
+31. anon1                Weaver            50m 35s        0s      0.0
+31. anon18               Tempest           48m 25s        0s      0.0
+31. anon20               Chronomancer      51m 59s        0s      0.0
+
+
+HEALING AWARDS
+
+Top healing consistency awards (Max. 5 people, min. 0% of most consistent)
+Most times placed in the top 5. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top     Total
+ 1. anon27               Scrapper              29         27   1785183
+ 2. anon29               Scrapper              29         24   1961037
+ 2. anon31               Scrapper              27         24   1825817
+ 2. anon37               Scrapper              29         24   1711440
+ 3. anon38               Scrapper              29         19   1413928
+ 4. anon25               Firebrand             29         13    516499
+ 5. anon20               Chronomancer          29         10    313726
+ 6. anon35               Firebrand             26          8    465224
+ 7. anon26               Spellbreaker          29          7    305941
+ 8. anon6                Herald                29          6     26877
+ 9. anon2                Herald                28          5     24235
+10. anon10               Scourge               29          4     29541
+10. anon34               Scrapper              26          4     29469
+10. anon12               Herald                26          4     24660
+10. anon11               Herald                29          4     24516
+10. anon28               Scrapper              29          4     22100
+10. anon30               Firebrand             25          4     13084
+10. anon24               Firebrand             29          4      8127
+10. anon23               Spellbreaker          22          4      4003
+10. anon36               Chronomancer          26          4      1989
+10. anon5                Scourge               26          4      1651
+10. anon7                Scourge               29          4         0
+10. anon21               Firebrand             27          4         0
+10. anon1                Weaver                27          4         0
+10. anon3                Scourge               29          4         0
+10. anon18               Tempest               27          4         0
+11. anon16               Herald                20          3         0
+11. anon9                Weaver                28          3         0
+11. anon13               Scourge               23          3         0
+11. anon33               Firebrand             25          3         0
+11. anon8                Herald                28          3         0
+11. anon4                Dragonhunter          23          3         0
+12. anon22               Tempest               16          2     11515
+12. anon15               Scourge               17          2         0
+12. anon32               Firebrand             19          2         0
+12. anon14               Scourge               24          2         0
+13. anon4                Firebrand              6          1      6740
+13. anon17               Scourge                6          1         0
+13. anon19               Herald                 9          1         0
+
+Top overall healing awards (Max. 50 people, min. 0% of 1st place)
+Attendance = total duration of fights attended out of 51m 59s.
+------------------------------------------------------------------------
+    Name                 Class          Attendance     Total
+ 1. anon29               Scrapper          51m 59s   1961037
+ 2. anon31               Scrapper          48m 25s   1825817
+ 3. anon27               Scrapper          51m 59s   1785183
+ 4. anon37               Scrapper          51m 59s   1711440
+ 5. anon38               Scrapper          51m 59s   1413928
+ 6. anon25               Firebrand         51m 59s    516499
+ 7. anon35               Firebrand         47m 37s    465224
+ 8. anon20               Chronomancer      51m 59s    313726
+ 9. anon26               Spellbreaker      51m 59s    305941
+10. anon10               Scourge           51m 59s     29541
+11. anon34               Scrapper          49m 52s     29469
+12. anon6                Herald            51m 59s     26877
+13. anon12               Herald            47m 35s     24660
+14. anon11               Herald            51m 59s     24516
+15. anon2                Herald            49m 14s     24235
+16. anon28               Scrapper          51m 59s     22100
+17. anon30               Firebrand         48m 43s     13084
+18. anon22               Tempest           31m 37s     11515
+19. anon24               Firebrand         51m 59s      8127
+20. anon4                Firebrand         10m 36s      6740
+21. anon23               Spellbreaker      40m 18s      4003
+22. anon36               Chronomancer      49m 45s      1989
+23. anon5                Scourge           46m 46s      1651
+24. anon17               Scourge           10m 36s         0
+24. anon15               Scourge           34m 22s         0
+24. anon16               Herald            37m 19s         0
+24. anon19               Herald            15m  0s         0
+24. anon7                Scourge           51m 59s         0
+24. anon32               Firebrand         38m 26s         0
+24. anon9                Weaver            51m 21s         0
+24. anon13               Scourge           41m 23s         0
+24. anon33               Firebrand         45m 50s         0
+24. anon8                Herald            51m 16s         0
+24. anon4                Dragonhunter      41m 23s         0
+24. anon21               Firebrand         48m 25s         0
+24. anon1                Weaver            50m 35s         0
+24. anon3                Scourge           51m 59s         0
+24. anon18               Tempest           48m 25s         0
+24. anon14               Scourge           45m  7s         0
+
+
+SHORTEST DISTANCE TO TAG AWARDS
+
+Top 5 distance to tag consistency awards
+Most times placed in the top 5. 
+Attendance = number of fights a player was present out of 29 total fights.
+-------------------------------------------------------------------------------
+    Name                 Class         Attendance  Times Top
+ 1. anon37               Scrapper              29         24
+ 2. anon25               Firebrand             29         18
+ 3. anon26               Spellbreaker          29         15
+ 4. anon20               Chronomancer          29         12
+ 4. anon27               Scrapper              29         12
+ 5. anon2                Herald                28         11
+ 5. anon21               Firebrand             27         11
+ 6. anon14               Scourge               24         10
+ 7. anon5                Scourge               26          9
+ 8. anon29               Scrapper              29          7
+ 9. anon6                Herald                29          6
+ 9. anon28               Scrapper              29          6
+10. anon32               Firebrand             19          5
+11. anon16               Herald                20          4
+12. anon33               Firebrand             25          3
+12. anon38               Scrapper              29          3
+12. anon31               Scrapper              27          3
+12. anon10               Scourge               29          3
+13. anon3                Scourge               29          2
+13. anon8                Herald                28          2
+14. anon11               Herald                29          1
+14. anon22               Tempest               16          1
+14. anon12               Herald                26          1
+14. anon18               Tempest               27          1
+14. anon19               Herald                 9          1
+14. anon4                Dragonhunter          23          1
+14. anon17               Scourge                6          1
+14. anon4                Firebrand              6          1
+15. anon30               Firebrand             25          0
+15. anon36               Chronomancer          26          0
+15. anon1                Weaver                27          0
+15. anon34               Scrapper              26          0
+15. anon35               Firebrand             26          0
+15. anon7                Scourge               29          0
+15. anon13               Scourge               23          0
+15. anon9                Weaver                28          0
+15. anon23               Spellbreaker          22          0
+15. anon15               Scourge               17          0
+15. anon24               Firebrand             29          0
+
+
