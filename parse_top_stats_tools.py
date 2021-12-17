@@ -293,10 +293,6 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
     print_string = "-------------------------------------------------------------------------------"    
     myprint(output_file, print_string)
 
-    # get names that get on the list and their professions
-    top_consistent_players, name_length = get_topx_players(players, sorted_topx, config, stat, StatType.CONSISTENT)
-    profession_strings, profession_length = get_professions_and_length(players, top_consistent_players, config)
-    profession_length = max(profession_length, 5)
 
     # print table header
     print_string = f"    {'Name':<{name_length}}" + f"  {'Class':<{profession_length}} "+f" Attendance " + " Times Top"
