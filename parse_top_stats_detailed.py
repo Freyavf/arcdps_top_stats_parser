@@ -90,7 +90,8 @@ if __name__ == '__main__':
     overall_squad_stats = get_overall_squad_stats(fights)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
 
-    print_fights_overview(fights, overall_squad_stats, output, args.xls_output_filename)
+    print_fights_overview(fights, overall_squad_stats, output)
+    write_fights_overview_xls(fights, overall_squad_stats, args.xls_output_filename)
     
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
@@ -99,31 +100,31 @@ if __name__ == '__main__':
     myprint(output, "DAMAGE AWARDS\n")
     top_consistent_damagers = write_sorted_top_x(players, config, num_used_fights, 'dmg', output)
     top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output, args.xls_output_filename)    
-    myprint(output, "\n")    
+    #myprint(output, "\n")    
         
     myprint(output, "BOON STRIPS AWARDS\n")        
     top_consistent_strippers = write_sorted_top_x(players, config, num_used_fights, 'rips', output)
     top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output, args.xls_output_filename)    
-    myprint(output, "\n")            
+    #myprint(output, "\n")            
     
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
     top_consistent_cleansers = write_sorted_top_x(players, config, num_used_fights, 'cleanses', output)
     top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output, args.xls_output_filename)
-    myprint(output, "\n")    
+    #myprint(output, "\n")    
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
     top_consistent_stabbers = write_sorted_top_x(players, config, num_used_fights, 'stab', output)
     top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output, args.xls_output_filename)    
-    myprint(output, "\n")    
+    #myprint(output, "\n")    
     
     top_consistent_healers = list()
     if found_healing:
         myprint(output, "HEALING AWARDS\n")        
         top_consistent_healers = write_sorted_top_x(players, config, num_used_fights, 'heal', output)
         top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output, args.xls_output_filename)   
-        myprint(output, "\n")    
+        #myprint(output, "\n")    
     
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = write_sorted_top_x(players, config, num_used_fights, 'dist', output)
     write_total_stats_xls(players, top_consistent_distancers, 'dist', args.xls_output_filename)
-    myprint(output, "\n")
+    #myprint(output, "\n")

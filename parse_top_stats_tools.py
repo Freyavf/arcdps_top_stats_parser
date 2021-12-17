@@ -325,6 +325,7 @@ def write_sorted_top_x(players, config, num_used_fights, stat, output_file):
 
         myprint(output_file, print_string)
         last_val = player.consistency_stats[stat]
+    myprint(output_file, "\n")
 
     return top_consistent_players
         
@@ -378,7 +379,7 @@ def write_sorted_total(players, config, total_fight_duration, stat, output_file,
     sorted_topx = [i for total, i, player in decorated] 
     #print("top stats for total",stat,":", sorted_topx)
 
-    print_string = "\nTop overall "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" people, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
+    print_string = "Top overall "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" people, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
     myprint(output_file, print_string)
     print_string = "Attendance = total duration of fights attended out of "
     if total_fight_duration["h"] > 0:
@@ -426,7 +427,8 @@ def write_sorted_total(players, config, total_fight_duration, stat, output_file,
             print_string += f" {round(player.total_stats[stat]):>9}"
         myprint(output_file, print_string)
         last_val = player.total_stats[stat]
-
+    myprint(output_file, "\n")
+        
     write_total_stats_xls(players, top_total_players, stat, xls_output_filename)
         
     return top_total_players
@@ -494,7 +496,8 @@ def write_sorted_top_x_percentage(players, config, num_used_fights, stat, output
             print_string += f" {round(player.total_stats[stat]):>7}"
         myprint(output_file, print_string)
         last_val = player.percentage_top_stats[stat]
-
+    myprint(output_file, "\n")
+        
     return top_percentage_players
 
 
@@ -905,7 +908,7 @@ def write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename):
     wb.save(xls_output_filename)
 
 
-def print_fights_overview(fights, overall_squad_stats, output, xls_output_filename):
+def print_fights_overview(fights, overall_squad_stats, output):
     print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  "    
     print_string += f"{'Damage':>9}"
     print_string += "  Strips  Cleanses  Stability Output  "
@@ -933,5 +936,3 @@ def print_fights_overview(fights, overall_squad_stats, output, xls_output_filena
     print_string += f"{round(overall_squad_stats['dmg']):>9}" +"  "+f"{round(overall_squad_stats['rips']):>6}" +"  "+f"{round(overall_squad_stats['cleanses']):>8}"  +"  "+f"{round(overall_squad_stats['stab']):>16}"+"  "+f"{round(overall_squad_stats['heal']):>9}" +"  "#+f"{round(overall_squad_stats['dist']):>10}" +"  "
     print_string += f"{round(overall_squad_stats['deaths']):>6}" +"  "+f"{round(overall_squad_stats['kills']):>5}"
     myprint(output, print_string)
-
-    write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename)
