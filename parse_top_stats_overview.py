@@ -51,24 +51,7 @@ if __name__ == '__main__':
 
     parser_config = importlib.import_module("parser_configs."+args.config_file , package=None) 
     
-    config = Config()
-    config.num_players_listed = parser_config.num_players_listed
-    config.num_players_considered_top = parser_config.num_players_considered_top
-
-    config.min_attendance_portion_for_late = parser_config.attendance_percentage_for_late/100.
-    config.min_attendance_portion_for_buildswap = parser_config.attendance_percentage_for_buildswap/100.
-
-    config.portion_of_top_for_consistent = parser_config.percentage_of_top_for_consistent/100.
-    config.portion_of_top_for_total = parser_config.percentage_of_top_for_total/100.
-    config.portion_of_top_for_late = parser_config.percentage_of_top_for_late/100.
-    config.portion_of_top_for_buildswap = parser_config.percentage_of_top_for_buildswap/100.
-
-    config.min_allied_players = parser_config.min_allied_players
-    config.min_fight_duration = parser_config.min_fight_duration
-    config.min_enemy_players = parser_config.min_enemy_players
-
-    config.stat_names = parser_config.stat_names
-    config.profession_abbreviations = parser_config.profession_abbreviations
+    config = fill_config(parser_config)
 
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
@@ -88,7 +71,6 @@ if __name__ == '__main__':
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
-    #print_fights_overview(fights, overall_squad_stats, output)
     write_fights_overview_xls(fights, overall_squad_stats, args.xls_output_filename)    
     
     # print top x players for all stats. If less then x
@@ -96,62 +78,50 @@ if __name__ == '__main__':
     # same amount of top x achieved.
     num_used_fights = len([f for f in fights if not f.skipped])
     myprint(output, "DAMAGE AWARDS\n")
-    top_consistent_damagers = write_sorted_top_x(players, config, num_used_fights, 'dmg', output)
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output, args.xls_output_filename)    
-    #myprint(output, "\n")    
-        
+    top_consistent_damagers = write_sorted_top_consistent(players, config, num_used_fights, 'dmg', output)
+    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)
+    write_stats_xls(players, top_total_damagers, 'dmg', args.xls_output_filename)
+    
     myprint(output, "BOON STRIPS AWARDS\n")        
-    top_consistent_strippers = write_sorted_top_x(players, config, num_used_fights, 'rips', output)
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output, args.xls_output_filename)    
-    #myprint(output, "\n")            
-
+    top_consistent_strippers = write_sorted_top_consistent(players, config, num_used_fights, 'rips', output)
+    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)
+    write_stats_xls(players, top_total_strippers, 'rips', args.xls_output_filename)    
+    
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
-    top_consistent_cleansers = write_sorted_top_x(players, config, num_used_fights, 'cleanses', output)
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output, args.xls_output_filename)
-    #myprint(output, "\n")    
+    top_consistent_cleansers = write_sorted_top_consistent(players, config, num_used_fights, 'cleanses', output)
+    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
+    write_stats_xls(players, top_total_cleansers, 'cleanses', args.xls_output_filename)        
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
-    top_consistent_stabbers = write_sorted_top_x(players, config, num_used_fights, 'stab', output)
-    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output, args.xls_output_filename)    
-    #myprint(output, "\n")    
-
+    top_consistent_stabbers = write_sorted_top_consistent(players, config, num_used_fights, 'stab', output)
+    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output)
+    write_stats_xls(players, top_total_stabbers, 'stab', args.xls_output_filename)            
+    
     top_consistent_healers = list()
     if found_healing:
         myprint(output, "HEALING AWARDS\n")        
-        top_consistent_healers = write_sorted_top_x(players, config, num_used_fights, 'heal', output)
-        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output, args.xls_output_filename)   
-        #myprint(output, "\n")    
-
+        top_consistent_healers = write_sorted_top_consistent(players, config, num_used_fights, 'heal', output)
+        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)
+        write_stats_xls(players, top_total_healers, 'heal', args.xls_output_filename)                    
+    
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
-    top_consistent_distancers = write_sorted_top_x(players, config, num_used_fights, 'dist', output)            
-    write_total_stats_xls(players, top_consistent_distancers, 'dist', args.xls_output_filename)
-    #myprint(output, "\n")
-
+    top_consistent_distancers = get_top_players(players, config, 'dist', StatType.CONSISTENT)
+    top_percentage_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.PERCENTAGE, top_consistent_distancers)
+    write_stats_xls(players, top_percentage_distancers, 'dist', args.xls_output_filename)    
+    
     myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
-    top_late_damagers = write_sorted_top_x_percentage(players, config, num_used_fights, 'dmg', output, StatType.LATE_PERCENTAGE, top_consistent_damagers, top_total_damagers)
-    #myprint(output, "\n")    
-    top_late_strippers = write_sorted_top_x_percentage(players, config, num_used_fights, 'rips', output, StatType.LATE_PERCENTAGE, top_consistent_strippers, top_total_strippers)
-    #myprint(output, "\n")    
-    top_late_cleansers = write_sorted_top_x_percentage(players, config, num_used_fights, 'cleanses', output, StatType.LATE_PERCENTAGE, top_consistent_cleansers, top_total_cleansers)
-    #myprint(output, "\n")    
-    top_late_stabbers = write_sorted_top_x_percentage(players, config, num_used_fights, 'stab', output, StatType.LATE_PERCENTAGE, top_consistent_stabbers, top_total_stabbers)
-    #myprint(output, "\n")    
-    top_late_healers = write_sorted_top_x_percentage(players, config, num_used_fights, 'heal', output, StatType.LATE_PERCENTAGE, top_consistent_healers, top_total_healers)
-    #myprint(output, "\n")    
-    top_late_distancers = write_sorted_top_x_percentage(players, config, num_used_fights, 'dist', output, StatType.LATE_PERCENTAGE, top_consistent_distancers)    
-    #myprint(output, "\n")
-
+    top_late_damagers = write_sorted_top_percentage(players, config, num_used_fights, 'dmg', output, StatType.LATE_PERCENTAGE, top_consistent_damagers, top_total_damagers)
+    top_late_strippers = write_sorted_top_percentage(players, config, num_used_fights, 'rips', output, StatType.LATE_PERCENTAGE, top_consistent_strippers, top_total_strippers)
+    top_late_cleansers = write_sorted_top_percentage(players, config, num_used_fights, 'cleanses', output, StatType.LATE_PERCENTAGE, top_consistent_cleansers, top_total_cleansers)
+    top_late_stabbers = write_sorted_top_percentage(players, config, num_used_fights, 'stab', output, StatType.LATE_PERCENTAGE, top_consistent_stabbers, top_total_stabbers)
+    top_late_healers = write_sorted_top_percentage(players, config, num_used_fights, 'heal', output, StatType.LATE_PERCENTAGE, top_consistent_healers, top_total_healers)
+    top_late_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.LATE_PERCENTAGE, top_consistent_distancers)    
+    
     myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n')        
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'dmg', output, StatType.SWAPPED_PERCENTAGE, top_consistent_damagers, top_total_damagers, top_late_damagers)
-    #myprint(output, "\n")
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'rips', output, StatType.SWAPPED_PERCENTAGE, top_consistent_strippers, top_total_strippers, top_late_strippers)
-    #myprint(output, "\n")    
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'cleanses', output, StatType.SWAPPED_PERCENTAGE, top_consistent_cleansers, top_total_cleansers, top_late_cleansers)
-    #myprint(output, "\n")    
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'stab', output, StatType.SWAPPED_PERCENTAGE, top_consistent_stabbers, top_total_stabbers, top_late_stabbers)
-    #myprint(output, "\n")    
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'heal', output, StatType.SWAPPED_PERCENTAGE, top_consistent_healers, top_total_healers, top_late_healers)
-    #myprint(output, "\n")    
-    write_sorted_top_x_percentage(players, config, num_used_fights, 'dist', output, StatType.SWAPPED_PERCENTAGE, top_consistent_distancers, top_late_distancers)    
-    #myprint(output, "\n")
+    write_sorted_top_percentage(players, config, num_used_fights, 'dmg', output, StatType.SWAPPED_PERCENTAGE, top_consistent_damagers, top_total_damagers, top_late_damagers)
+    write_sorted_top_percentage(players, config, num_used_fights, 'rips', output, StatType.SWAPPED_PERCENTAGE, top_consistent_strippers, top_total_strippers, top_late_strippers)
+    write_sorted_top_percentage(players, config, num_used_fights, 'cleanses', output, StatType.SWAPPED_PERCENTAGE, top_consistent_cleansers, top_total_cleansers, top_late_cleansers)
+    write_sorted_top_percentage(players, config, num_used_fights, 'stab', output, StatType.SWAPPED_PERCENTAGE, top_consistent_stabbers, top_total_stabbers, top_late_stabbers)
+    write_sorted_top_percentage(players, config, num_used_fights, 'heal', output, StatType.SWAPPED_PERCENTAGE, top_consistent_healers, top_total_healers, top_late_healers)
+    write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.SWAPPED_PERCENTAGE, top_consistent_distancers, top_late_distancers)    
     

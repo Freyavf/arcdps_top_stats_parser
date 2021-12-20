@@ -50,19 +50,7 @@ if __name__ == '__main__':
     log = open(args.log_file, "w")
 
     parser_config = importlib.import_module("parser_configs."+args.config_file , package=None) 
-    
-    config = Config()
-    config.num_players_listed = parser_config.num_players_listed
-    config.num_players_considered_top = parser_config.num_players_considered_top
-
-    config.portion_of_top_for_total = parser_config.percentage_of_top_for_total/100.
-
-    config.min_allied_players = parser_config.min_allied_players
-    config.min_fight_duration = parser_config.min_fight_duration
-    config.min_enemy_players = parser_config.min_enemy_players
-
-    config.stat_names = parser_config.stat_names
-    config.profession_abbreviations = parser_config.profession_abbreviations
+    config = fill_config(parser_config)
 
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
@@ -90,11 +78,9 @@ if __name__ == '__main__':
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
 
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output, args.xls_output_filename)    
-    #myprint(output, "\n")    
-        
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output, args.xls_output_filename)    
-    #myprint(output, "\n")            
-
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output, args.xls_output_filename)
-    #myprint(output, "\n")    
+    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)
+    write_stats_xls(players, top_total_damagers, 'dmg', args.xls_output_filename)    
+    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)
+    write_stats_xls(players, top_total_strippers, 'rips', args.xls_output_filename)    
+    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
+    write_stats_xls(players, top_total_cleansers, 'cleanses', args.xls_output_filename)        

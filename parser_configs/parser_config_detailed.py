@@ -22,6 +22,8 @@ num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'cleanses': 1000,
 num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
 
 
+# For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
+attendance_percentage_for_percentage = 50
 # For what portion of all fights does a player need to be there to be considered for "late but great" awards?
 attendance_percentage_for_late = 50
 # For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards? 
@@ -31,6 +33,8 @@ attendance_percentage_for_buildswap = 30
 percentage_of_top_for_consistent = 0
 # What portion of the total stat of the top consistent player does someone need to reach to be considered for consistency awards?
 percentage_of_top_for_total = 0
+# What portion of the percentage the top consistent player reached top does someone need to reach to be considered for percentage awards?
+percentage_of_top_for_percentage = 0
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for late but great awards?
 percentage_of_top_for_late = 100
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for jack of all trades awards?
