@@ -277,15 +277,21 @@ def get_top_percentage_players(players, config, stat, late_or_swapping, num_used
         print("ERROR: Called get_top_percentage_players for stats that are not percentage, late_percentage or swapped_percentage")
         return
 
-
-    top_percentage_players = list()
     top_players = list()
 
     last_value = 0
     for (ind, percent) in sorted_index:
-        if players[ind].attendance_percentage < min_attendance:
+        # player wasn't there for enough fights
+        if players[ind].num_fights_present < min_attendance:
             continue
+        # player was there for all fights -> not late or swapping
+        if late_or_swapping != StatType.PERCENTAGE and players[ind].num_fights_present == num_used_fights:
+            continue
+        # player got a different award already -> not late or swapping
         if late_or_swapping != StatType.PERCENTAGE and (ind in top_consistent_players or ind in top_total_players or ind in top_percentage_players or ind in top_late_players):
+            continue
+        # stat type swapping, but player didn't swap build
+        if late_or_swapping == StatType.SWAPPED_PERCENTAGE and not players[ind].swapped_build:
             continue
         # index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
         if len(top_players) >= config.num_players_listed[stat] and percent != last_value:
