@@ -17,9 +17,9 @@
 
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'cleanses': 1000, 'heal': 1000, 'dist': 1000, 'deaths': 1000, 'kills': 1000}
+num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'prot': 1000, 'aegis': 1000, 'might': 1000, 'fury': 1000, 'cleanses': 1000, 'heal': 1000, 'dist': 1000, 'dmg_taken': 1000, 'deaths': 1000, 'kills': 1000}
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'prot': 5, 'aegis': 5, 'might': 5, 'fury': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'dmg_taken': 5, 'deaths': 5, 'kills': 5}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
@@ -99,8 +99,13 @@ stat_names = {}
 stat_names["dmg"] = "damage"
 stat_names["rips"] = "boon strips"
 stat_names["stab"] = "stability output"
+stat_names["prot"] = "protection output"
+stat_names["aegis"] = "aegis output"
+stat_names["might"] = "might output"
+stat_names["fury"] = "fury output"
 stat_names["cleanses"] = "condition cleanses"
 stat_names["heal"] = "healing"
 stat_names["dist"] = "distance to tag"
+stat_names["dmg_taken"] = "damage taken"
 stat_names["kills"] = "kills"
 stat_names["deaths"] = "deaths"

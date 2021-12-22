@@ -559,6 +559,10 @@ def collect_stat_data(args, config, log):
     account_index = {}  # dictionary that matches each account name to a list of its indices in players list
     
     stab_id = "1122"
+    prot_id = "717"
+    aegis_id = "743"
+    might_id = "740"
+    fury_id = "725"
     used_fights = 0
     #used_fights_duration = 0
     fights = []
@@ -604,7 +608,8 @@ def collect_stat_data(args, config, log):
         fight.allies = num_allies
         fight.start_time = xml_root.find('timeStartStd').text
         fight.end_time = xml_root.find('timeEndStd').text        
-        fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+        #fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+        fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
 
         
         # skip fights that last less than min_fight_duration seconds
@@ -641,8 +646,13 @@ def collect_stat_data(args, config, log):
         cleanses_per_player = {}
         strips_per_player = {}
         stab_per_player = {}
+        prot_per_player = {}
+        aegis_per_player = {}
+        might_per_player = {}
+        fury_per_player = {}        
         healing_per_player = {}
         distance_per_player = {}
+        dmg_taken_per_player = {}
         deaths_per_player = {}
         kills_per_player = {}
 
@@ -657,9 +667,11 @@ def collect_stat_data(args, config, log):
             profession = xml_player.find('profession').text
 
             # get deaths and kills
-            deaths = int(xml_player.find('defenses').find('deadCount').text)
+            defenses_xml = xml_player.find('defenses')
+            dmg_taken = int(defenses_xml.find('damageTaken').text)
+            deaths = int(defenses_xml.find('deadCount').text)
             kills = int(xml_player.find('statsAll').find('killed').text)
-
+            
             # get damage
             damage = int(xml_player.find('dpsAll').find('damage').text)
 
@@ -668,14 +680,25 @@ def collect_stat_data(args, config, log):
             strips = int(support_stats.find('boonStrips').text)
             cleanses = int(support_stats.find('condiCleanse').text)
 
-            # get stab in squad generation -> need to loop over all buffs
+            # get buffs in squad generation -> need to loop over all buffs
             stab_generated = 0
+            prot_generated = 0
+            aegis_generated = 0
+            might_generated = 0
+            fury_generated = 0
             for buff in xml_player.iter('squadBuffs'):
                 # find stab buff
-                if buff.find('id').text != stab_id:
-                    continue
-                stab_generated = float(buff.find('buffData').find('generation').text)#Decimal
-                break
+                buffId = buff.find('id').text
+                if buffId == stab_id:
+                    stab_generated = float(buff.find('buffData').find('generation').text)
+                elif buffId == prot_id:
+                    prot_generated = float(buff.find('buffData').find('generation').text)
+                elif buffId == aegis_id:
+                    aegis_generated = float(buff.find('buffData').find('generation').text)
+                elif buffId == might_id:
+                    might_generated = float(buff.find('buffData').find('generation').text)
+                elif buffId == fury_id:
+                    fury_generated = float(buff.find('buffData').find('generation').text)                                        
 
             # check if healing was logged, save it
             ext_healing_xml = xml_player.find('extHealingStats')
@@ -688,7 +711,7 @@ def collect_stat_data(args, config, log):
                         healing += int(outgoing_healing_xml2.find('healing').text)
 
             # get distance to tag
-            distance = float(xml_player.find('statsAll').find('distToCom').text)#Decimal
+            distance = float(xml_player.find('statsAll').find('distToCom').text)
 
             if debug:
                 print(name)
@@ -721,9 +744,12 @@ def collect_stat_data(args, config, log):
                 player.account = account
                 player.name = name
                 player.profession = profession
-                player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}                 
+                #player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+                player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                #player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+                player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                #player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+                player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
                 player_index[name_and_prof] = len(players)
                 players.append(player)
 
@@ -731,6 +757,10 @@ def collect_stat_data(args, config, log):
             damage_per_player[name_and_prof] = damage
             strips_per_player[name_and_prof] = strips
             stab_per_player[name_and_prof] = stab_generated
+            prot_per_player[name_and_prof] = prot_generated 
+            aegis_per_player[name_and_prof] = aegis_generated
+            might_per_player[name_and_prof] = might_generated
+            fury_per_player[name_and_prof] = fury_generated            
             cleanses_per_player[name_and_prof] = cleanses
             if found_healing:
                 healing_per_player[name_and_prof] = healing
@@ -738,8 +768,9 @@ def collect_stat_data(args, config, log):
                 distance_per_player[name_and_prof] = distance
             else:
                 distance_per_player[name_and_prof] = -1
+            dmg_taken_per_player[name_and_prof] = dmg_taken
             deaths_per_player[name_and_prof] = deaths
-            kills_per_player[name_and_prof] = kills                 
+            kills_per_player[name_and_prof] = kills
 
             # add stats of this fight to total player stats
             players[player_index[name_and_prof]].num_fights_present += 1
@@ -748,11 +779,17 @@ def collect_stat_data(args, config, log):
             players[player_index[name_and_prof]].total_stats['dmg'] += damage
             players[player_index[name_and_prof]].total_stats['rips'] += strips
             players[player_index[name_and_prof]].total_stats['stab'] += stab_generated*duration
+            players[player_index[name_and_prof]].total_stats['prot'] += prot_generated*duration
+            players[player_index[name_and_prof]].total_stats['aegis'] += aegis_generated*duration
+            players[player_index[name_and_prof]].total_stats['might'] += might_generated*duration
+            players[player_index[name_and_prof]].total_stats['fury'] += fury_generated*duration                        
             players[player_index[name_and_prof]].total_stats['cleanses'] += cleanses
             if found_healing:
                 players[player_index[name_and_prof]].total_stats['heal'] += healing
             if distance > 0: # distance sometimes -1 for some reason
                 players[player_index[name_and_prof]].total_stats['dist'] += distance*duration
+
+            players[player_index[name_and_prof]].total_stats['dmg_taken'] += dmg_taken            
             players[player_index[name_and_prof]].total_stats['deaths'] += deaths
             players[player_index[name_and_prof]].total_stats['kills'] += kills
 
@@ -760,9 +797,14 @@ def collect_stat_data(args, config, log):
             fight.total_stats['dmg'] += damage
             fight.total_stats['rips'] += strips
             fight.total_stats['stab'] += stab_generated*duration
+            fight.total_stats['prot'] += prot_generated*duration
+            fight.total_stats['aegis'] += aegis_generated*duration
+            fight.total_stats['might'] += might_generated*duration
+            fight.total_stats['fury'] += fury_generated*duration            
             fight.total_stats['cleanses'] += cleanses
             fight.total_stats['heal'] += healing
             fight.total_stats['dist'] += distance*duration
+            fight.total_stats['dmg_taken'] += dmg_taken
             fight.total_stats['deaths'] += deaths
             fight.total_stats['kills'] += kills            
             
@@ -771,9 +813,15 @@ def collect_stat_data(args, config, log):
         sortedStrips = sorted(strips_per_player.items(), key=lambda x:x[1], reverse=True)
         sortedCleanses = sorted(cleanses_per_player.items(), key=lambda x:x[1], reverse=True)
         sortedStab = sorted(stab_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedProt = sorted(prot_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedAegis = sorted(aegis_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedMight = sorted(might_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedFury = sorted(fury_per_player.items(), key=lambda x:x[1], reverse=True)        
         sortedHealing = sorted(healing_per_player.items(), key=lambda x:x[1], reverse=True)
-        # small distance = good -> don't reverse sorting. Need to check for -1 -> keep values
+        # small distance = good -> don't reverse sorting.
         sortedDistance = sorted(distance_per_player.items(), key=lambda x:x[1])
+        # small dmg taken = good -> don't reverse sorting.        
+        sortedDmgTaken = sorted(dmg_taken_per_player.items(), key=lambda x:x[1])        
         sortedDeaths = sorted(deaths_per_player.items(), key=lambda x:x[1], reverse=True)
         sortedKills = sorted(kills_per_player.items(), key=lambda x:x[1], reverse=True)        
 
@@ -782,16 +830,26 @@ def collect_stat_data(args, config, log):
             print("sorted strips:", sortedStrips,"\n")
             print("sorted cleanses:",sortedCleanses,"\n")
             print("sorted stab:", sortedStab,"\n")
+            print("sorted prot:", sortedProt,"\n")
+            print("sorted aegis:", sortedAegis,"\n")
+            print("sorted might:", sortedMight,"\n")
+            print("sorted fury:", sortedFury,"\n")            
             print("sorted healing:", sortedHealing,"\n")
             print("sorted distance:", sortedDistance, "\n")
+            print("sorted dmg taken:", sortedDmgTaken, "\n")
         
         # increase number of times top x was achieved for top x players in each stat
         increase_top_x_reached(players, sortedDamage, player_index, config, 'dmg')
         increase_top_x_reached(players, sortedStrips, player_index, config, 'rips')
         increase_top_x_reached(players, sortedStab, player_index, config, 'stab')
+        increase_top_x_reached(players, sortedProt, player_index, config, 'prot')
+        increase_top_x_reached(players, sortedAegis, player_index, config, 'aegis')
+        increase_top_x_reached(players, sortedMight, player_index, config, 'might')
+        increase_top_x_reached(players, sortedFury, player_index, config, 'fury')        
         increase_top_x_reached(players, sortedCleanses, player_index, config, 'cleanses')
         increase_top_x_reached(players, sortedHealing, player_index, config, 'heal')
         increase_top_x_reached(players, sortedDistance, player_index, config, 'dist')
+        increase_top_x_reached(players, sortedDmgTaken, player_index, config, 'dmg_taken')        
         increase_top_x_reached(players, sortedDeaths, player_index, config, 'deaths')
         increase_top_x_reached(players, sortedKills, player_index, config, 'kills')        
 

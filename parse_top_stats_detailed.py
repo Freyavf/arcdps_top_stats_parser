@@ -115,3 +115,18 @@ if __name__ == '__main__':
 
     top_total_deaths = get_top_players(players, config, 'deaths', StatType.TOTAL)
     write_stats_xls(players, top_total_deaths, 'deaths', args.xls_output_filename)
+
+    top_total_prot = get_top_players(players, config, 'prot', StatType.TOTAL)
+    write_stats_xls(players, top_total_prot, 'prot', args.xls_output_filename)
+
+    top_total_aegis = get_top_players(players, config, 'aegis', StatType.TOTAL)
+    write_stats_xls(players, top_total_aegis, 'aegis', args.xls_output_filename)
+
+    top_total_might = get_top_players(players, config, 'might', StatType.TOTAL)
+    write_stats_xls(players, top_total_might, 'might', args.xls_output_filename)
+
+    top_total_fury = get_top_players(players, config, 'fury', StatType.TOTAL)
+    write_stats_xls(players, top_total_fury, 'fury', args.xls_output_filename)    
+    
+    top_total_dmg_taken = get_top_players(players, config, 'dmg_taken', StatType.TOTAL)
+    write_stats_xls(players, top_total_dmg_taken, 'dmg_taken', args.xls_output_filename)
