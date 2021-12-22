@@ -139,7 +139,7 @@ def increase_top_x_reached(players, sortedList, player_index, config, stat):
     if stat != 'dist':
         i = 0
         last_val = 0
-        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val):
+        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[player_index[sortedList[i][0]]].total_stats[stat] > 0:
             players[player_index[sortedList[i][0]]].consistency_stats[stat] += 1
             last_val = sortedList[i][1]
             i += 1
