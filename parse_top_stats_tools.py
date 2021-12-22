@@ -709,12 +709,11 @@ def collect_stat_data(args, config, log):
             # if this account is not in the account index yet, create a new entry
             if account not in account_index.keys():
                 account_index[account] = [len(players)]
-            else:
-                # if account does already exist, this player swapped build or character -> note for all Player instances of this account
+            elif name_and_prof not in player_index.keys():
+                # if account does already exist, but name/prof combo does not, this player swapped build or character -> note for all Player instances of this account
                 for ind in range(len(account_index[account])):
                     players[account_index[account][ind]].swapped_build = True
-                if create_new_player:
-                    account_index[account].append(len(players))
+                account_index[account].append(len(players))
                 build_swapped = True
 
             if create_new_player:
