@@ -49,7 +49,7 @@ class Player:
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
-    # fields for all stats: dmg, rips, stab, cleanses, heal, dist, deaths, kills
+    # fields for all stats: dmg, rips, stab, prot, aegis, might, fury, cleanses, heal, barrier, dist, deaths, kills
     consistency_stats: dict = field(default_factory=dict)     # how many times did this player get into top for each stat?
     total_stats: dict = field(default_factory=dict)           # what's the total value for this player for each stat?
     percentage_top_stats: dict = field(default_factory=dict)  # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
@@ -552,7 +552,8 @@ def write_sorted_top_percentage(players, config, num_used_fights, stat, output_f
 # was healing found in the logs?
 def collect_stat_data(args, config, log):
     # healing only in xml if addon was installed
-    found_healing = False
+    found_healing = False # Todo what if some logs have healing and some don't
+    found_barrier = False    
 
     players = []        # list of all player/profession combinations
     player_index = {}   # dictionary that matches each player/profession combo to its index in players list
@@ -609,7 +610,7 @@ def collect_stat_data(args, config, log):
         fight.start_time = xml_root.find('timeStartStd').text
         fight.end_time = xml_root.find('timeEndStd').text        
         #fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-        fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+        fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0, 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
 
         
         # skip fights that last less than min_fight_duration seconds
@@ -651,6 +652,7 @@ def collect_stat_data(args, config, log):
         might_per_player = {}
         fury_per_player = {}        
         healing_per_player = {}
+        barrier_per_player = {}        
         distance_per_player = {}
         dmg_taken_per_player = {}
         deaths_per_player = {}
@@ -710,6 +712,16 @@ def collect_stat_data(args, config, log):
                     if not outgoing_healing_xml2 is None:
                         healing += int(outgoing_healing_xml2.find('healing').text)
 
+            # check if barrier was logged, save it
+            ext_barrier_xml = xml_player.find('extBarrierStats')
+            barrier = 0
+            if(ext_barrier_xml != None):
+                found_barrier = True
+                for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
+                    outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
+                    if not outgoing_barrier_xml2 is None:
+                        barrier += int(outgoing_barrier_xml2.find('barrier').text)                        
+
             # get distance to tag
             distance = float(xml_player.find('statsAll').find('distToCom').text)
 
@@ -720,6 +732,7 @@ def collect_stat_data(args, config, log):
                 print("cleanses:",cleanses)
                 print("stab:",stab_generated)
                 print("healing:",healing)
+                print("barrier:",barrier)                
                 print(f"distance: {distance:.2f}")
                 print("\n")
 
@@ -745,11 +758,11 @@ def collect_stat_data(args, config, log):
                 player.name = name
                 player.profession = profession
                 #player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
                 #player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0, 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
                 #player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
                 player_index[name_and_prof] = len(players)
                 players.append(player)
 
@@ -764,6 +777,8 @@ def collect_stat_data(args, config, log):
             cleanses_per_player[name_and_prof] = cleanses
             if found_healing:
                 healing_per_player[name_and_prof] = healing
+            if found_barrier:
+                barrier_per_player[name_and_prof] = barrier
             if distance >= 0: # distance sometimes -1 for some reason
                 distance_per_player[name_and_prof] = distance
             else:
@@ -786,6 +801,8 @@ def collect_stat_data(args, config, log):
             players[player_index[name_and_prof]].total_stats['cleanses'] += cleanses
             if found_healing:
                 players[player_index[name_and_prof]].total_stats['heal'] += healing
+            if found_barrier:
+                players[player_index[name_and_prof]].total_stats['barrier'] += barrier
             if distance > 0: # distance sometimes -1 for some reason
                 players[player_index[name_and_prof]].total_stats['dist'] += distance*duration
 
@@ -803,6 +820,7 @@ def collect_stat_data(args, config, log):
             fight.total_stats['fury'] += fury_generated*duration            
             fight.total_stats['cleanses'] += cleanses
             fight.total_stats['heal'] += healing
+            fight.total_stats['barrier'] += barrier            
             fight.total_stats['dist'] += distance*duration
             fight.total_stats['dmg_taken'] += dmg_taken
             fight.total_stats['deaths'] += deaths
@@ -818,6 +836,7 @@ def collect_stat_data(args, config, log):
         sortedMight = sorted(might_per_player.items(), key=lambda x:x[1], reverse=True)
         sortedFury = sorted(fury_per_player.items(), key=lambda x:x[1], reverse=True)        
         sortedHealing = sorted(healing_per_player.items(), key=lambda x:x[1], reverse=True)
+        sortedBarrier = sorted(barrier_per_player.items(), key=lambda x:x[1], reverse=True)        
         # small distance = good -> don't reverse sorting.
         sortedDistance = sorted(distance_per_player.items(), key=lambda x:x[1])
         # small dmg taken = good -> don't reverse sorting.        
@@ -835,6 +854,7 @@ def collect_stat_data(args, config, log):
             print("sorted might:", sortedMight,"\n")
             print("sorted fury:", sortedFury,"\n")            
             print("sorted healing:", sortedHealing,"\n")
+            print("sorted barrier:", sortedBarrier,"\n")            
             print("sorted distance:", sortedDistance, "\n")
             print("sorted dmg taken:", sortedDmgTaken, "\n")
         
@@ -848,6 +868,7 @@ def collect_stat_data(args, config, log):
         increase_top_x_reached(players, sortedFury, player_index, config, 'fury')        
         increase_top_x_reached(players, sortedCleanses, player_index, config, 'cleanses')
         increase_top_x_reached(players, sortedHealing, player_index, config, 'heal')
+        increase_top_x_reached(players, sortedBarrier, player_index, config, 'barrier')        
         increase_top_x_reached(players, sortedDistance, player_index, config, 'dist')
         increase_top_x_reached(players, sortedDmgTaken, player_index, config, 'dmg_taken')        
         increase_top_x_reached(players, sortedDeaths, player_index, config, 'deaths')
@@ -864,7 +885,7 @@ def collect_stat_data(args, config, log):
 
     myprint(log, "\n")
     
-    return players, fights, found_healing
+    return players, fights, found_healing, found_barrier
 
 
 # add up total stats over all fights

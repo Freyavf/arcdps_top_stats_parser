@@ -59,7 +59,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing = collect_stat_data(args, config, log)
+    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log)
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
@@ -127,6 +127,9 @@ if __name__ == '__main__':
 
     top_total_fury = get_top_players(players, config, 'fury', StatType.TOTAL)
     write_stats_xls(players, top_total_fury, 'fury', args.xls_output_filename)    
-    
+
+    top_total_barrier = get_top_players(players, config, 'barrier', StatType.TOTAL)
+    write_stats_xls(players, top_total_barrier, 'barrier', args.xls_output_filename)    
+
     top_total_dmg_taken = get_top_players(players, config, 'dmg_taken', StatType.TOTAL)
     write_stats_xls(players, top_total_dmg_taken, 'dmg_taken', args.xls_output_filename)
