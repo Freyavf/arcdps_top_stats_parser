@@ -30,22 +30,22 @@ from parse_top_stats_tools import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-    parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
+    parser.add_argument('input_directory', help='Directory containing .xml or .json files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
     parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Text file to write the computed top stats")
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_detailed")    
     args = parser.parse_args()
 
-    if not os.path.isdir(args.xml_directory):
-        print("Directory ",args.xml_directory," is not a directory or does not exist!")
+    if not os.path.isdir(args.input_directory):
+        print("Directory ",args.input_directory," is not a directory or does not exist!")
         sys.exit()
     if args.output_filename is None:
-        args.output_filename = args.xml_directory+"/top_stats_detailed.txt"
+        args.output_filename = args.input_directory+"/top_stats_detailed.txt"
     if args.xls_output_filename is None:
-        args.xls_output_filename = args.xml_directory+"/top_stats_detailed.xls"        
+        args.xls_output_filename = args.input_directory+"/top_stats_detailed.xls"        
     if args.log_file is None:
-        args.log_file = args.xml_directory+"/log_detailed.txt"
+        args.log_file = args.input_directory+"/log_detailed.txt"
 
     output = open(args.output_filename, "w")
     log = open(args.log_file, "w")
@@ -56,12 +56,13 @@ if __name__ == '__main__':
 
     print(config.empty_stats)
     
-    print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
+    print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing, found_barrier = collect_stat_data_from_xml(args, config, log)
+    #players, fights, found_healing, found_barrier = collect_stat_data_from_xml(args, config, log)
+    players, fights, found_healing, found_barrier = collect_stat_data_from_json(args, config, log)    
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
