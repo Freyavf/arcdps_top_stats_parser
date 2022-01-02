@@ -32,7 +32,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
     parser.add_argument('input_directory', help='Directory containing .xml or .json files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
-    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="xls file to write the computed top stats")
+    parser.add_argument('-j', '--json_output', dest="json_output_filename", help="json file to write the computed top stats to")    
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_detailed")    
     args = parser.parse_args()
@@ -43,7 +44,9 @@ if __name__ == '__main__':
     if args.output_filename is None:
         args.output_filename = args.input_directory+"/top_stats_detailed.txt"
     if args.xls_output_filename is None:
-        args.xls_output_filename = args.input_directory+"/top_stats_detailed.xls"        
+        args.xls_output_filename = args.input_directory+"/top_stats_detailed.xls"
+    if args.json_output_filename is None:
+        args.json_output_filename = args.input_directory+"/top_stats_detailed.json"                
     if args.log_file is None:
         args.log_file = args.input_directory+"/log_detailed.txt"
 
@@ -54,14 +57,11 @@ if __name__ == '__main__':
     
     config = fill_config(parser_config)
 
-    print(config.empty_stats)
-    
     print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    #players, fights, found_healing, found_barrier = collect_stat_data_from_xml(args, config, log)
     players, fights, found_healing, found_barrier = collect_stat_data_from_json(args, config, log)    
 
     # create xls file if it doesn't exist
@@ -136,3 +136,13 @@ if __name__ == '__main__':
 
     top_total_dmg_taken = get_top_players(players, config, 'dmg_taken', StatType.TOTAL)
     write_stats_xls(players, top_total_dmg_taken, 'dmg_taken', args.xls_output_filename)
+
+    top_total_stat_players = {key: list() for key in config.stats_to_compute}
+    top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
+    top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
+    for stat in config.stats_to_compute:
+        top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+        top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+        top_percentage_stat_players[stat] = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+        
+    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, args.json_output_filename)

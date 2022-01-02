@@ -24,10 +24,10 @@ import sys
 import xml.etree.ElementTree as ET
 from enum import Enum
 import importlib
-#import xlwt
 import xlrd
 from xlutils.copy import copy
-import json 
+import json
+import jsons
 
 debug = False # enable / disable debug output
 
@@ -53,13 +53,13 @@ class Player:
     # fields for all stats defined in config
     consistency_stats: dict = field(default_factory=dict)     # how many times did this player get into top for each stat?
     total_stats: dict = field(default_factory=dict)           # what's the total value for this player for each stat?
-    percentage_top_stats: dict = field(default_factory=dict)  # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
+    portion_top_stats: dict = field(default_factory=dict)  # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
         self.total_stats = {key: value for key, value in config.empty_stats.items()}
         self.consistency_stats = {key: value for key, value in config.empty_stats.items()}
-        self.percentage_top_stats = {key: value for key, value in config.empty_stats.items()}
+        self.portion_top_stats = {key: value for key, value in config.empty_stats.items()}
 
 
 # This class stores information about a fight
@@ -230,7 +230,7 @@ def sort_players_by_consistency(players, stat):
 # Output:
 # list of player index and percentage stat value, sorted by percentage stat value (how often was top x reached / number of fights attended)
 def sort_players_by_percentage(players, stat):
-    decorated = [(player.percentage_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]                
+    decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]                
     decorated.sort(reverse=True)    
     sorted_by_percentage = [(i, percentage) for percentage, consistency, total, i, player in decorated]
     return sorted_by_percentage
@@ -293,7 +293,7 @@ def get_top_players(players, config, stat, total_or_consistent):
 # list of player indices getting a percentage award, value with which the percentage stat was compared
 def get_top_percentage_players(players, config, stat, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_percentage_players, top_late_players):    
     sorted_index = sort_players_by_percentage(players, stat)
-    top_percentage = players[sorted_index[0][0]].percentage_top_stats[stat]
+    top_percentage = players[sorted_index[0][0]].portion_top_stats[stat]
     
     comparison_value = 0
     min_attendance = 0
@@ -443,7 +443,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
         sheet1.write(i+1, 2, player.num_fights_present)
         sheet1.write(i+1, 3, player.duration_fights_present)
         sheet1.write(i+1, 4, player.consistency_stats[stat])        
-        sheet1.write(i+1, 5, round(player.percentage_top_stats[stat]*100))
+        sheet1.write(i+1, 5, round(player.portion_top_stats[stat]*100))
         sheet1.write(i+1, 6, round(player.total_stats[stat]))
         sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present, 2))        
 
@@ -558,16 +558,16 @@ def write_sorted_top_percentage(players, config, num_used_fights, stat, output_f
     # print table
     for i in range(len(top_percentage_players)):
         player = players[top_percentage_players[i]]
-        if player.percentage_top_stats[stat] != last_val:
+        if player.portion_top_stats[stat] != last_val:
             place += 1
 
-        percentage = int(player.percentage_top_stats[stat]*100)
+        percentage = int(player.portion_top_stats[stat]*100)
         print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} " +f" {percentage:>10}% " +f" {round(player.consistency_stats[stat]):>9} "+f" {player.num_fights_present:>6} "
 
         if stat != "dist":
             print_string += f" {round(player.total_stats[stat]):>7}"
         myprint(output_file, print_string)
-        last_val = player.percentage_top_stats[stat]
+        last_val = player.portion_top_stats[stat]
     myprint(output_file, "\n")
         
     return top_percentage_players
@@ -614,7 +614,6 @@ def get_stat_from_player_xml(player_xml, stat, config):
         ext_healing_xml = player_xml.find('extHealingStats')
         if(ext_healing_xml != None):
             heal = 0
-            found_healing = True
             for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
                 outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
                 if not outgoing_healing_xml2 is None:
@@ -627,7 +626,6 @@ def get_stat_from_player_xml(player_xml, stat, config):
         ext_barrier_xml = player_xml.find('extBarrierStats')
         if(ext_barrier_xml != None):
             barrier = 0
-            found_barrier = True
             for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
                 outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
                 if not outgoing_barrier_xml2 is None:
@@ -786,9 +784,13 @@ def collect_stat_data_from_xml(args, config, log):
             # get all stats that are supposed to be computed from the player xml
             for stat in config.stats_to_compute:
                 player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_xml, stat, config)
+                if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
+                    found_healing = True
+                if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
+                    found_barrier = True                    
                 # buff are generation squad values, using total over time
                 if stat in config.buff_ids.keys():
-                    player.stats_per_fight[fight_number][stat] *= fight.duration
+                    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
 
                 # add stats of this fight and player to total stats of this fight and player
                 if player.stats_per_fight[fight_number][stat] > 0:
@@ -825,7 +827,7 @@ def collect_stat_data_from_xml(args, config, log):
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
         for stat in config.stats_to_compute:
-            player.percentage_top_stats[stat] = player.consistency_stats[stat]/player.num_fights_present
+            player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
 
     myprint(log, "\n")
     
@@ -893,13 +895,12 @@ def get_stat_from_player_json(player_json, stat, config):
         heal = -1
         if 'extHealingStats' in player_json:
             heal = 0
-            found_healing = True
             if 'outgoingHealingAllies' not in player_json['extHealingStats']:
                 return 0
             for outgoing_healing_json in player_json['extHealingStats']['outgoingHealingAllies']:
                 for outgoing_healing_json2 in outgoing_healing_json:
-                    if 'outgoingHealingAllies' in outgoing_healing_json2:
-                        heal += int(outgoing_healing_json2['outgoingHealingAllies']['healing'])
+                    if 'healing' in outgoing_healing_json2:
+                        heal += int(outgoing_healing_json2['healing'])
         return heal
 
     if stat == 'barrier':
@@ -907,7 +908,6 @@ def get_stat_from_player_json(player_json, stat, config):
         barrier = -1
         if 'extBarrierStats' in player_json:
             barrier = 0
-            found_barrier = True
             if 'outgoingBarrierAllies' not in player_json['extBarrierStats']:
                 return 0
             for outgoing_barrier_json in player_json['extBarrierStats']['outgoingBarrierAllies']:
@@ -1014,6 +1014,11 @@ def collect_stat_data_from_json(args, config, log):
 
         # get fight stats
         fight = get_stats_from_fight_json(json_data, config, log)
+
+        # add new entry for this fight in all players
+        for player in players:
+            player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})        
+
         if fight.skipped:
             fights.append(fight)
             log.write("skipped "+json_filename)            
@@ -1021,10 +1026,6 @@ def collect_stat_data_from_json(args, config, log):
         
         used_fights += 1
         fight_number = used_fights-1
-
-        # add new entry for this fight in all players
-        for player in players:
-            player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})        
 
         # get stats for each player
         for player_json in json_data['players']:
@@ -1066,10 +1067,14 @@ def collect_stat_data_from_json(args, config, log):
             
             # get all stats that are supposed to be computed from the player json
             for stat in config.stats_to_compute:
-                player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_json, stat, config)
+                player.stats_per_fight[fight_number][stat] = round(get_stat_from_player_json(player_json, stat, config), 2)
+                if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
+                    found_healing = True
+                if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
+                    found_barrier = True
                 # buff are generation squad values, using total over time
                 if stat in config.buff_ids.keys():
-                    player.stats_per_fight[fight_number][stat] *= fight.duration
+                    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
         
                 # add stats of this fight and player to total stats of this fight and player
                 if player.stats_per_fight[fight_number][stat] > 0:
@@ -1106,7 +1111,7 @@ def collect_stat_data_from_json(args, config, log):
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
         for stat in config.stats_to_compute:
-            player.percentage_top_stats[stat] = player.consistency_stats[stat]/player.num_fights_present
+            player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
     
     myprint(log, "\n")
     
@@ -1269,3 +1274,18 @@ def print_fights_overview(fights, overall_squad_stats, output):
     print_string += f"{round(overall_squad_stats['dmg']):>9}" +"  "+f"{round(overall_squad_stats['rips']):>6}" +"  "+f"{round(overall_squad_stats['cleanses']):>8}"  +"  "+f"{round(overall_squad_stats['stab']):>16}"+"  "+f"{round(overall_squad_stats['heal']):>9}" +"  "#+f"{round(overall_squad_stats['dist']):>10}" +"  "
     print_string += f"{round(overall_squad_stats['deaths']):>6}" +"  "+f"{round(overall_squad_stats['kills']):>5}"
     myprint(output, print_string)
+
+
+    
+def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, output_file):
+    json_dict = {}
+    json_dict["overall_squad_stats"] = {key: value for key, value in overall_squad_stats.items()}
+    json_dict["fights"] = [jsons.dump(fight) for fight in fights]
+    json_dict["players"] = [jsons.dump(player) for player in players]
+    json_dict["top_total_players"] =  {key: value for key, value in top_total_stat_players.items()}
+    json_dict["top_consistent_players"] =  {key: value for key, value in top_consistent_stat_players.items()}
+    json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}    
+    #TODO top consistent, total, percentage
+    with open(output_file, 'w') as json_file:
+        json.dump(json_dict, json_file)
+
