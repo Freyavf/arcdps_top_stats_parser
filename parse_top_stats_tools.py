@@ -592,50 +592,14 @@ def get_stat_from_player_xml(player_xml, stat, config):
 
     ### Buffs ###
     # TODO get buff ids
-    if stat == 'stab' or stat == 'prot' or stat == 'aegis' or stat == 'might' or stat == 'fury':
+    if stat in config.buff_ids.keys():
         # get buffs in squad generation -> need to loop over all buffs
         for buff in player_xml.iter('squadBuffs'):
             # find right buff
             buffId = buff.find('id').text
             if buffId == config.buff_ids[stat]:
-                return float(buff.find('buffData').find('generation').text) #TODO *duration after
+                return float(buff.find('buffData').find('generation').text) 
         return 0.
-
-    #if stat == 'prot':
-    #    # get buffs in squad generation -> need to loop over all buffs
-    #    for buff in player_xml.iter('squadBuffs'):
-    #        # find stab buff
-    #        buffId = buff.find('id').text
-    #        if buffId == prot_id:
-    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
-    #    return 0.
-    #
-    #if stat == 'aegis':
-    #    # get buffs in squad generation -> need to loop over all buffs
-    #    for buff in player_xml.iter('squadBuffs'):
-    #        # find stab buff
-    #        buffId = buff.find('id').text
-    #        if buffId == aegis_id:
-    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
-    #    return 0.
-    #
-    #if stat == 'might':
-    #    # get buffs in squad generation -> need to loop over all buffs
-    #    for buff in player_xml.iter('squadBuffs'):
-    #        # find stab buff
-    #        buffId = buff.find('id').text
-    #        if buffId == might_id:
-    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
-    #    return 0.
-    #
-    #if stat == 'fury':
-    #    # get buffs in squad generation -> need to loop over all buffs
-    #    for buff in player_xml.iter('squadBuffs'):
-    #        # find stab buff
-    #        buffId = buff.find('id').text
-    #        if buffId == fury_id:
-    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
-    #    return 0.        
 
     if stat == 'heal':
         # check if healing was logged, save it
