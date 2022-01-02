@@ -86,56 +86,29 @@ if __name__ == '__main__':
     myprint(output, "DAMAGE AWARDS\n")
     top_consistent_damagers = write_sorted_top_consistent(players, config, num_used_fights, 'dmg', output)
     top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)
-    write_stats_xls(players, top_total_damagers, 'dmg', args.xls_output_filename)
          
     myprint(output, "BOON STRIPS AWARDS\n")        
     top_consistent_strippers = write_sorted_top_consistent(players, config, num_used_fights, 'rips', output)
     top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)    
-    write_stats_xls(players, top_total_strippers, 'rips', args.xls_output_filename)    
     
     myprint(output, "CONDITION CLEANSES AWARDS\n")        
     top_consistent_cleansers = write_sorted_top_consistent(players, config, num_used_fights, 'cleanses', output)
     top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
-    write_stats_xls(players, top_total_cleansers, 'cleanses', args.xls_output_filename)        
         
     myprint(output, "STABILITY OUTPUT AWARDS \n")        
     top_consistent_stabbers = write_sorted_top_consistent(players, config, num_used_fights, 'stab', output)
     top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output)    
-    write_stats_xls(players, top_total_stabbers, 'stab', args.xls_output_filename)            
     
     top_consistent_healers = list()
     if found_healing:
         myprint(output, "HEALING AWARDS\n")        
         top_consistent_healers = write_sorted_top_consistent(players, config, num_used_fights, 'heal', output)
         top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)
-        write_stats_xls(players, top_total_healers, 'heal', args.xls_output_filename)
 
     
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = get_top_players(players, config, 'dist', StatType.CONSISTENT)
     top_percentage_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.PERCENTAGE, top_consistent_distancers)
-    write_stats_xls(players, top_percentage_distancers, 'dist', args.xls_output_filename)
-
-    top_total_deaths = get_top_players(players, config, 'deaths', StatType.TOTAL)
-    write_stats_xls(players, top_total_deaths, 'deaths', args.xls_output_filename)
-
-    top_total_prot = get_top_players(players, config, 'prot', StatType.TOTAL)
-    write_stats_xls(players, top_total_prot, 'prot', args.xls_output_filename)
-
-    top_total_aegis = get_top_players(players, config, 'aegis', StatType.TOTAL)
-    write_stats_xls(players, top_total_aegis, 'aegis', args.xls_output_filename)
-
-    top_total_might = get_top_players(players, config, 'might', StatType.TOTAL)
-    write_stats_xls(players, top_total_might, 'might', args.xls_output_filename)
-
-    top_total_fury = get_top_players(players, config, 'fury', StatType.TOTAL)
-    write_stats_xls(players, top_total_fury, 'fury', args.xls_output_filename)    
-
-    top_total_barrier = get_top_players(players, config, 'barrier', StatType.TOTAL)
-    write_stats_xls(players, top_total_barrier, 'barrier', args.xls_output_filename)    
-
-    top_total_dmg_taken = get_top_players(players, config, 'dmg_taken', StatType.TOTAL)
-    write_stats_xls(players, top_total_dmg_taken, 'dmg_taken', args.xls_output_filename)
 
     top_total_stat_players = {key: list() for key in config.stats_to_compute}
     top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
@@ -143,6 +116,17 @@ if __name__ == '__main__':
     for stat in config.stats_to_compute:
         top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
         top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
-        top_percentage_stat_players[stat] = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
         
     write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, args.json_output_filename)
+
+    for stat in config.stats_to_compute:
+        if stat == 'dist':
+            write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
+        elif stat == 'heal' and found_healing:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
+        elif stat == 'barrier' and found_barrier:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+        else:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+
