@@ -49,10 +49,11 @@ class Player:
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
-    # fields for all stats: dmg, rips, stab, prot, aegis, might, fury, cleanses, heal, barrier, dist, deaths, kills
+    # fields for all stats defined in config
     consistency_stats: dict = field(default_factory=dict)     # how many times did this player get into top for each stat?
     total_stats: dict = field(default_factory=dict)           # what's the total value for this player for each stat?
     percentage_top_stats: dict = field(default_factory=dict)  # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
+    stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
 
 # This class stores information about a fight
@@ -90,7 +91,12 @@ class Config:
     stat_names: dict = field(default_factory=dict)
     profession_abbreviations: dict = field(default_factory=dict)
 
-    
+    empty_stats: dict = field(default_factory=dict)
+    stats_to_compute: list = field(default_factory=list)
+
+    buff_ids: dict = field(default_factory=dict)
+
+
     
 # prints output_string to the console and the output_file, with a linebreak at the end
 def myprint(output_file, output_string):
@@ -122,6 +128,9 @@ def fill_config(config_input):
     config.stat_names = config_input.stat_names
     config.profession_abbreviations = config_input.profession_abbreviations
 
+    config.stats_to_compute = config_input.stats_to_compute
+    config.empty_stats = config_input.empty_stats
+    
     return config
     
         
@@ -130,17 +139,16 @@ def fill_config(config_input):
 # consistency_stats[stat]).
 # Input:
 # players = list of all players
-# sortedList = list of player names+profession, sorted by stat value in this fight. for dist: list of (names+profession, dist_value)
-# player_index = dict mapping player + profession to corresponding index in the players list
+# sortedList = list of player names+profession, stat_value sorted by stat value in this fight
 # config = configuration to use
 # stat = stat that is considered
-def increase_top_x_reached(players, sortedList, player_index, config, stat):
+def increase_top_x_reached(players, sortedList, config, stat):
     # if stat isn't dist, increase top stats reached for the first num_players_considered_top players
     if stat != 'dist':
         i = 0
         last_val = 0
-        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[player_index[sortedList[i][0]]].total_stats[stat] > 0:
-            players[player_index[sortedList[i][0]]].consistency_stats[stat] += 1
+        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+            players[sortedList[i][0]].consistency_stats[stat] += 1
             last_val = sortedList[i][1]
             i += 1
         return
@@ -157,10 +165,28 @@ def increase_top_x_reached(players, sortedList, player_index, config, stat):
             if first_valid:
                 first_valid  = False
             else:
-                players[player_index[sortedList[i][0]]].consistency_stats[stat] += 1
+                players[sortedList[i][0]].consistency_stats[stat] += 1
                 valid_distances += 1
         last_val = sortedList[i][1]
         i += 1
+
+
+        
+# sort the list of players by total value in stat
+# Input:
+# players = list of all Players
+# stat = stat that is considered
+# fight_num = number of the fight that is considered
+# Output:
+# list of player index and total stat value, sorted by total stat value
+def sort_players_by_value_in_fight(players, stat, fight_num):
+    decorated = [(player.stats_per_fight[fight_num][stat], i, player) for i, player in enumerate(players)]
+    if stat == 'dist' or stat == 'dmg_taken':
+        decorated.sort()
+    else:
+        decorated.sort(reverse=True)
+    sorted_by_value = [(i, value) for value, i, player in decorated]
+    return sorted_by_value
 
 
 
@@ -175,6 +201,7 @@ def sort_players_by_total(players, stat):
     decorated.sort(reverse=True)
     sorted_by_total = [(i, total) for total, i, player in decorated]
     return sorted_by_total
+
 
 
 # sort the list of players by consistency value in stat
@@ -541,6 +568,103 @@ def write_sorted_top_percentage(players, config, num_used_fights, stat, output_f
 
 
 
+def get_stat_from_player_xml(player_xml, stat, config):
+    if stat == 'dmg_taken':
+        return int(player_xml.find('defenses').find('damageTaken').text)
+
+    if stat == 'deaths':
+        return int(player_xml.find('defenses').find('deadCount').text)
+
+    if stat == 'kills':
+        return int(player_xml.find('statsAll').find('killed').text)
+
+    if stat == 'dmg':
+        return int(player_xml.find('dpsAll').find('damage').text)            
+
+    if stat == 'rips':
+        return int(player_xml.find('support').find('boonStrips').text)
+    
+    if stat == 'cleanses':
+        return int(player_xml.find('support').find('condiCleanse').text)            
+
+    if stat == 'dist':
+        return float(player_xml.find('statsAll').find('distToCom').text)
+
+    ### Buffs ###
+    # TODO get buff ids
+    if stat == 'stab' or stat == 'prot' or stat == 'aegis' or stat == 'might' or stat == 'fury':
+        # get buffs in squad generation -> need to loop over all buffs
+        for buff in player_xml.iter('squadBuffs'):
+            # find right buff
+            buffId = buff.find('id').text
+            if buffId == config.buff_ids[stat]:
+                return float(buff.find('buffData').find('generation').text) #TODO *duration after
+        return 0.
+
+    #if stat == 'prot':
+    #    # get buffs in squad generation -> need to loop over all buffs
+    #    for buff in player_xml.iter('squadBuffs'):
+    #        # find stab buff
+    #        buffId = buff.find('id').text
+    #        if buffId == prot_id:
+    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
+    #    return 0.
+    #
+    #if stat == 'aegis':
+    #    # get buffs in squad generation -> need to loop over all buffs
+    #    for buff in player_xml.iter('squadBuffs'):
+    #        # find stab buff
+    #        buffId = buff.find('id').text
+    #        if buffId == aegis_id:
+    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
+    #    return 0.
+    #
+    #if stat == 'might':
+    #    # get buffs in squad generation -> need to loop over all buffs
+    #    for buff in player_xml.iter('squadBuffs'):
+    #        # find stab buff
+    #        buffId = buff.find('id').text
+    #        if buffId == might_id:
+    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
+    #    return 0.
+    #
+    #if stat == 'fury':
+    #    # get buffs in squad generation -> need to loop over all buffs
+    #    for buff in player_xml.iter('squadBuffs'):
+    #        # find stab buff
+    #        buffId = buff.find('id').text
+    #        if buffId == fury_id:
+    #            return float(buff.find('buffData').find('generation').text) #TODO *duration after
+    #    return 0.        
+
+    if stat == 'heal':
+        # check if healing was logged, save it
+        heal = -1
+        ext_healing_xml = player_xml.find('extHealingStats')
+        if(ext_healing_xml != None):
+            heal = 0
+            found_healing = True
+            for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
+                outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
+                if not outgoing_healing_xml2 is None:
+                    heal += int(outgoing_healing_xml2.find('healing').text)
+        return heal
+
+    if stat == 'barrier':
+        # check if barrier was logged, save it
+        barrier = -1
+        ext_barrier_xml = player_xml.find('extBarrierStats')
+        if(ext_barrier_xml != None):
+            barrier = 0
+            found_barrier = True
+            for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
+                outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
+                if not outgoing_barrier_xml2 is None:
+                    barrier += int(outgoing_barrier_xml2.find('barrier').text)
+        return barrier
+
+
+
 # Collect the top stats data.
 # Input:
 # args = cmd line arguments
@@ -558,14 +682,14 @@ def collect_stat_data(args, config, log):
     players = []        # list of all player/profession combinations
     player_index = {}   # dictionary that matches each player/profession combo to its index in players list
     account_index = {}  # dictionary that matches each account name to a list of its indices in players list
-    
-    stab_id = "1122"
-    prot_id = "717"
-    aegis_id = "743"
-    might_id = "740"
-    fury_id = "725"
+
+    # TODO get buff ids from buff map
+    config.buff_ids['stab'] = "1122"
+    config.buff_ids['prot'] = "717"
+    config.buff_ids['aegis'] = "743"
+    config.buff_ids['might'] = "740"
+    config.buff_ids['fury'] = "725"
     used_fights = 0
-    #used_fights_duration = 0
     fights = []
     
     # iterating over all fights in directory
@@ -600,7 +724,6 @@ def collect_stat_data(args, config, log):
             is_enemy_player_xml = enemy.find('enemyPlayer')
             if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
                 num_enemies += 1
-
                 
         # initialize fight         
         fight = Fight()
@@ -609,9 +732,7 @@ def collect_stat_data(args, config, log):
         fight.allies = num_allies
         fight.start_time = xml_root.find('timeStartStd').text
         fight.end_time = xml_root.find('timeEndStd').text        
-        #fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-        fight.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0, 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
-
+        fight.total_stats = {key: value for key, value in config.empty_stats.items()}
         
         # skip fights that last less than min_fight_duration seconds
         if(duration < config.min_fight_duration):
@@ -641,100 +762,21 @@ def collect_stat_data(args, config, log):
             continue
 
         used_fights += 1
+        fight_number = used_fights-1
 
-        # dictionaries for stats for each player in this fight
-        damage_per_player = {}
-        cleanses_per_player = {}
-        strips_per_player = {}
-        stab_per_player = {}
-        prot_per_player = {}
-        aegis_per_player = {}
-        might_per_player = {}
-        fury_per_player = {}        
-        healing_per_player = {}
-        barrier_per_player = {}        
-        distance_per_player = {}
-        dmg_taken_per_player = {}
-        deaths_per_player = {}
-        kills_per_player = {}
+        # add new entry for this fight in all players
+        for player in players:
+            player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})        
 
         # get stats for each player
-        for xml_player in xml_root.iter('players'):
+        for player_xml in xml_root.iter('players'):
             create_new_player = False
             build_swapped = False
             
             # get player account, name, profession
-            account = xml_player.find('account').text
-            name = xml_player.find('name').text
-            profession = xml_player.find('profession').text
-
-            # get deaths and kills
-            defenses_xml = xml_player.find('defenses')
-            dmg_taken = int(defenses_xml.find('damageTaken').text)
-            deaths = int(defenses_xml.find('deadCount').text)
-            kills = int(xml_player.find('statsAll').find('killed').text)
-            
-            # get damage
-            damage = int(xml_player.find('dpsAll').find('damage').text)
-
-            # get strips and cleanses
-            support_stats = xml_player.find('support')
-            strips = int(support_stats.find('boonStrips').text)
-            cleanses = int(support_stats.find('condiCleanse').text)
-
-            # get buffs in squad generation -> need to loop over all buffs
-            stab_generated = 0
-            prot_generated = 0
-            aegis_generated = 0
-            might_generated = 0
-            fury_generated = 0
-            for buff in xml_player.iter('squadBuffs'):
-                # find stab buff
-                buffId = buff.find('id').text
-                if buffId == stab_id:
-                    stab_generated = float(buff.find('buffData').find('generation').text)
-                elif buffId == prot_id:
-                    prot_generated = float(buff.find('buffData').find('generation').text)
-                elif buffId == aegis_id:
-                    aegis_generated = float(buff.find('buffData').find('generation').text)
-                elif buffId == might_id:
-                    might_generated = float(buff.find('buffData').find('generation').text)
-                elif buffId == fury_id:
-                    fury_generated = float(buff.find('buffData').find('generation').text)                                        
-
-            # check if healing was logged, save it
-            ext_healing_xml = xml_player.find('extHealingStats')
-            healing = 0
-            if(ext_healing_xml != None):
-                found_healing = True
-                for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
-                    outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
-                    if not outgoing_healing_xml2 is None:
-                        healing += int(outgoing_healing_xml2.find('healing').text)
-
-            # check if barrier was logged, save it
-            ext_barrier_xml = xml_player.find('extBarrierStats')
-            barrier = 0
-            if(ext_barrier_xml != None):
-                found_barrier = True
-                for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
-                    outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
-                    if not outgoing_barrier_xml2 is None:
-                        barrier += int(outgoing_barrier_xml2.find('barrier').text)                        
-
-            # get distance to tag
-            distance = float(xml_player.find('statsAll').find('distToCom').text)
-
-            if debug:
-                print(name)
-                print("damage:",damage)
-                print("strips:",strips)
-                print("cleanses:",cleanses)
-                print("stab:",stab_generated)
-                print("healing:",healing)
-                print("barrier:",barrier)                
-                print(f"distance: {distance:.2f}")
-                print("\n")
+            account = player_xml.find('account').text
+            name = player_xml.find('name').text
+            profession = player_xml.find('profession').text
 
             # if this combination of charname + profession is not in the player index yet, create a new entry
             name_and_prof = name+" "+profession
@@ -746,7 +788,8 @@ def collect_stat_data(args, config, log):
             if account not in account_index.keys():
                 account_index[account] = [len(players)]
             elif name_and_prof not in player_index.keys():
-                # if account does already exist, but name/prof combo does not, this player swapped build or character -> note for all Player instances of this account
+                # if account does already exist, but name/prof combo does not, this player swapped build or character
+                # -> note for all Player instances of this account
                 for ind in range(len(account_index[account])):
                     players[account_index[account][ind]].swapped_build = True
                 account_index[account].append(len(players))
@@ -757,151 +800,79 @@ def collect_stat_data(args, config, log):
                 player.account = account
                 player.name = name
                 player.profession = profession
-                #player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.total_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
-                #player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.consistency_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0, 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
-                #player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
-                player.percentage_top_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'prot': 0., 'aegis': 0., 'might': 0., 'fury': 0., 'cleanses': 0., 'heal': 0., 'barrier': 0., 'dist': 0., 'deaths': 0., 'kills': 0., 'dmg_taken': 0}
+                player.total_stats = {key: value for key, value in config.empty_stats.items()}
+                player.consistency_stats = {key: value for key, value in config.empty_stats.items()}
+                player.percentage_top_stats = {key: value for key, value in config.empty_stats.items()}
+               
                 player_index[name_and_prof] = len(players)
+                # fill up fights where the player wasn't there yet with empty stats
+                while len(player.stats_per_fight) < used_fights:
+                    player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})                
                 players.append(player)
 
-            # fill dictionary of stats for this fight
-            damage_per_player[name_and_prof] = damage
-            strips_per_player[name_and_prof] = strips
-            stab_per_player[name_and_prof] = stab_generated
-            prot_per_player[name_and_prof] = prot_generated 
-            aegis_per_player[name_and_prof] = aegis_generated
-            might_per_player[name_and_prof] = might_generated
-            fury_per_player[name_and_prof] = fury_generated            
-            cleanses_per_player[name_and_prof] = cleanses
-            if found_healing:
-                healing_per_player[name_and_prof] = healing
-            if found_barrier:
-                barrier_per_player[name_and_prof] = barrier
-            if distance >= 0: # distance sometimes -1 for some reason
-                distance_per_player[name_and_prof] = distance
-            else:
-                distance_per_player[name_and_prof] = -1
-            dmg_taken_per_player[name_and_prof] = dmg_taken
-            deaths_per_player[name_and_prof] = deaths
-            kills_per_player[name_and_prof] = kills
-
-            # add stats of this fight to total player stats
-            players[player_index[name_and_prof]].num_fights_present += 1
-            players[player_index[name_and_prof]].duration_fights_present += duration
-            players[player_index[name_and_prof]].swapped_build |= build_swapped
-            players[player_index[name_and_prof]].total_stats['dmg'] += damage
-            players[player_index[name_and_prof]].total_stats['rips'] += strips
-            players[player_index[name_and_prof]].total_stats['stab'] += stab_generated*duration
-            players[player_index[name_and_prof]].total_stats['prot'] += prot_generated*duration
-            players[player_index[name_and_prof]].total_stats['aegis'] += aegis_generated*duration
-            players[player_index[name_and_prof]].total_stats['might'] += might_generated*duration
-            players[player_index[name_and_prof]].total_stats['fury'] += fury_generated*duration                        
-            players[player_index[name_and_prof]].total_stats['cleanses'] += cleanses
-            if found_healing:
-                players[player_index[name_and_prof]].total_stats['heal'] += healing
-            if found_barrier:
-                players[player_index[name_and_prof]].total_stats['barrier'] += barrier
-            if distance > 0: # distance sometimes -1 for some reason
-                players[player_index[name_and_prof]].total_stats['dist'] += distance*duration
-
-            players[player_index[name_and_prof]].total_stats['dmg_taken'] += dmg_taken            
-            players[player_index[name_and_prof]].total_stats['deaths'] += deaths
-            players[player_index[name_and_prof]].total_stats['kills'] += kills
-
-            # add stats of this player to overall stats for this fight
-            fight.total_stats['dmg'] += damage
-            fight.total_stats['rips'] += strips
-            fight.total_stats['stab'] += stab_generated*duration
-            fight.total_stats['prot'] += prot_generated*duration
-            fight.total_stats['aegis'] += aegis_generated*duration
-            fight.total_stats['might'] += might_generated*duration
-            fight.total_stats['fury'] += fury_generated*duration            
-            fight.total_stats['cleanses'] += cleanses
-            fight.total_stats['heal'] += healing
-            fight.total_stats['barrier'] += barrier            
-            fight.total_stats['dist'] += distance*duration
-            fight.total_stats['dmg_taken'] += dmg_taken
-            fight.total_stats['deaths'] += deaths
-            fight.total_stats['kills'] += kills            
+            player = players[player_index[name_and_prof]]
             
+            # get all stats that are supposed to be computed from the player xml
+            for stat in config.stats_to_compute:
+                player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_xml, stat, config)
+                # buff are generation squad values, using total over time
+                if stat in config.buff_ids.keys():
+                    player.stats_per_fight[fight_number][stat] *= duration
+
+            if debug:
+                print(name)
+                for stat in player.stats_per_fight[fight_number].keys():
+                    print(stat+": "+player.stats_per_fight[fight_number][stat])
+                print("\n")
+
+            player.num_fights_present += 1
+            player.duration_fights_present += duration
+            player.swapped_build |= build_swapped
+
         # create lists sorted according to stats
-        sortedDamage = sorted(damage_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedStrips = sorted(strips_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedCleanses = sorted(cleanses_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedStab = sorted(stab_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedProt = sorted(prot_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedAegis = sorted(aegis_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedMight = sorted(might_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedFury = sorted(fury_per_player.items(), key=lambda x:x[1], reverse=True)        
-        sortedHealing = sorted(healing_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedBarrier = sorted(barrier_per_player.items(), key=lambda x:x[1], reverse=True)        
-        # small distance = good -> don't reverse sorting.
-        sortedDistance = sorted(distance_per_player.items(), key=lambda x:x[1])
-        # small dmg taken = good -> don't reverse sorting.        
-        sortedDmgTaken = sorted(dmg_taken_per_player.items(), key=lambda x:x[1])        
-        sortedDeaths = sorted(deaths_per_player.items(), key=lambda x:x[1], reverse=True)
-        sortedKills = sorted(kills_per_player.items(), key=lambda x:x[1], reverse=True)        
+        sortedStats = {key: list() for key in config.empty_stats.keys()}
+        for stat in config.stats_to_compute:
+            sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number)
 
         if debug:
-            print("sorted dmg:", sortedDamage,"\n")
-            print("sorted strips:", sortedStrips,"\n")
-            print("sorted cleanses:",sortedCleanses,"\n")
-            print("sorted stab:", sortedStab,"\n")
-            print("sorted prot:", sortedProt,"\n")
-            print("sorted aegis:", sortedAegis,"\n")
-            print("sorted might:", sortedMight,"\n")
-            print("sorted fury:", sortedFury,"\n")            
-            print("sorted healing:", sortedHealing,"\n")
-            print("sorted barrier:", sortedBarrier,"\n")            
-            print("sorted distance:", sortedDistance, "\n")
-            print("sorted dmg taken:", sortedDmgTaken, "\n")
+            for stat in config.stats_to_compute:
+                print("sorted "+stat+": "+sortedStats[stat])
         
         # increase number of times top x was achieved for top x players in each stat
-        increase_top_x_reached(players, sortedDamage, player_index, config, 'dmg')
-        increase_top_x_reached(players, sortedStrips, player_index, config, 'rips')
-        increase_top_x_reached(players, sortedStab, player_index, config, 'stab')
-        increase_top_x_reached(players, sortedProt, player_index, config, 'prot')
-        increase_top_x_reached(players, sortedAegis, player_index, config, 'aegis')
-        increase_top_x_reached(players, sortedMight, player_index, config, 'might')
-        increase_top_x_reached(players, sortedFury, player_index, config, 'fury')        
-        increase_top_x_reached(players, sortedCleanses, player_index, config, 'cleanses')
-        increase_top_x_reached(players, sortedHealing, player_index, config, 'heal')
-        increase_top_x_reached(players, sortedBarrier, player_index, config, 'barrier')        
-        increase_top_x_reached(players, sortedDistance, player_index, config, 'dist')
-        increase_top_x_reached(players, sortedDmgTaken, player_index, config, 'dmg_taken')        
-        increase_top_x_reached(players, sortedDeaths, player_index, config, 'deaths')
-        increase_top_x_reached(players, sortedKills, player_index, config, 'kills')        
+        for stat in config.stats_to_compute:
+            increase_top_x_reached(players, sortedStats[stat], config, stat)
 
         fights.append(fight)
 
+    # add stats of each fight to total player stats
+    for fight in fights:
+        if fight.skipped:
+            continue
+        for player in players:
+            for stat in config.stats_to_compute:
+                if player.stats_per_fight[fight_number][stat] > 0:
+                    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]                    
         
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
-        for stat in player.consistency_stats.keys():
+        for stat in config.stats_to_compute:
             player.percentage_top_stats[stat] = player.consistency_stats[stat]/player.num_fights_present
-
 
     myprint(log, "\n")
     
     return players, fights, found_healing, found_barrier
 
 
+
 # add up total stats over all fights
-def get_overall_squad_stats(fights):
+def get_overall_squad_stats(fights, config):
     # overall stats over whole squad
-    overall_squad_stats = {'dmg': 0., 'rips': 0., 'stab': 0., 'cleanses': 0., 'heal': 0., 'dist': 0., 'deaths': 0., 'kills': 0.}
+    overall_squad_stats = {key: value for key, value in config.empty_stats.items()}
     for fight in fights:
         if not fight.skipped:
-            overall_squad_stats['dmg'] += fight.total_stats['dmg']
-            overall_squad_stats['rips'] += fight.total_stats['rips']
-            overall_squad_stats['stab'] += fight.total_stats['stab']
-            overall_squad_stats['cleanses'] += fight.total_stats['cleanses']
-            overall_squad_stats['heal'] += fight.total_stats['heal']
-            overall_squad_stats['dist'] += fight.total_stats['dist']
-            overall_squad_stats['deaths'] += fight.total_stats['deaths']
-            overall_squad_stats['kills'] += fight.total_stats['kills']
+            for stat in config.stats_to_compute:
+                overall_squad_stats[stat] += fight.total_stats[stat]
     return overall_squad_stats
 
 

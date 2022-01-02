@@ -58,7 +58,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing = collect_stat_data(args, config, log)
+    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log)
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     myprint(output, print_string)
 
     # print overall stats
-    overall_squad_stats = get_overall_squad_stats(fights)
+    overall_squad_stats = get_overall_squad_stats(fights, config)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
     write_fights_overview_xls(fights, overall_squad_stats, args.xls_output_filename)    
     
@@ -103,7 +103,15 @@ if __name__ == '__main__':
         top_consistent_healers = write_sorted_top_consistent(players, config, num_used_fights, 'heal', output)
         top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)
         write_stats_xls(players, top_total_healers, 'heal', args.xls_output_filename)                    
-    
+
+    top_consistent_barriers = list()
+    if found_barrier:
+        myprint(output, "BARRIER AWARDS\n")        
+        top_consistent_barriers = write_sorted_top_consistent(players, config, num_used_fights, 'barrier', output)
+        top_total_barriers = write_sorted_total(players, config, total_fight_duration, 'barrier', output)
+        write_stats_xls(players, top_total_barriers, 'barrier', args.xls_output_filename)                    
+
+        
     myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
     top_consistent_distancers = get_top_players(players, config, 'dist', StatType.CONSISTENT)
     top_percentage_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.PERCENTAGE, top_consistent_distancers)

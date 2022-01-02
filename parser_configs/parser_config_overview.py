@@ -14,11 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+stats_to_compute = ['dmg', 'rips', 'stab', 'cleanses', 'heal', 'barrier', 'dist', 'deaths', 'kills']
+empty_stats = {x: 0 for x in stats_to_compute}
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 5, 'rips': 3, 'stab': 3, 'cleanses': 3, 'heal': 3, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_listed = {'dmg': 5, 'rips': 3, 'stab': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'deaths': 5, 'kills': 5}
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'barrier': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
@@ -100,6 +102,7 @@ stat_names["rips"] = "boon strips"
 stat_names["stab"] = "stability output"
 stat_names["cleanses"] = "condition cleanses"
 stat_names["heal"] = "healing"
+stat_names["barrier"] = "barrier"
 stat_names["dist"] = "distance to tag"
 stat_names["kills"] = "kills"
 stat_names["deaths"] = "deaths"

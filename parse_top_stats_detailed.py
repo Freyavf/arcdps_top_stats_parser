@@ -54,6 +54,8 @@ if __name__ == '__main__':
     
     config = fill_config(parser_config)
 
+    print(config.empty_stats)
+    
     print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
@@ -70,7 +72,7 @@ if __name__ == '__main__':
     myprint(output, print_string)
 
     # print overall stats
-    overall_squad_stats = get_overall_squad_stats(fights)
+    overall_squad_stats = get_overall_squad_stats(fights, config)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
 
     print_fights_overview(fights, overall_squad_stats, output)
