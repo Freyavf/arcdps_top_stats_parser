@@ -629,6 +629,58 @@ def get_stat_from_player_xml(player_xml, stat, config):
 
 
 
+# get stats for this fight from fight_xml
+# Input:
+# fight_xml = xml object including one fight
+# config = the config to use
+# log = log file to write to
+def get_stats_from_fight_xml(fight_xml, config, log):
+    # get fight duration
+    fight_duration_xml = fight_xml.find('duration')
+    split_duration = fight_duration_xml.text.split('m ', 1)
+    mins = int(split_duration[0])
+    split_duration = split_duration[1].split('s', 1)
+    secs = int(split_duration[0])
+    if debug:
+        print("duration: ", mins, "m", secs, "s")
+    duration = mins*60 + secs
+
+    num_allies = len(fight_xml.findall('players'))
+    num_enemies = 0
+    for enemy in fight_xml.iter('targets'):
+        is_enemy_player_xml = enemy.find('enemyPlayer')
+        if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
+            num_enemies += 1
+                
+    # initialize fight         
+    fight = Fight()
+    fight.duration = duration
+    fight.enemies = num_enemies
+    fight.allies = num_allies
+    fight.start_time = fight_xml.find('timeStartStd').text
+    fight.end_time = fight_xml.find('timeEndStd').text        
+    fight.total_stats = {key: value for key, value in config.empty_stats.items()}
+        
+    # skip fights that last less than min_fight_duration seconds
+    if(duration < config.min_fight_duration):
+        fight.skipped = True
+        print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
+        myprint(log, print_string)
+        
+    # skip fights with less than min_allied_players allies
+    if num_allies < config.min_allied_players:
+        fight.skipped = True
+        print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
+        myprint(log, print_string)
+
+    # skip fights with less than min_enemy_players enemies
+    if num_enemies < config.min_enemy_players:
+        fight.skipped = True
+        print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
+        myprint(log, print_string)
+
+    return fight
+    
 # Collect the top stats data.
 # Input:
 # args = cmd line arguments
@@ -638,7 +690,7 @@ def get_stat_from_player_xml(player_xml, stat, config):
 # list of Players with their stats
 # list of all fights (also the skipped ones)
 # was healing found in the logs?
-def collect_stat_data(args, config, log):
+def collect_stat_data_from_xml(args, config, log):
     # healing only in xml if addon was installed
     found_healing = False # Todo what if some logs have healing and some don't
     found_barrier = False    
@@ -672,59 +724,13 @@ def collect_stat_data(args, config, log):
         
         xml_root = xml_tree.getroot()
 
-        # get fight duration
-        fight_duration_xml = xml_root.find('duration')
-        split_duration = fight_duration_xml.text.split('m ', 1)
-        mins = int(split_duration[0])
-        split_duration = split_duration[1].split('s', 1)
-        secs = int(split_duration[0])
-        if debug:
-            print("duration: ", mins, "m", secs, "s")
-        duration = mins*60 + secs
-
-        num_allies = len(xml_root.findall('players'))
-        num_enemies = 0
-        for enemy in xml_root.iter('targets'):
-            is_enemy_player_xml = enemy.find('enemyPlayer')
-            if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
-                num_enemies += 1
-                
-        # initialize fight         
-        fight = Fight()
-        fight.duration = duration
-        fight.enemies = num_enemies
-        fight.allies = num_allies
-        fight.start_time = xml_root.find('timeStartStd').text
-        fight.end_time = xml_root.find('timeEndStd').text        
-        fight.total_stats = {key: value for key, value in config.empty_stats.items()}
-        
-        # skip fights that last less than min_fight_duration seconds
-        if(duration < config.min_fight_duration):
-            fight.skipped = True
+        # get fight stats
+        fight = get_stats_from_fight_xml(xml_root, config, log)
+        if fight.skipped:
             fights.append(fight)
-            log.write(print_string)
-            print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
-            myprint(log, print_string)
+            log.write("skipped "+xml_filename)            
             continue
         
-        # skip fights with less than min_allied_players allies
-        if num_allies < config.min_allied_players:
-            fight.skipped = True
-            fights.append(fight)
-            log.write(print_string)
-            print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
-            myprint(log, print_string)
-            continue
-
-        # skip fights with less than min_enemy_players enemies
-        if num_enemies < config.min_enemy_players:
-            fight.skipped = True
-            fights.append(fight)
-            log.write(print_string)
-            print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
-            myprint(log, print_string)
-            continue
-
         used_fights += 1
         fight_number = used_fights-1
 
@@ -781,7 +787,13 @@ def collect_stat_data(args, config, log):
                 player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_xml, stat, config)
                 # buff are generation squad values, using total over time
                 if stat in config.buff_ids.keys():
-                    player.stats_per_fight[fight_number][stat] *= duration
+                    player.stats_per_fight[fight_number][stat] *= fight.duration
+
+                # add stats of this fight and player to total stats of this fight and player
+                if player.stats_per_fight[fight_number][stat] > 0:
+                    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]               
+                    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+
 
             if debug:
                 print(name)
@@ -790,7 +802,7 @@ def collect_stat_data(args, config, log):
                 print("\n")
 
             player.num_fights_present += 1
-            player.duration_fights_present += duration
+            player.duration_fights_present += fight.duration
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
@@ -808,16 +820,7 @@ def collect_stat_data(args, config, log):
 
         fights.append(fight)
 
-    # add stats of each fight to total player stats
-    for fight in fights:
-        if fight.skipped:
-            continue
-        for player in players:
-            for stat in config.stats_to_compute:
-                if player.stats_per_fight[fight_number][stat] > 0:
-                    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
-                    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]                    
-        
+    # compute percentage top stats and attendance percentage for each player    
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
         for stat in config.stats_to_compute:

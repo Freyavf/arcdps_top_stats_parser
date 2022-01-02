@@ -57,7 +57,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing = collect_stat_data(args, config, log)
+    players, fights, found_healing = collect_stat_data_from_xml(args, config, log)
 
     used_fights_duration = sum([f.duration for f in fights if not f.skipped])
     total_fight_duration = {}

@@ -61,7 +61,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log)
+    players, fights, found_healing, found_barrier = collect_stat_data_from_xml(args, config, log)
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
