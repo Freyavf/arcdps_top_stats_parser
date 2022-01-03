@@ -88,6 +88,8 @@ if __name__ == '__main__':
     top_total_stat_players = {key: list() for key in config.stats_to_compute}
     top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
     top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
+    top_late_players = {key: list() for key in config.stats_to_compute}
+    top_jack_of_all_trades_players = {key: list() for key in config.stats_to_compute}    
     
     for stat in config.stats_to_compute:
         if (stat == 'heal' and not found_healing) or (stat == 'barrier' and not found_barrier):
@@ -99,12 +101,12 @@ if __name__ == '__main__':
             top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
             top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
             top_percentage_stat_players[stat] = write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
-            continue
-        top_consistent_stat_players[stat] = write_sorted_top_consistent(players, config, num_used_fights, stat, output)
-        top_total_stat_players[stat] = write_sorted_total(players, config, total_fight_duration, stat, output)
-        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
-    
-    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, args.json_output_filename)
+        else:
+            top_consistent_stat_players[stat] = write_sorted_top_consistent(players, config, num_used_fights, stat, output)
+            top_total_stat_players[stat] = write_sorted_total(players, config, total_fight_duration, stat, output)
+            top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+
+    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:
         if stat == 'dist':

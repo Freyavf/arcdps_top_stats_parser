@@ -29,22 +29,26 @@ from parse_top_stats_tools import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-    parser.add_argument('xml_directory', help='Directory containing .xml files from arcdps reports')
+    parser.add_argument('input_directory', help='Directory containing .xml or .json files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
-    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Text file to write the computed top stats")
+    parser.add_argument('-f', '--input_filetype', dest="filetype", help="filetype of input files. Currently supports json and xml, defaults to json.", default="json")
+    parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="xls file to write the computed top stats")    
+    parser.add_argument('-j', '--json_output', dest="json_output_filename", help="json file to write the computed top stats to")    
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
     parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_overview")    
     args = parser.parse_args()
 
-    if not os.path.isdir(args.xml_directory):
-        print("Directory ",args.xml_directory," is not a directory or does not exist!")
+    if not os.path.isdir(args.input_directory):
+        print("Directory ",args.input_directory," is not a directory or does not exist!")
         sys.exit()
     if args.output_filename is None:
-        args.output_filename = args.xml_directory+"/top_stats_overview.txt"
+        args.output_filename = args.input_directory+"/top_stats_overview.txt"
     if args.xls_output_filename is None:
-        args.xls_output_filename = args.xml_directory+"/top_stats_overview.xls"        
+        args.xls_output_filename = args.input_directory+"/top_stats_overview.xls"
+    if args.json_output_filename is None:
+        args.json_output_filename = args.input_directory+"/top_stats_overview.json"                
     if args.log_file is None:
-        args.log_file = args.xml_directory+"/log_overview.txt"
+        args.log_file = args.input_directory+"/log_overview.txt"
 
     output = open(args.output_filename, "w")
     log = open(args.log_file, "w")
@@ -53,12 +57,12 @@ if __name__ == '__main__':
     
     config = fill_config(parser_config)
 
-    print_string = "Using xml directory "+args.xml_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
+    print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing, found_barrier = collect_stat_data_from_xml(args, config, log)
+    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log)    
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
@@ -72,64 +76,58 @@ if __name__ == '__main__':
     overall_squad_stats = get_overall_squad_stats(fights, config)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
     write_fights_overview_xls(fights, overall_squad_stats, args.xls_output_filename)    
+    num_used_fights = len([f for f in fights if not f.skipped])
     
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
-    num_used_fights = len([f for f in fights if not f.skipped])
-    myprint(output, "DAMAGE AWARDS\n")
-    top_consistent_damagers = write_sorted_top_consistent(players, config, num_used_fights, 'dmg', output)
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)
-    write_stats_xls(players, top_total_damagers, 'dmg', args.xls_output_filename)
-    
-    myprint(output, "BOON STRIPS AWARDS\n")        
-    top_consistent_strippers = write_sorted_top_consistent(players, config, num_used_fights, 'rips', output)
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)
-    write_stats_xls(players, top_total_strippers, 'rips', args.xls_output_filename)    
-    
-    myprint(output, "CONDITION CLEANSES AWARDS\n")        
-    top_consistent_cleansers = write_sorted_top_consistent(players, config, num_used_fights, 'cleanses', output)
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
-    write_stats_xls(players, top_total_cleansers, 'cleanses', args.xls_output_filename)        
-        
-    myprint(output, "STABILITY OUTPUT AWARDS \n")        
-    top_consistent_stabbers = write_sorted_top_consistent(players, config, num_used_fights, 'stab', output)
-    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output)
-    write_stats_xls(players, top_total_stabbers, 'stab', args.xls_output_filename)            
-    
-    top_consistent_healers = list()
-    if found_healing:
-        myprint(output, "HEALING AWARDS\n")        
-        top_consistent_healers = write_sorted_top_consistent(players, config, num_used_fights, 'heal', output)
-        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)
-        write_stats_xls(players, top_total_healers, 'heal', args.xls_output_filename)                    
 
-    top_consistent_barriers = list()
-    if found_barrier:
-        myprint(output, "BARRIER AWARDS\n")        
-        top_consistent_barriers = write_sorted_top_consistent(players, config, num_used_fights, 'barrier', output)
-        top_total_barriers = write_sorted_total(players, config, total_fight_duration, 'barrier', output)
-        write_stats_xls(players, top_total_barriers, 'barrier', args.xls_output_filename)                    
+    top_total_stat_players = {key: list() for key in config.stats_to_compute}
+    top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
+    top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
+    top_late_players = {key: list() for key in config.stats_to_compute}
+    top_jack_of_all_trades_players = {key: list() for key in config.stats_to_compute}
+    
+    for stat in config.stats_to_compute:
+        if (stat == 'heal' and not found_healing) or (stat == 'barrier' and not found_barrier):
+            continue
 
-        
-    myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
-    top_consistent_distancers = get_top_players(players, config, 'dist', StatType.CONSISTENT)
-    top_percentage_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.PERCENTAGE, top_consistent_distancers)
-    write_stats_xls(players, top_percentage_distancers, 'dist', args.xls_output_filename)    
-    
-    myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')        
-    top_late_damagers = write_sorted_top_percentage(players, config, num_used_fights, 'dmg', output, StatType.LATE_PERCENTAGE, top_consistent_damagers, top_total_damagers)
-    top_late_strippers = write_sorted_top_percentage(players, config, num_used_fights, 'rips', output, StatType.LATE_PERCENTAGE, top_consistent_strippers, top_total_strippers)
-    top_late_cleansers = write_sorted_top_percentage(players, config, num_used_fights, 'cleanses', output, StatType.LATE_PERCENTAGE, top_consistent_cleansers, top_total_cleansers)
-    top_late_stabbers = write_sorted_top_percentage(players, config, num_used_fights, 'stab', output, StatType.LATE_PERCENTAGE, top_consistent_stabbers, top_total_stabbers)
-    top_late_healers = write_sorted_top_percentage(players, config, num_used_fights, 'heal', output, StatType.LATE_PERCENTAGE, top_consistent_healers, top_total_healers)
-    top_late_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.LATE_PERCENTAGE, top_consistent_distancers)    
-    
-    myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n')        
-    write_sorted_top_percentage(players, config, num_used_fights, 'dmg', output, StatType.SWAPPED_PERCENTAGE, top_consistent_damagers, top_total_damagers, top_late_damagers)
-    write_sorted_top_percentage(players, config, num_used_fights, 'rips', output, StatType.SWAPPED_PERCENTAGE, top_consistent_strippers, top_total_strippers, top_late_strippers)
-    write_sorted_top_percentage(players, config, num_used_fights, 'cleanses', output, StatType.SWAPPED_PERCENTAGE, top_consistent_cleansers, top_total_cleansers, top_late_cleansers)
-    write_sorted_top_percentage(players, config, num_used_fights, 'stab', output, StatType.SWAPPED_PERCENTAGE, top_consistent_stabbers, top_total_stabbers, top_late_stabbers)
-    write_sorted_top_percentage(players, config, num_used_fights, 'heal', output, StatType.SWAPPED_PERCENTAGE, top_consistent_healers, top_total_healers, top_late_healers)
-    write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.SWAPPED_PERCENTAGE, top_consistent_distancers, top_late_distancers)    
+        if stat == 'barrier' or stat == 'deaths' or stat == 'kills':
+            top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+            top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+            top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+        else:
+            myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
+            if stat == 'dist':
+                top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+                top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+                top_percentage_stat_players[stat] = write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
+            else:
+                top_consistent_stat_players[stat] = write_sorted_top_consistent(players, config, num_used_fights, stat, output)
+                top_total_stat_players[stat] = write_sorted_total(players, config, total_fight_duration, stat, output)
+                top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+        top_late_players[stat],comparison_percentage = get_top_percentage_players(players, config, stat, StatType.LATE_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], list())            
+        top_jack_of_all_trades_players[stat],comparison_percentage = get_top_percentage_players(players, config, stat, StatType.SWAPPED_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], top_late_players[stat])
+
+    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
+
+    for stat in config.stats_to_compute:
+        if stat == 'dist':
+            write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
+        elif stat == 'heal' and found_healing:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
+        elif stat == 'barrier' and found_barrier:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+        else:
+            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+
+    if any(len(top_late_players[stat]) > 0 for stat in config.stats_to_compute):
+        myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')
+        for stat in config.stats_to_compute:
+            write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.LATE_PERCENTAGE, top_consistent_stat_players[stat], top_total_stat_players[stat])
+
+    if any(len(top_jack_of_all_trades_players[stat]) > 0 for stat in config.stats_to_compute):
+        myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n')
+        for stat in config.stats_to_compute:
+            write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.SWAPPED_PERCENTAGE, top_consistent_stat_players[stat], top_total_stat_players[stat], top_late_players[stat])
     

@@ -57,9 +57,9 @@ class Player:
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
-        self.total_stats = {key: value for key, value in config.empty_stats.items()}
-        self.consistency_stats = {key: value for key, value in config.empty_stats.items()}
-        self.portion_top_stats = {key: value for key, value in config.empty_stats.items()}
+        self.total_stats = {key: 0 for key in config.stats_to_compute}
+        self.consistency_stats = {key: 0 for key in config.stats_to_compute}
+        self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
 
 # This class stores information about a fight
@@ -150,21 +150,25 @@ def fill_config(config_input):
 # stat = stat that is considered
 def increase_top_x_reached(players, sortedList, config, stat):
     # if stat isn't dist, increase top stats reached for the first num_players_considered_top players
+    valid_values = 0
     if stat != 'dist':
         i = 0
         last_val = 0
-        while i < len(sortedList) and (i < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+        while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+            if sortedList[i][1] < 0:
+                i += 1
+                continue
             players[sortedList[i][0]].consistency_stats[stat] += 1
             last_val = sortedList[i][1]
             i += 1
+            valid_values += 1
         return
 
     # different for dist
-    valid_distances = 0
     first_valid = True
     i = 0
     last_val = 0
-    while i < len(sortedList) and (valid_distances < config.num_players_considered_top[stat]+1 or sortedList[i][1] == last_val):
+    while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat]+1 or sortedList[i][1] == last_val):
         # sometimes dist is -1, filter these out
         if sortedList[i][1] >= 0:
             # first valid dist is the comm, don't consider
@@ -172,7 +176,7 @@ def increase_top_x_reached(players, sortedList, config, stat):
                 first_valid  = False
             else:
                 players[sortedList[i][0]].consistency_stats[stat] += 1
-                valid_distances += 1
+                valid_values += 1
         last_val = sortedList[i][1]
         i += 1
 
@@ -437,7 +441,10 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
     sheet1.write(0, 4, "Times Top")
     sheet1.write(0, 5, "Percentage Top")
     sheet1.write(0, 6, "Total "+stat)
-    sheet1.write(0, 7, "Average "+stat+" per s")
+    if stat == 'deaths' or stat == 'kills':
+        sheet1.write(0, 7, "Average "+stat+" per min")
+    else:
+        sheet1.write(0, 7, "Average "+stat+" per s")        
 
     for i in range(len(top_players)):
         player = players[top_players[i]]
@@ -448,7 +455,10 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
         sheet1.write(i+1, 4, player.consistency_stats[stat])        
         sheet1.write(i+1, 5, round(player.portion_top_stats[stat]*100))
         sheet1.write(i+1, 6, round(player.total_stats[stat]))
-        sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present, 2))        
+        if stat == 'deaths' or stat == 'kills':
+            sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present*60., 2))
+        else:
+            sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present, 2))                
 
     wb.save(xls_output_filename)
 
@@ -667,7 +677,7 @@ def get_stats_from_fight_xml(fight_xml, config, log):
     fight.allies = num_allies
     fight.start_time = fight_xml.find('timeStartStd').text
     fight.end_time = fight_xml.find('timeEndStd').text        
-    fight.total_stats = {key: value for key, value in config.empty_stats.items()}
+    fight.total_stats = {key: 0 for key in config.stats_to_compute}
         
     # skip fights that last less than min_fight_duration seconds
     if(duration < config.min_fight_duration):
@@ -848,7 +858,7 @@ def collect_stat_data(args, config, log):
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
-        sortedStats = {key: list() for key in config.empty_stats.keys()}
+        sortedStats = {key: list() for key in config.stats_to_compute}
         for stat in config.stats_to_compute:
             sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number)
 
@@ -988,7 +998,7 @@ def get_stats_from_fight_json(fight_json, config, log):
     fight.allies = num_allies
     fight.start_time = fight_json['timeStartStd']
     fight.end_time = fight_json['timeEndStd']        
-    fight.total_stats = {key: value for key, value in config.empty_stats.items()}
+    fight.total_stats = {key: 0 for key in config.stats_to_compute}
         
     # skip fights that last less than min_fight_duration seconds
     if(duration < config.min_fight_duration):
@@ -1015,7 +1025,7 @@ def get_stats_from_fight_json(fight_json, config, log):
 # add up total stats over all fights
 def get_overall_squad_stats(fights, config):
     # overall stats over whole squad
-    overall_squad_stats = {key: value for key, value in config.empty_stats.items()}
+    overall_squad_stats = {key: 0 for key in config.stats_to_compute}
     for fight in fights:
         if not fight.skipped:
             for stat in config.stats_to_compute:
@@ -1170,15 +1180,16 @@ def print_fights_overview(fights, overall_squad_stats, output):
 
 
     
-def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, output_file):
+def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
     json_dict = {}
     json_dict["overall_squad_stats"] = {key: value for key, value in overall_squad_stats.items()}
     json_dict["fights"] = [jsons.dump(fight) for fight in fights]
     json_dict["players"] = [jsons.dump(player) for player in players]
     json_dict["top_total_players"] =  {key: value for key, value in top_total_stat_players.items()}
     json_dict["top_consistent_players"] =  {key: value for key, value in top_consistent_stat_players.items()}
-    json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}    
-    #TODO top consistent, total, percentage
+    json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}
+    json_dict["top_late_players"] =  {key: value for key, value in top_late_players.items()}
+    json_dict["top_jack_of_all_trades_players"] =  {key: value for key, value in top_jack_of_all_trades_players.items()}        
     with open(output_file, 'w') as json_file:
-        json.dump(json_dict, json_file)
+        json.dump(json_dict, json_file, indent=4)
 
