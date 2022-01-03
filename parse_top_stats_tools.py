@@ -717,7 +717,37 @@ def get_basic_player_data_from_json(player_json):
     return account, name, profession
 
 
+def get_buff_ids_from_json(json_data, config):
+    buffs = json_data['buffMap']
+    for buff_id, buff in buffs.items():
+        if buff['name'] == "Stability":
+            config.buff_ids['stab'] = buff_id[1:]
+        if buff['name'] == "Protection":
+            config.buff_ids['prot'] = buff_id[1:]
+        if buff['name'] == "Aegis":
+            config.buff_ids['aegis'] = buff_id[1:]
+        if buff['name'] == "Might":
+            config.buff_ids['might'] = buff_id[1:]
+        if buff['name'] == "Fury":
+            config.buff_ids['fury'] = buff_id[1:]
 
+
+def get_buff_ids_from_xml(xml_data, config):
+    buffs = xml_data.find('buffMap')
+    for buff in buffs:
+        buffname = buffs.find(buff.tag).find('name').text
+        if buffname == "Stability":
+            config.buff_ids['stab'] = buff.tag[1:]
+        if buffname == "Protection":
+            config.buff_ids['prot'] = buff.tag[1:]
+        if buffname == "Aegis":
+            config.buff_ids['aegis'] = buff.tag[1:]
+        if buffname == "Might":
+            config.buff_ids['might'] = buff.tag[1:]
+        if buffname == "Fury":
+            config.buff_ids['fury'] = buff.tag[1:]   
+
+    
 # Collect the top stats data.
 # Input:
 # args = cmd line arguments
@@ -739,14 +769,9 @@ def collect_stat_data(args, config, log):
     player_index = {}   # dictionary that matches each player/profession combo to its index in players list
     account_index = {}  # dictionary that matches each account name to a list of its indices in players list
 
-    # TODO get buff ids from buff map
-    config.buff_ids['stab'] = "1122"
-    config.buff_ids['prot'] = "717"
-    config.buff_ids['aegis'] = "743"
-    config.buff_ids['might'] = "740"
-    config.buff_ids['fury'] = "725"
     used_fights = 0
     fights = []
+    first = True
     
     # iterating over all fights in directory
     files = listdir(args.input_directory)
@@ -774,6 +799,14 @@ def collect_stat_data(args, config, log):
             # get fight stats
             fight = get_stats_from_fight_json(json_data, config, log)
 
+        if first:
+            first = False
+            # TODO get buff ids from buff map
+            if args.filetype == "json":
+                get_buff_ids_from_json(json_data, config)
+            else:
+                get_buff_ids_from_xml(xml_root, config)
+                    
         # add new entry for this fight in all players
         for player in players:
             player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})   
