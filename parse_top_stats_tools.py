@@ -204,7 +204,10 @@ def sort_players_by_value_in_fight(players, stat, fight_num):
 # list of player index and total stat value, sorted by total stat value
 def sort_players_by_total(players, stat):
     decorated = [(player.total_stats[stat], i, player) for i, player in enumerate(players)]
-    decorated.sort(reverse=True)
+    if stat == 'dist' or stat == 'dmg_taken':
+        decorated.sort()
+    else:
+        decorated.sort(reverse=True)
     sorted_by_total = [(i, total) for total, i, player in decorated]
     return sorted_by_total
 
@@ -741,7 +744,7 @@ def collect_stat_data(args, config, log):
     for filename in sorted_files:
         # skip files of incorrect filetype
         file_start, file_extension = os.path.splitext(filename)
-        if args.filetype not in file_extension:
+        if args.filetype not in file_extension or "top_stats" in file_start:
             continue
 
         print_string = "parsing "+filename
@@ -818,6 +821,7 @@ def collect_stat_data(args, config, log):
                     player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, stat, config)
                 else:
                     player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, config)
+                    
                 if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_healing = True
                 if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
@@ -825,7 +829,9 @@ def collect_stat_data(args, config, log):
                 # buff are generation squad values, using total over time
                 if stat in config.buff_ids.keys():
                     player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
-
+                if stat == 'dist':
+                    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
+                    
                 # add stats of this fight and player to total stats of this fight and player
                 if player.stats_per_fight[fight_number][stat] > 0:
                     fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]               
@@ -853,14 +859,18 @@ def collect_stat_data(args, config, log):
         # increase number of times top x was achieved for top x players in each stat
         for stat in config.stats_to_compute:
             increase_top_x_reached(players, sortedStats[stat], config, stat)
+            # round total_stats for this fight
+            fight.total_stats[stat] = round(fight.total_stats[stat])
 
         fights.append(fight)
 
     # compute percentage top stats and attendance percentage for each player    
     for player in players:
         player.attendance_percentage = player.num_fights_present / used_fights*100
+        # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
+            player.total_stats[stat] = round(player.total_stats[stat], 2)            
 
     myprint(log, "\n")
     
@@ -1155,7 +1165,7 @@ def print_fights_overview(fights, overall_squad_stats, output):
     myprint(output, print_string)
     print_string = f"{'Sum':>3}"+"  "+f"{' ':<10}"+"  "+f"{' ':>10}"+"  "+f"{' ':>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{' ':>7}"+"  "+f"{' ':>11}"+"  "+f"{' ':>12}"+"  "
     print_string += f"{round(overall_squad_stats['dmg']):>9}" +"  "+f"{round(overall_squad_stats['rips']):>6}" +"  "+f"{round(overall_squad_stats['cleanses']):>8}"  +"  "+f"{round(overall_squad_stats['stab']):>16}"+"  "+f"{round(overall_squad_stats['heal']):>9}" +"  "#+f"{round(overall_squad_stats['dist']):>10}" +"  "
-    print_string += f"{round(overall_squad_stats['deaths']):>6}" +"  "+f"{round(overall_squad_stats['kills']):>5}"
+    print_string += f"{round(overall_squad_stats['deaths']):>6}" +"  "+f"{round(overall_squad_stats['kills']):>5}\n"
     myprint(output, print_string)
 
 

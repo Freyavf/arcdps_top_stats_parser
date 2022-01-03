@@ -84,41 +84,26 @@ if __name__ == '__main__':
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
     num_used_fights = len([f for f in fights if not f.skipped])
-    myprint(output, "DAMAGE AWARDS\n")
-    top_consistent_damagers = write_sorted_top_consistent(players, config, num_used_fights, 'dmg', output)
-    top_total_damagers = write_sorted_total(players, config, total_fight_duration, 'dmg', output)
-         
-    myprint(output, "BOON STRIPS AWARDS\n")        
-    top_consistent_strippers = write_sorted_top_consistent(players, config, num_used_fights, 'rips', output)
-    top_total_strippers = write_sorted_total(players, config, total_fight_duration, 'rips', output)    
-    
-    myprint(output, "CONDITION CLEANSES AWARDS\n")        
-    top_consistent_cleansers = write_sorted_top_consistent(players, config, num_used_fights, 'cleanses', output)
-    top_total_cleansers = write_sorted_total(players, config, total_fight_duration, 'cleanses', output)
-        
-    myprint(output, "STABILITY OUTPUT AWARDS \n")        
-    top_consistent_stabbers = write_sorted_top_consistent(players, config, num_used_fights, 'stab', output)
-    top_total_stabbers = write_sorted_total(players, config, total_fight_duration, 'stab', output)    
-    
-    top_consistent_healers = list()
-    if found_healing:
-        myprint(output, "HEALING AWARDS\n")        
-        top_consistent_healers = write_sorted_top_consistent(players, config, num_used_fights, 'heal', output)
-        top_total_healers = write_sorted_total(players, config, total_fight_duration, 'heal', output)
-
-    
-    myprint(output, "SHORTEST DISTANCE TO TAG AWARDS\n")
-    top_consistent_distancers = get_top_players(players, config, 'dist', StatType.CONSISTENT)
-    top_percentage_distancers = write_sorted_top_percentage(players, config, num_used_fights, 'dist', output, StatType.PERCENTAGE, top_consistent_distancers)
 
     top_total_stat_players = {key: list() for key in config.stats_to_compute}
     top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
     top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
+    
     for stat in config.stats_to_compute:
-        top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
-        top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
-        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+        if (stat == 'heal' and not found_healing) or (stat == 'barrier' and not found_barrier):
+            continue
+
+        myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
         
+        if stat == 'dist':
+            top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+            top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+            top_percentage_stat_players[stat] = write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
+            continue
+        top_consistent_stat_players[stat] = write_sorted_top_consistent(players, config, num_used_fights, stat, output)
+        top_total_stat_players[stat] = write_sorted_total(players, config, total_fight_duration, stat, output)
+        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+    
     write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:

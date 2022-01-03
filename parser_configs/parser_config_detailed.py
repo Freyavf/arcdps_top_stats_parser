@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-stats_to_compute = ['dmg', 'rips', 'stab', 'prot', 'aegis', 'might', 'fury', 'cleanses', 'heal', 'barrier', 'dist', 'dmg_taken', 'deaths', 'kills']
+stats_to_compute = ['dmg', 'rips', 'cleanses', 'heal', 'dist', 'stab', 'prot', 'aegis', 'might', 'fury', 'barrier', 'dmg_taken', 'deaths', 'kills']
 empty_stats = {x: 0 for x in stats_to_compute}
 
 # How many players will be listed who achieved top stats most often for each stat?
