@@ -588,7 +588,7 @@ def write_sorted_top_percentage(players, config, num_used_fights, stat, output_f
 
 
 # get value of stat from player_xml
-def get_stat_from_player_xml(player_xml, stat, config):
+def get_stat_from_player_xml(player_xml, players_running_healing_addon, stat, config):
     if stat == 'dmg_taken':
         return int(player_xml.find('defenses').find('damageTaken').text)
 
@@ -611,7 +611,6 @@ def get_stat_from_player_xml(player_xml, stat, config):
         return float(player_xml.find('statsAll').find('distToCom').text)
 
     ### Buffs ###
-    # TODO get buff ids
     if stat in config.buff_ids:
         # get buffs in squad generation -> need to loop over all buffs
         for buff in player_xml.iter('squadBuffs'):
@@ -624,11 +623,15 @@ def get_stat_from_player_xml(player_xml, stat, config):
     if stat == 'heal':
         # check if healing was logged, save it
         heal = -1
+        print(players_running_healing_addon)
+        if player_xml.find('name').text not in players_running_healing_addon:
+            return heal
         ext_healing_xml = player_xml.find('extHealingStats')
         if(ext_healing_xml != None):
             heal = 0
             for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
                 outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
+                # TODO why is this in the xml twice?
                 if not outgoing_healing_xml2 is None:
                     heal += int(outgoing_healing_xml2.find('healing').text)
         return heal
@@ -636,11 +639,14 @@ def get_stat_from_player_xml(player_xml, stat, config):
     if stat == 'barrier':
         # check if barrier was logged, save it
         barrier = -1
+        if player_xml.find('name').text not in players_running_healing_addon:
+            return barrier        
         ext_barrier_xml = player_xml.find('extBarrierStats')
         if(ext_barrier_xml != None):
             barrier = 0
             for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
                 outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
+                # TODO why is this in the xml twice?                
                 if not outgoing_barrier_xml2 is None:
                     barrier += int(outgoing_barrier_xml2.find('barrier').text)
         return barrier
@@ -697,7 +703,11 @@ def get_stats_from_fight_xml(fight_xml, config, log):
         print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
         myprint(log, print_string)
 
-    return fight
+    for extension in fight_xml.iter('usedExtensions'):
+        if extension.find('name').text == "Healing Stats":
+            players_running_healing_addon = [player.text for player in extension.iter('runningExtension')]
+
+    return fight, players_running_healing_addon
 
 
 # get account, character name and profession from xml object
@@ -792,16 +802,17 @@ def collect_stat_data(args, config, log):
             xml_tree = ET.parse(file_path)
             xml_root = xml_tree.getroot()
             # get fight stats
-            fight = get_stats_from_fight_xml(xml_root, config, log)
+            fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
         else: # filetype == "json"
             json_datafile = open(file_path)
             json_data = json.load(json_datafile)
             # get fight stats
-            fight = get_stats_from_fight_json(json_data, config, log)
+            fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
+        print(players_running_healing_addon)
 
+            
         if first:
             first = False
-            # TODO get buff ids from buff map
             if args.filetype == "json":
                 get_buff_ids_from_json(json_data, config)
             else:
@@ -861,9 +872,9 @@ def collect_stat_data(args, config, log):
             # get all stats that are supposed to be computed from the player data
             for stat in config.stats_to_compute:
                 if args.filetype == "xml":
-                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, stat, config)
+                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, players_running_healing_addon, stat, config)
                 else:
-                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, config)
+                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
                     
                 if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_healing = True
@@ -922,7 +933,7 @@ def collect_stat_data(args, config, log):
 
 
 # get value of stat from player_json
-def get_stat_from_player_json(player_json, stat, config):
+def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
     if stat == 'dmg_taken':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
             return 0
@@ -959,7 +970,6 @@ def get_stat_from_player_json(player_json, stat, config):
         return float(player_json['statsAll'][0]['distToCom'])
 
     ### Buffs ###
-    # TODO get buff ids
     if stat in config.buff_ids:
         if 'squadBuffs' not in player_json:
             return 0
@@ -978,26 +988,34 @@ def get_stat_from_player_json(player_json, stat, config):
     if stat == 'heal':
         # check if healing was logged, save it
         heal = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return heal
         if 'extHealingStats' in player_json:
             heal = 0
             if 'outgoingHealingAllies' not in player_json['extHealingStats']:
                 return 0
             for outgoing_healing_json in player_json['extHealingStats']['outgoingHealingAllies']:
+                # TODO why is this in the json twice?                
                 for outgoing_healing_json2 in outgoing_healing_json:
                     if 'healing' in outgoing_healing_json2:
                         heal += int(outgoing_healing_json2['healing'])
+                        break
         return heal
 
     if stat == 'barrier':
         # check if barrier was logged, save it
         barrier = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return barrier
         if 'extBarrierStats' in player_json:
             barrier = 0
             if 'outgoingBarrierAllies' not in player_json['extBarrierStats']:
                 return 0
             for outgoing_barrier_json in player_json['extBarrierStats']['outgoingBarrierAllies']:
+                # TODO why is this in the json twice?                
                 for outgoing_barrier_json2 in outgoing_barrier_json:
                     barrier += outgoing_barrier_json2['barrier']
+                    break
         return barrier
 
 
@@ -1051,7 +1069,12 @@ def get_stats_from_fight_json(fight_json, config, log):
         print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
         myprint(log, print_string)
 
-    return fight
+    extensions = fight_json['usedExtensions']
+    for extension in extensions:
+        if extension['name'] == "Healing Stats":
+            players_running_healing_addon = extension['runningExtension']
+        
+    return fight, players_running_healing_addon
 
 
 
