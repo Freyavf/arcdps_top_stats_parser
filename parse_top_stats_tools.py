@@ -623,7 +623,6 @@ def get_stat_from_player_xml(player_xml, players_running_healing_addon, stat, co
     if stat == 'heal':
         # check if healing was logged, save it
         heal = -1
-        print(players_running_healing_addon)
         if player_xml.find('name').text not in players_running_healing_addon:
             return heal
         ext_healing_xml = player_xml.find('extHealingStats')
@@ -918,9 +917,13 @@ def collect_stat_data(args, config, log):
 
         fights.append(fight)
 
+    if used_fights == 0:
+        print("ERROR: no valid fights with filetype "+args.filetype+" found in "+args.input_directory)
+        exit(1)
+        
     # compute percentage top stats and attendance percentage for each player    
     for player in players:
-        player.attendance_percentage = player.num_fights_present / used_fights*100
+        player.attendance_percentage = round(player.num_fights_present / used_fights*100)
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
