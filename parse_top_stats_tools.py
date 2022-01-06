@@ -852,7 +852,7 @@ def collect_stat_data(args, config, log):
             # get fight stats
             fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
         else: # filetype == "json"
-            json_datafile = open(file_path)
+            json_datafile = open(file_path, encoding='utf-8')
             json_data = json.load(json_datafile)
             # get fight stats
             fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
