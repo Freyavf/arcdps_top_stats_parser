@@ -15,7 +15,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 stats_to_compute = ['dmg', 'rips', 'cleanses']
-empty_stats = {x: 0 for x in stats_to_compute}
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed = {'dmg': 3, 'rips': 3, 'stab': 5, 'cleanses': 3, 'heal': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
