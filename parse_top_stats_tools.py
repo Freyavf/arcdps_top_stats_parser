@@ -471,6 +471,8 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
         sheet1.write(i+1, 6, round(player.total_stats[stat]))
         if stat == 'deaths' or stat == 'kills':
             sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present*60., 2))
+        elif stat == 'dmg' or stat == 'heal':
+            sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present))
         else:
             sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present, 2))                
 
