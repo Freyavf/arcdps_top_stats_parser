@@ -47,28 +47,10 @@ For a more automated version, you can use the batch script ```parsing_arc_top_st
 The console output for the overview and the detailed version shows you for each desired stat consistency and total awards. An exception is the distance to tag, where in our guild found that the percentage of fights in which a top place was achieved is a more suitable measure for a job well done. The overview also includes "late but great" and "Jack of all trades" awards if applicable, as explained in the following.
 Consistency awards are given for players with top scores in the most fights. Total awards are given for overall top stats. Late but great awards are given to players who weren't there for all fights, but who achieved great consistency in the time they were there. Jack of all trades awards are given to people who swapped build at least once and achieved great consistency on one of their builds. Players can only win a late but great award or a Jack of all trades award if they didn't get a top consistency or top total award in the same category.
 
-An output file containing the top stats is also generated. By default, it is created in the json folder as ```top_stats_overview.txt```, ```top_stats_detailed.txt```, or ```top_stats_sneak_peek.txt```, respectively. The output file can be changed using the command line option ```-o <output_file>```, e.g., ```python parse_top_stats_overview.py -o C:\Users\Example\Documents\test.txt json_folder``` creates ```test.txt``` in ```C:\Users\Example\Documents\```. Two other output files are generated: One in .xls format and one in .json format. They have the same default name as the .txt file, which can be changed with the command line option ```-x``` for the .xls file and ```-j``` for the .json file. 
-
-A log file that contains information on which files were skipped and why is also created in the json folder as ```log_overview.txt```, ```log_detailed.txt```, or ```log_sneak_peek.txt```, respectively. It can be changed with the command line option ```-l <log_file>```, e.g., ```python parse_top_stats_overview.py -l C:\Users\Example\Documents\test_log.txt json_folder``` creates ```test_log.txt``` in ```C:\Users\Example\Documents\```.
+Output files containing the tops stats are also generated in the json folder. By default, a txt file containing the console output is created as ```top_stats_overview.txt```, ```top_stats_detailed.txt```, or ```top_stats_sneak_peek.txt```, respectively. For further processing, a .xls and a .json file with the same names are also created. Furthermore, a log file that contains information on which files were skipped and why is also created in the json folder as ```log_overview.txt```, ```log_detailed.txt```, or ```log_sneak_peek.txt```, respectively. 
 
 ## Settings ##
-Settings are defined in a config file. By default, the overview parsing uses the file ```parser_configs/parser_config_overview.py```, the detailed parsing uses ```parser_configs/parser_config_detailed.py```, and the sneak peek parsing uses ```parser_configs/parser_config_sneak_peek.py```. You can copy one of the config files in the same folder, rename it and adjust the settings to your liking. Using a different config file can be done by adding ```-c <config_file>``` in the command line call (without the folder name and the ```.py``` ending of the filename), e.g. ```python parse_top_stats_overview.py -c test_config``` after you created the file ```parser_configs/test_config.py```.
-
-These settings are available:
-- stats_to_compute: List of stats you are interested in. The full list is ['dmg', 'rips', 'cleanses', 'heal', 'dist', 'stab', 'prot', 'aegis', 'might', 'fury', 'barrier', 'dmg_taken', 'deaths', 'kills']. You can use any subset of this.
-- num_players_listed: Maximum number of players listed for each stat in the consistency and damage awards (dictionary).
-- num_players_considered_top: Number of players considered "top" in each fight (dictionary).
-- percentage_of_top_for_consistent: Based on the total value that the top consistent player reached. Defines the percentage of this value that has to be achieved to be able to get a consistency award.
-- percentage_of_top_for_total: Based on the total value that the top total player reached. Defines the percentage of this value that has to be achieved to be able to get a total award.
-- percentage_of_top_for_late: Based on the percentage of times the top consistent player achieved top stats in relation to the number of fights they were present. Defines the percentage of this value that has to be achieved in number of top stats achieved divided by number of fights a player was present.
-- percentage_of_top_for_buildswap: Based on the percentage of times the top consistent player achieved top stats in relation to the number of fights they were present. Defines the percentage of this value that has to be achieved in number of top stats achieved divided by number of fights a player was present.
-- attendance_percentage_for_late: Percentage of fights a player has to be present out of all fights to be considered for a late but great award.
-- attendance_percentage_for_buildswap: Percentage of fights a player has to be present on one build out of all fights to be considered for a jack of all trades award.
-- min_allied_players: The minimum number of allied players to consider a fight in the stats computation.
-- min_fight_duration: The minimum duration of a fight to consider it in the stats computation.
-- min_enemy_players: The minimum number of enemy players to consider a fight in the stats computation.
-- profession_abbreviations: For each profession, the name it appears as in the stats.
-- stat_names: The name as which each stat appears.
+For changing any of the default settings, check out the wiki pages on ![command line options](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Command-line-options) and ![configuration options](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Configuration-options).
 
 # Getting involved
 
