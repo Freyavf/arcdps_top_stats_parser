@@ -53,11 +53,13 @@ class Player:
     # fields for all stats defined in config
     consistency_stats: dict = field(default_factory=dict)     # how many times did this player get into top for each stat?
     total_stats: dict = field(default_factory=dict)           # what's the total value for this player for each stat?
-    portion_top_stats: dict = field(default_factory=dict)  # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
+    average_stats: dict = field(default_factory=dict)         # what's the average stat per second for this player? (exception: kills and deaths are per minute)
+    portion_top_stats: dict = field(default_factory=dict)     # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
         self.total_stats = {key: 0 for key in config.stats_to_compute}
+        self.average_stats = {key: 0 for key in config.stats_to_compute}        
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
         self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
@@ -101,7 +103,10 @@ class Config:
     stats_to_compute: list = field(default_factory=list)
 
     buff_ids: dict = field(default_factory=dict)
-
+    buffs_stacking_duration: list = field(default_factory=list)
+    buffs_stacking_intensity: list = field(default_factory=list)
+    buff_abbrev: dict = field(default_factory=dict)
+    
 
     
 # prints output_string to the console and the output_file, with a linebreak at the end
@@ -136,6 +141,12 @@ def fill_config(config_input):
 
     config.stats_to_compute = config_input.stats_to_compute
     config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
+
+    config.buff_abbrev["Stability"] = 'stab'
+    config.buff_abbrev["Protection"] = 'prot'
+    config.buff_abbrev["Aegis"] = 'aegis'
+    config.buff_abbrev["Might"] = 'might'
+    config.buff_abbrev["Fury"] = 'fury'
     
     return config
     
@@ -410,7 +421,7 @@ def write_sorted_top_consistent(players, top_consistent_players, config, num_use
     print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+" Attendance " + " Times Top"
     if stat != "dist":
         print_string += f" {'Total':>9}"
-    if stat == "stab":
+    if stat in config.buff_ids:
         print_string += f"  {'Average':>7}"
         
     myprint(output_file, print_string)    
@@ -424,12 +435,12 @@ def write_sorted_top_consistent(players, top_consistent_players, config, num_use
         if player.consistency_stats[stat] != last_val:
             place += 1
         print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
-        if stat != "dist" and stat != "stab":
+        if stat != "dist" and stat not in config.buff_ids:
             print_string += f" {round(player.total_stats[stat]):>9}"
-        if stat == "stab":
-            average = round(player.total_stats[stat]/player.duration_fights_present, 2)
-            total = round(player.total_stats[stat])
-            print_string += f" {total:>8}s"+f" {average:>8}"
+        if stat in config.buffs_stacking_intensity:
+            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
+        elif stat in config.buffs_stacking_duration:
+            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}%"            
 
         myprint(output_file, print_string)
         last_val = player.consistency_stats[stat]
@@ -469,10 +480,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
         sheet1.write(i+1, 4, player.consistency_stats[stat])        
         sheet1.write(i+1, 5, round(player.portion_top_stats[stat]*100))
         sheet1.write(i+1, 6, round(player.total_stats[stat]))
-        if stat == 'deaths' or stat == 'kills':
-            sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present*60., 2))
-        else:
-            sheet1.write(i+1, 7, round(player.total_stats[stat]/player.duration_fights_present, 2))                
+        sheet1.write(i+1, 7, player.average_stats[stat])
 
     wb.save(xls_output_filename)
 
@@ -547,8 +555,7 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
 
         if stat == "stab":
             print_string += f" {round(player.total_stats[stat]):>8}s"
-            average = round(player.total_stats[stat]/player.duration_fights_present, 2)
-            print_string += f" {average:>8}"
+            print_string += f" {player.average_stats[stat]:>8}"
         else:
             print_string += f" {round(player.total_stats[stat]):>9}"
         myprint(output_file, print_string)
@@ -776,33 +783,31 @@ def get_basic_player_data_from_json(player_json):
 def get_buff_ids_from_json(json_data, config):
     buffs = json_data['buffMap']
     for buff_id, buff in buffs.items():
-        if buff['name'] == "Stability":
-            config.buff_ids['stab'] = buff_id[1:]
-        if buff['name'] == "Protection":
-            config.buff_ids['prot'] = buff_id[1:]
-        if buff['name'] == "Aegis":
-            config.buff_ids['aegis'] = buff_id[1:]
-        if buff['name'] == "Might":
-            config.buff_ids['might'] = buff_id[1:]
-        if buff['name'] == "Fury":
-            config.buff_ids['fury'] = buff_id[1:]
+        if buff['name'] in config.buff_abbrev:
+            abbrev_name = config.buff_abbrev[buff['name']]
+            config.buff_ids[abbrev_name] = buff_id[1:]
+            if buff['stacking']:
+                config.buffs_stacking_intensity.append(abbrev_name)
+            else:
+                config.buffs_stacking_duration.append(abbrev_name)
 
+            
 
 def get_buff_ids_from_xml(xml_data, config):
     buffs = xml_data.find('buffMap')
     for buff in buffs:
-        buffname = buffs.find(buff.tag).find('name').text
-        if buffname == "Stability":
-            config.buff_ids['stab'] = buff.tag[1:]
-        if buffname == "Protection":
-            config.buff_ids['prot'] = buff.tag[1:]
-        if buffname == "Aegis":
-            config.buff_ids['aegis'] = buff.tag[1:]
-        if buffname == "Might":
-            config.buff_ids['might'] = buff.tag[1:]
-        if buffname == "Fury":
-            config.buff_ids['fury'] = buff.tag[1:]   
+        buff_xml = buffs.find(buff.tag)
+        buffname = buff_xml.find('name').text
+        if buffname in config.buff_abbrev:
+            abbrev_name = config.buff_abbrev[buffname]
+            config.buff_ids[abbrev_name] = buff.tag[1:]
 
+            if buff_xml.find('stacking') == "true":
+                config.buffs_stacking_intensity.append(buffname)
+            else:
+                config.buffs_stacking_duration.append(buffname)
+
+            
     
 # Collect the top stats data.
 # Input:
@@ -813,7 +818,7 @@ def get_buff_ids_from_xml(xml_data, config):
 # list of Players with their stats
 # list of all fights (also the skipped ones)
 # was healing found in the logs?
-def collect_stat_data(args, config, log):
+def collect_stat_data(args, config, log, anonymize=False):
     if args.filetype != "json" and args.filetype != "xml":
         print("unsupported filetype "+args.filetype+". Please choose json or xml.")
 
@@ -850,7 +855,7 @@ def collect_stat_data(args, config, log):
             # get fight stats
             fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
         else: # filetype == "json"
-            json_datafile = open(file_path)
+            json_datafile = open(file_path, encoding='utf-8')
             json_data = json.load(json_datafile)
             # get fight stats
             fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
@@ -924,16 +929,31 @@ def collect_stat_data(args, config, log):
                     found_healing = True
                 if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_barrier = True                    
-                # buff are generation squad values, using total over time
-                if stat in config.buff_ids.keys():
-                    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                ## buff are generation squad values, using total over time
+                #if stat in config.buffs_stacking_duration:
+                #    #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
+                #    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                #elif stat in config.buffs_stacking_intensity:
+                #    #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
+                #    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)                    
                 if stat == 'dist':
                     player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
                     
                 # add stats of this fight and player to total stats of this fight and player
                 if player.stats_per_fight[fight_number][stat] > 0:
-                    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]               
-                    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                    # buff are generation squad values, using total over time
+                    if stat in config.buffs_stacking_duration:
+                        #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
+                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                    elif stat in config.buffs_stacking_intensity:
+                        #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
+                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)                        
+                    else:
+                        # all non-buff stats
+                        fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                        player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
                     
             if debug:
                 print(name)
@@ -965,21 +985,44 @@ def collect_stat_data(args, config, log):
     if used_fights == 0:
         print("ERROR: no valid fights with filetype "+args.filetype+" found in "+args.input_directory)
         exit(1)
-        
+
     # compute percentage top stats and attendance percentage for each player    
     for player in players:
         player.attendance_percentage = round(player.num_fights_present / used_fights*100)
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
-            player.total_stats[stat] = round(player.total_stats[stat], 2)            
+            player.total_stats[stat] = round(player.total_stats[stat], 2)
+            if stat == 'dmg' or stat == 'heal' or stat == 'dmg_taken' or stat == 'barrier':
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present)
+            elif stat == 'deaths' or stat == 'kills':
+                player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_fights_present/60), 2)
+            elif stat in config.buffs_stacking_intensity:
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present/100, 2)
+            else:
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present, 2)
+                print(stat+str(player.total_stats[stat])+" total, "+str(player.average_stats[stat])+" avg")
 
+                
     myprint(log, "\n")
+
+    if anonymize:
+        anonymize_players(players, account_index)
     
     return players, fights, found_healing, found_barrier
             
 
 
+# replace all acount names with "account <number>" and all player names with "anon <number>"
+def anonymize_players(players, account_index):
+    for account in account_index:
+        for i in account_index[account]:
+            players[i].account = "Account "+str(i)
+    for i,player in enumerate(players):
+        player.name = "Anon "+str(i)
+
+
+        
 # get value of stat from player_json
 def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
     if stat == 'dmg_taken':
