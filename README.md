@@ -18,8 +18,8 @@ Healing and barrier output can only be analyzed when contained in the logs, i.e.
 
 Provided are three scripts: ```parse_top_stats_sneak_peek.py```, ```parse_top_stats_overview.py``` and ```parse_top_stats_detailed.py```. The first gives an overview of the best performing players only in total damage, boon rips and cleanses. The second gives an overview of top players considering consistency and total values of all desired stats. The third shows the performance of all players contributing to each stat.
 
-Here is an example txt output file: ![example output](/example_output/top_stats_detailed.txt?raw=true).
-Output is also given as .xls and .json file for further processing. I'm planning to add more example output files soon<sup>TM</sup>.
+Output is also given as .xls and .json file for further processing. 
+Here are some example output files: ![example output](/example_output/). They are explained in detail on the ![wiki](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Output-Files).
 
 # How does it work? #
 ## Preparation ##
