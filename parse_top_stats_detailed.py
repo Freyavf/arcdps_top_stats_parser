@@ -110,7 +110,7 @@ if __name__ == '__main__':
     write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:
-        if stat == 'dist':
+        if stat == 'dist' or stat == 'dmg_taken':
             write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
         elif stat == 'heal' and found_healing:
             write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            

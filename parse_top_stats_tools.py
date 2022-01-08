@@ -47,7 +47,8 @@ class Player:
     profession: str                     # profession name
     num_fights_present: int = 0         # the number of fight the player was involved in 
     attendance_percentage: float = 0.   # the percentage of fights the player was involved in out of all fights
-    duration_fights_present: int = 0    # the total duration of all fights the player was involved in
+    duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
+    duration_active: int = 0            # the total duration a player was active (alive or down)
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
     # fields for all stats defined in config
@@ -958,6 +959,7 @@ def collect_stat_data(args, config, log, anonymize=False):
 
             player.num_fights_present += 1
             player.duration_fights_present += fight.duration
+            player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
@@ -988,8 +990,10 @@ def collect_stat_data(args, config, log, anonymize=False):
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
             player.total_stats[stat] = round(player.total_stats[stat], 2)
-            if stat == 'dmg' or stat == 'heal' or stat == 'dmg_taken' or stat == 'barrier':
+            if stat == 'dmg' or stat == 'heal' or stat == 'barrier':
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present)
+            elif stat == 'dmg_taken':
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_active)                
             elif stat == 'deaths' or stat == 'kills':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_fights_present/60), 2)
             elif stat in config.buffs_stacking_duration:
@@ -1019,10 +1023,15 @@ def anonymize_players(players, account_index):
         
 # get value of stat from player_json
 def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
-    if stat == 'dmg_taken':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
+    if stat == 'time_active':
+        if 'activeTimes' not in player_json:
             return 0
-        return int(player_json['defenses'][0]['damageTaken'])
+        return round(int(player_json['activeTimes'][0])/1000)
+    
+    if stat == 'dmg_taken':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0] or 'damageBarrier' not in player_json['defenses'][0]:
+            return 0
+        return int(player_json['defenses'][0]['damageTaken']+player_json['defenses'][0]['damageBarrier'])
 
     if stat == 'deaths':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
