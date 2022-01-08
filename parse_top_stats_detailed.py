@@ -36,7 +36,8 @@ if __name__ == '__main__':
     parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="xls file to write the computed top stats")    
     parser.add_argument('-j', '--json_output', dest="json_output_filename", help="json file to write the computed top stats to")    
     parser.add_argument('-l', '--log_file', dest="log_file", help="Logging file with all the output")
-    parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_detailed")    
+    parser.add_argument('-c', '--config_file', dest="config_file", help="Config file with all the settings", default="parser_config_detailed")
+    parser.add_argument('-a', '--anonymized', dest="anonymize", help="Create an anonymized version of the top stats. All account and character names will be replaced.", default=False, action='store_true')
     args = parser.parse_args()
 
     if not os.path.isdir(args.input_directory):
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string)
 
-    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log)    
+    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
 
     # create xls file if it doesn't exist
     book = xlwt.Workbook(encoding="utf-8")
