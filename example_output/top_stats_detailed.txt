@@ -851,79 +851,39 @@ Attendance = total duration of fights attended out of 54m 53s.
 
 DAMAGE TAKEN AWARDS
 
-Top damage taken consistency awards (Max. 1000 places, min. 0% of most consistent)
-Most times placed in the top 5. 
-Attendance = number of fights a player was present out of 27 total fights.
--------------------------------------------------------------------------------
-    Name     Class         Attendance  Times Top     Total
- 1. Anon 6   Firebrand             27         13   1420033
- 1. Anon 9   Scrapper              26         13   1356572
- 2. Anon 23  Firebrand             27         12   1228663
- 3. Anon 5   Weaver                27         10   1190035
- 4. Anon 27  Dragonhunter          26          9   1673636
- 5. Anon 24  Spellbreaker          27          8   2017145
- 5. Anon 29  Firebrand             26          8   1535210
- 6. Anon 17  Scourge               27          7   1962072
- 6. Anon 0   Tempest               23          7   1387751
- 7. Anon 2   Firebrand             27          6   1561381
- 8. Anon 25  Herald                27          5   1925906
- 9. Anon 21  Scrapper              27          4   1895607
- 9. Anon 13  Firebrand             27          4   1830625
- 9. Anon 14  Scrapper              26          4   1820616
-10. Anon 1   Scourge               27          3   2354154
-10. Anon 8   Scourge               27          3   2319133
-10. Anon 28  Scrapper              27          3   2068531
-10. Anon 16  Firebrand             26          3   1941483
-10. Anon 15  Herald                27          3   1814366
-11. Anon 18  Scrapper              27          2   2086124
-11. Anon 3   Chronomancer          27          2   1934234
-11. Anon 12  Herald                27          2   1716838
-11. Anon 7   Herald                24          2   1579372
-12. Anon 26  Scourge               27          1   2467254
-12. Anon 11  Scourge               27          1   2299684
-12. Anon 4   Scrapper              26          1   1727328
-12. Anon 30  Scourge                1          1     11965
-13. Anon 20  Herald                27          0   2317267
-13. Anon 22  Scourge               27          0   2303067
-13. Anon 19  Spellbreaker          27          0   2228317
-13. Anon 10  Scourge               19          0   1769640
-
-
-Top overall damage taken awards (Max. 1000 places, min. 0% of 1st place)
-Attendance = total duration of fights attended out of 54m 53s.
+Top damage taken percentage (Minimum percentage = 0%)
 ------------------------------------------------------------------------
-    Name     Class          Attendance     Total
- 1. Anon 30  Scourge            5m 13s     11965
- 2. Anon 5   Weaver            54m 53s   1190035
- 3. Anon 23  Firebrand         54m 53s   1228663
- 4. Anon 9   Scrapper          53m 56s   1356572
- 5. Anon 0   Tempest           45m 56s   1387751
- 6. Anon 6   Firebrand         54m 53s   1420033
- 7. Anon 29  Firebrand         53m 31s   1535210
- 8. Anon 2   Firebrand         54m 53s   1561381
- 9. Anon 7   Herald            46m 37s   1579372
-10. Anon 27  Dragonhunter      53m 11s   1673636
-11. Anon 12  Herald            54m 53s   1716838
-12. Anon 4   Scrapper          53m 40s   1727328
-13. Anon 10  Scourge           38m 41s   1769640
-14. Anon 15  Herald            54m 53s   1814366
-15. Anon 14  Scrapper          54m 19s   1820616
-16. Anon 13  Firebrand         54m 53s   1830625
-17. Anon 21  Scrapper          54m 53s   1895607
-18. Anon 25  Herald            54m 53s   1925906
-19. Anon 3   Chronomancer      54m 53s   1934234
-20. Anon 16  Firebrand         54m 19s   1941483
-21. Anon 17  Scourge           54m 53s   1962072
-22. Anon 24  Spellbreaker      54m 53s   2017145
-23. Anon 28  Scrapper          54m 53s   2068531
-24. Anon 18  Scrapper          54m 53s   2086124
-25. Anon 19  Spellbreaker      54m 53s   2228317
-26. Anon 11  Scourge           54m 53s   2299684
-27. Anon 22  Scourge           54m 53s   2303067
-28. Anon 20  Herald            54m 53s   2317267
-29. Anon 8   Scourge           54m 53s   2319133
-30. Anon 1   Scourge           54m 53s   2354154
-31. Anon 26  Scourge           54m 53s   2467254
+    Name     Class          Percentage  Times Top  Out of    Total
+ 1. Anon 9   Scrapper              50%         13      26  1356572
+ 2. Anon 6   Firebrand             48%         13      27  1420033
+ 3. Anon 23  Firebrand             44%         12      27  1228663
+ 4. Anon 5   Weaver                37%         10      27  1190035
+ 5. Anon 27  Dragonhunter          34%          9      26  1673636
+ 6. Anon 29  Firebrand             30%          8      26  1535210
+ 7. Anon 0   Tempest               30%          7      23  1387751
+ 8. Anon 24  Spellbreaker          29%          8      27  2017145
+ 9. Anon 17  Scourge               25%          7      27  1962072
+10. Anon 2   Firebrand             22%          6      27  1561381
+11. Anon 25  Herald                18%          5      27  1925906
+12. Anon 14  Scrapper              15%          4      26  1820616
+13. Anon 21  Scrapper              14%          4      27  1895607
+13. Anon 13  Firebrand             14%          4      27  1830625
+14. Anon 16  Firebrand             11%          3      26  1941483
+15. Anon 1   Scourge               11%          3      27  2354154
+15. Anon 8   Scourge               11%          3      27  2319133
+15. Anon 28  Scrapper              11%          3      27  2068531
+15. Anon 15  Herald                11%          3      27  1814366
+16. Anon 7   Herald                 8%          2      24  1579372
+17. Anon 18  Scrapper               7%          2      27  2086124
+17. Anon 3   Chronomancer           7%          2      27  1934234
+17. Anon 12  Herald                 7%          2      27  1716838
+18. Anon 4   Scrapper               3%          1      26  1727328
+19. Anon 26  Scourge                3%          1      27  2467254
+19. Anon 11  Scourge                3%          1      27  2299684
+20. Anon 20  Herald                 0%          0      27  2317267
+20. Anon 22  Scourge                0%          0      27  2303067
+20. Anon 19  Spellbreaker           0%          0      27  2228317
+20. Anon 10  Scourge                0%          0      19  1769640
 
 
 DEATHS AWARDS

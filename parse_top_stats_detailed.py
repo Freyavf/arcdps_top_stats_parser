@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
         myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
         
-        if stat == 'dist':
+        if stat == 'dist' or stat == 'dmg_taken':
             top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
             top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
             top_percentage_stat_players[stat],comparison_val = get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])

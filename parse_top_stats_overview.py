@@ -102,7 +102,7 @@ if __name__ == '__main__':
             top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
         else:
             myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
-            if stat == 'dist':
+            if stat == 'dist' or stat == 'dmg_taken':
                 top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
                 top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
                 top_percentage_stat_players[stat],top_percentage_comparison_percentage[stat] = get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:
-        if stat == 'dist':
+        if stat == 'dist' or stat == 'dmg_taken':
             write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
         elif stat == 'heal' and found_healing:
             write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
