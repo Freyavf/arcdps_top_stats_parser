@@ -647,8 +647,11 @@ def write_sorted_top_percentage(players, top_players, comparison_percentage, con
 
 # get value of stat from player_xml
 def get_stat_from_player_xml(player_xml, players_running_healing_addon, stat, config):
+    if stat == 'time_active':
+        return round(int(player_xml.find('activeTimes').text)/1000)
+        
     if stat == 'dmg_taken':
-        return int(player_xml.find('defenses').find('damageTaken').text)
+        return int(player_xml.find('defenses').find('damageTaken').text)+int(player_xml.find('defenses').find('damageBarrier').text)
 
     if stat == 'deaths':
         return int(player_xml.find('defenses').find('deadCount').text)
@@ -959,7 +962,10 @@ def collect_stat_data(args, config, log, anonymize=False):
 
             player.num_fights_present += 1
             player.duration_fights_present += fight.duration
-            player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
+            if args.filetype == "xml":
+                player.duration_active += get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
+            else:
+                player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)                
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
