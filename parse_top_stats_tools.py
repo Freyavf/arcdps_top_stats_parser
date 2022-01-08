@@ -440,7 +440,7 @@ def write_sorted_top_consistent(players, top_consistent_players, config, num_use
         if stat in config.buffs_stacking_intensity:
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
         elif stat in config.buffs_stacking_duration:
-            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}%"            
+            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
 
         myprint(output_file, print_string)
         last_val = player.consistency_stats[stat]
@@ -530,7 +530,7 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
 
     # print table header
     print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>9}"
-    if stat == "stab":
+    if stat in config.buff_ids:
         print_string += f"  {'Average':>7}"
     myprint(output_file, print_string)    
 
@@ -553,7 +553,10 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
         else:
             print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
 
-        if stat == "stab":
+        if stat in config.buffs_stacking_duration:
+            print_string += f" {round(player.total_stats[stat]):>8}s"
+            print_string += f" {player.average_stats[stat]:>7}%"
+        elif stat in config.buffs_stacking_intensity:
             print_string += f" {round(player.total_stats[stat]):>8}s"
             print_string += f" {player.average_stats[stat]:>8}"
         else:
@@ -802,11 +805,10 @@ def get_buff_ids_from_xml(xml_data, config):
             abbrev_name = config.buff_abbrev[buffname]
             config.buff_ids[abbrev_name] = buff.tag[1:]
 
-            if buff_xml.find('stacking') == "true":
-                config.buffs_stacking_intensity.append(buffname)
+            if buff_xml.find('stacking').text == "true":
+                config.buffs_stacking_intensity.append(abbrev_name)
             else:
-                config.buffs_stacking_duration.append(buffname)
-
+                config.buffs_stacking_duration.append(abbrev_name)
             
     
 # Collect the top stats data.
@@ -929,13 +931,6 @@ def collect_stat_data(args, config, log, anonymize=False):
                     found_healing = True
                 if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_barrier = True                    
-                ## buff are generation squad values, using total over time
-                #if stat in config.buffs_stacking_duration:
-                #    #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
-                #    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
-                #elif stat in config.buffs_stacking_intensity:
-                #    #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
-                #    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)                    
                 if stat == 'dist':
                     player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
                     
@@ -997,11 +992,10 @@ def collect_stat_data(args, config, log, anonymize=False):
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present)
             elif stat == 'deaths' or stat == 'kills':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_fights_present/60), 2)
-            elif stat in config.buffs_stacking_intensity:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present/100, 2)
+            elif stat in config.buffs_stacking_duration:
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present*100, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present, 2)
-                print(stat+str(player.total_stats[stat])+" total, "+str(player.average_stats[stat])+" avg")
 
                 
     myprint(log, "\n")
