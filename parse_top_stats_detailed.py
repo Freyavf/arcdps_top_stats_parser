@@ -78,8 +78,8 @@ if __name__ == '__main__':
     overall_squad_stats = get_overall_squad_stats(fights, config)
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
 
-    print_fights_overview(fights, overall_squad_stats, output)
-    write_fights_overview_xls(fights, overall_squad_stats, args.xls_output_filename)
+    print_fights_overview(fights, overall_squad_stats, config, output)
+    write_fights_overview_xls(fights, overall_squad_stats, config, args.xls_output_filename)
     
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the

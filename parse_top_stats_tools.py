@@ -1240,7 +1240,7 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, output):
 # fights = list of Fights
 # overall_squad_stats = overall stats of the whole squad
 # xls_output_filename = where to write to
-def write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename):
+def write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_filename):
     book = xlrd.open_workbook(xls_output_filename)
     wb = copy(book)
     if len(book.sheet_names()) == 0 or book.sheet_names()[0] != 'fights overview':
@@ -1256,16 +1256,11 @@ def write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename):
     sheet1.write(0, 6, "Skipped")
     sheet1.write(0, 7, "Num. Allies")
     sheet1.write(0, 8, "Num. Enemies")
-    sheet1.write(0, 9, "Damage")
-    sheet1.write(0, 10, "Boonrips")
-    sheet1.write(0, 11, "Cleanses")
-    sheet1.write(0, 12, "Stability Output")
-    sheet1.write(0, 13, "Healing")
-    sheet1.write(0, 14, "Deaths")
-    sheet1.write(0, 15, "Kills")        
+    
+    for i,stat in enumerate(config.stats_to_compute):
+        sheet1.write(0, 9+i, config.stat_names[stat])
 
-    for i in range(len(fights)):
-        fight = fights[i]
+    for i,fight in enumerate(fights):
         skipped_str = "yes" if fight.skipped else "no"
         sheet1.write(i+1, 1, i+1)
         sheet1.write(i+1, 2, fight.start_time.split()[0])
@@ -1275,14 +1270,8 @@ def write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename):
         sheet1.write(i+1, 6, skipped_str)
         sheet1.write(i+1, 7, fight.allies)
         sheet1.write(i+1, 8, fight.enemies)
-        sheet1.write(i+1, 9, fight.total_stats['dmg'])
-        sheet1.write(i+1, 10, fight.total_stats['rips'])
-        sheet1.write(i+1, 11, fight.total_stats['cleanses'])
-        sheet1.write(i+1, 12, round(fight.total_stats['stab']))
-        sheet1.write(i+1, 13, fight.total_stats['heal'])
-        sheet1.write(i+1, 14, fight.total_stats['deaths'])
-        sheet1.write(i+1, 15, fight.total_stats['kills'])                
-
+        for j,stat in enumerate(config.stats_to_compute):
+            sheet1.write(i+1, 9+j, fight.total_stats[stat])
 
     used_fights = [f for f in fights if not f.skipped]
     used_fights_duration = sum([f.duration for f in used_fights])
@@ -1290,28 +1279,28 @@ def write_fights_overview_xls(fights, overall_squad_stats, xls_output_filename):
     mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
     mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
     sheet1.write(len(fights)+1, 0, "Sum/Avg. in used fights")
-    sheet1.write(len(fights)+1, 1, num_used_fights)    
+    sheet1.write(len(fights)+1, 1, num_used_fights)
+    date = min([f.start_time.split()[0] for f in used_fights])
+    sheet1.write(len(fights)+1, 2, date)
+    start_time = min([f.start_time.split()[1] for f in used_fights])
+    sheet1.write(len(fights)+1, 3, start_time)
+    end_time = max([f.end_time.split()[1] for f in used_fights])    
+    sheet1.write(len(fights)+1, 4, end_time)    
     sheet1.write(len(fights)+1, 5, used_fights_duration)
     sheet1.write(len(fights)+1, 7, mean_allies)
     sheet1.write(len(fights)+1, 8, mean_enemies)
-    sheet1.write(len(fights)+1, 9, overall_squad_stats['dmg'])
-    sheet1.write(len(fights)+1, 10, overall_squad_stats['rips'])
-    sheet1.write(len(fights)+1, 11, overall_squad_stats['cleanses'])
-    sheet1.write(len(fights)+1, 12, round(overall_squad_stats['stab']))
-    sheet1.write(len(fights)+1, 13, overall_squad_stats['heal'])
-    sheet1.write(len(fights)+1, 14, overall_squad_stats['deaths'])
-    sheet1.write(len(fights)+1, 15, overall_squad_stats['kills'])                
+    for i,stat in enumerate(config.stats_to_compute):
+        sheet1.write(len(fights)+1, 9+i, overall_squad_stats[stat])
 
     wb.save(xls_output_filename)
 
 
-def print_fights_overview(fights, overall_squad_stats, output):
-    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  "    
-    print_string += f"{'Damage':>9}"
-    print_string += "  Strips  Cleanses  Stability Output  "
-    print_string += f"{'Healing':>9}"
-    #+"  "+f"{'Distance':>10}"
-    print_string += "  Deaths  Kills"
+def print_fights_overview(fights, overall_squad_stats, config, output):
+    stat_len = {}
+    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies"
+    for stat in overall_squad_stats:
+        stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
+        print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
     myprint(output, print_string)
     for i in range(len(fights)):
         fight = fights[i]
@@ -1319,19 +1308,26 @@ def print_fights_overview(fights, overall_squad_stats, output):
         date = fight.start_time.split()[0]
         start_time = fight.start_time.split()[1]
         end_time = fight.end_time.split()[1]        
-        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "
-        print_string += f"{round(fight.total_stats['dmg']):>9}" +"  "+f"{round(fight.total_stats['rips']):>6}" +"  "+f"{round(fight.total_stats['cleanses']):>8}"  +"  "+f"{round(fight.total_stats['stab']):>16}"+"  "+f"{round(fight.total_stats['heal']):>9}" #+"  "+f"{round(fight.total_stats['dist']):>10}"
-        print_string += "  "+f"{round(fight.total_stats['deaths']):>6}" +"  "+f"{round(fight.total_stats['kills']):>5}"
+        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"
+        for stat in overall_squad_stats:
+            print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
         myprint(output, print_string)
 
     used_fights = [f for f in fights if not f.skipped]
+    num_used_fights = len(used_fights)
     used_fights_duration = sum([f.duration for f in used_fights])
+    date = min([f.start_time.split()[0] for f in used_fights])
+    start_time = min([f.start_time.split()[1] for f in used_fights])
+    end_time = max([f.end_time.split()[1] for f in used_fights])    
+    mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
+    mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
 
-    print_string = "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
     myprint(output, print_string)
-    print_string = f"{'Sum':>3}"+"  "+f"{' ':<10}"+"  "+f"{' ':>10}"+"  "+f"{' ':>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{' ':>7}"+"  "+f"{' ':>11}"+"  "+f"{' ':>12}"+"  "
-    print_string += f"{round(overall_squad_stats['dmg']):>9}" +"  "+f"{round(overall_squad_stats['rips']):>6}" +"  "+f"{round(overall_squad_stats['cleanses']):>8}"  +"  "+f"{round(overall_squad_stats['stab']):>16}"+"  "+f"{round(overall_squad_stats['heal']):>9}" +"  "#+f"{round(overall_squad_stats['dist']):>10}" +"  "
-    print_string += f"{round(overall_squad_stats['deaths']):>6}" +"  "+f"{round(overall_squad_stats['kills']):>5}\n"
+    print_string = f"{' ':>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{' ':>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"
+    for stat in overall_squad_stats:
+        print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
+    print_string += "\n\n"
     myprint(output, print_string)
 
 
