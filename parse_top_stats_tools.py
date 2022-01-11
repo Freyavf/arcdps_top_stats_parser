@@ -203,7 +203,7 @@ def increase_top_x_reached(players, sortedList, config, stat):
 # list of player index and total stat value, sorted by total stat value
 def sort_players_by_value_in_fight(players, stat, fight_num):
     decorated = [(player.stats_per_fight[fight_num][stat], i, player) for i, player in enumerate(players)]
-    if stat == 'dist' or stat == 'dmg_taken':
+    if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
         decorated.sort()
     else:
         decorated.sort(reverse=True)
@@ -220,7 +220,7 @@ def sort_players_by_value_in_fight(players, stat, fight_num):
 # list of player index and total stat value, sorted by total stat value
 def sort_players_by_total(players, stat):
     decorated = [(player.total_stats[stat], i, player) for i, player in enumerate(players)]
-    if stat == 'dist' or stat == 'dmg_taken':
+    if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
         decorated.sort()
     else:
         decorated.sort(reverse=True)
@@ -1217,6 +1217,8 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, output):
     print_string = "The following stats are computed over "+str(len(used_fights))+" out of "+str(len(fights))+" fights.\n"
     myprint(output, print_string)
 
+    # TODO check for each supported stat if it's there, print
+    
     # print total squad stats
     print_string = "Squad overall did "+str(round(overall_squad_stats['dmg']))+" damage, ripped "+str(round(overall_squad_stats['rips']))+" boons, cleansed "+str(round(overall_squad_stats['cleanses']))+" conditions, \ngenerated "
     if total_stab_duration["h"] > 0:
