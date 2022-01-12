@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, output)
+    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
 
     print_fights_overview(fights, overall_squad_stats, config, output)
     write_fights_overview_xls(fights, overall_squad_stats, config, args.xls_output_filename)

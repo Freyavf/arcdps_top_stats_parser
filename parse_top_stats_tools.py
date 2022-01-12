@@ -1191,7 +1191,7 @@ def get_overall_squad_stats(fights, config):
 
 
 # print the overall squad stats
-def print_total_squad_stats(fights, overall_squad_stats, found_healing, output): #, used_fights, used_fights_duration
+def print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output):
     used_fights = [f for f in fights if not f.skipped]
     used_fights_duration = sum([f.duration for f in used_fights])
     
@@ -1201,12 +1201,6 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, output):
     total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
     total_fight_duration["s"] = int(used_fights_duration - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
 
-    total_stab_duration = {}
-    total_stab_duration["h"] = int(overall_squad_stats['stab']/3600)
-    total_stab_duration["m"] = int((overall_squad_stats['stab'] - total_stab_duration["h"]*3600)/60)
-    total_stab_duration["s"] = int(overall_squad_stats['stab'] - total_stab_duration["h"]*3600 - total_stab_duration["m"]*60)    
-
-    
     min_players = min([f.allies for f in used_fights])
     max_players = max([f.allies for f in used_fights])    
     mean_players = sum([f.allies for f in used_fights])/len(used_fights)
@@ -1216,17 +1210,50 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, output):
     
     print_string = "The following stats are computed over "+str(len(used_fights))+" out of "+str(len(fights))+" fights.\n"
     myprint(output, print_string)
-
-    # TODO check for each supported stat if it's there, print
     
     # print total squad stats
-    print_string = "Squad overall did "+str(round(overall_squad_stats['dmg']))+" damage, ripped "+str(round(overall_squad_stats['rips']))+" boons, cleansed "+str(round(overall_squad_stats['cleanses']))+" conditions, \ngenerated "
-    if total_stab_duration["h"] > 0:
-        print_string += str(total_stab_duration["h"])+"h "
-    print_string += str(total_stab_duration["m"])+"m "+str(total_stab_duration["s"])+"s of stability"        
-    if found_healing:
-        print_string += ", healed for "+str(round(overall_squad_stats['heal']))
-    print_string += ", \nkilled "+str(round(overall_squad_stats['kills']))+" enemies and had "+str(round(overall_squad_stats['deaths']))+" deaths \nover a total time of "
+    print_string = "Squad overall"
+    i = 0
+    for stat in config.stats_to_compute:
+        if stat == 'dist':
+            continue
+        
+        if i == 0:
+            print_string += " "
+        elif i == len(config.stats_to_compute)-1:
+            print_string += ", and "
+        else:
+            print_string += ", "
+        i += 1
+            
+        if stat == 'dmg':
+            print_string += "did "+str(round(overall_squad_stats['dmg']))+" damage"
+        elif stat == 'rips':
+            print_string += "ripped "+str(round(overall_squad_stats['rips']))+" boons"
+        elif stat == 'cleanses':
+            print_string += "cleansed "+str(round(overall_squad_stats['cleanses']))+" conditions"
+        elif stat in config.buff_ids:
+            total_buff_duration = {}
+            total_buff_duration["h"] = int(overall_squad_stats[stat]/3600)
+            total_buff_duration["m"] = int((overall_squad_stats[stat] - total_buff_duration["h"]*3600)/60)
+            total_buff_duration["s"] = int(overall_squad_stats[stat] - total_buff_duration["h"]*3600 - total_buff_duration["m"]*60)    
+            
+            print_string += "generated "
+            if total_buff_duration["h"] > 0:
+                print_string += str(total_buff_duration["h"])+"h "
+            print_string += str(total_buff_duration["m"])+"m "+str(total_buff_duration["s"])+"s of "+stat
+        elif stat == 'heal' and found_healing:
+            print_string += "healed for "+str(round(overall_squad_stats['heal']))
+        elif stat == 'barrier' and found_barrier:
+            print_string += "generated "+str(round(overall_squad_stats['barrier']))+" barrier"
+        elif stat == 'dmg_taken':
+            print_string += "took "+str(round(overall_squad_stats['dmg_taken']))+" damage"
+        elif stat == 'kills':
+            print_string += "killed "+str(round(overall_squad_stats['kills']))+" enemies"
+        elif stat == 'deaths':
+            print_string += "had "+str(round(overall_squad_stats['deaths']))+" deaths"
+
+    print_string += " over a total time of "
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(len(used_fights))+" fights.\n"
