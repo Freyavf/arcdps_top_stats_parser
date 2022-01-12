@@ -1278,18 +1278,20 @@ def write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_fi
     used_fights = [f for f in fights if not f.skipped]
     used_fights_duration = sum([f.duration for f in used_fights])
     num_used_fights = len(used_fights)
+    date = min([f.start_time.split()[0] for f in used_fights])
+    start_time = min([f.start_time.split()[1] for f in used_fights])
+    end_time = max([f.end_time.split()[1] for f in used_fights])
+    skipped_fights = len(fights) - num_used_fights
     mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
     mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
     sheet1.write(len(fights)+1, 0, "Sum/Avg. in used fights")
     sheet1.write(len(fights)+1, 1, num_used_fights)
-    date = min([f.start_time.split()[0] for f in used_fights])
     sheet1.write(len(fights)+1, 2, date)
-    start_time = min([f.start_time.split()[1] for f in used_fights])
     sheet1.write(len(fights)+1, 3, start_time)
-    end_time = max([f.end_time.split()[1] for f in used_fights])    
     sheet1.write(len(fights)+1, 4, end_time)    
     sheet1.write(len(fights)+1, 5, used_fights_duration)
-    sheet1.write(len(fights)+1, 7, mean_allies)
+    sheet1.write(len(fights)+1, 6, skipped_fights)
+    sheet1.write(len(fights)+1, 7, mean_allies)    
     sheet1.write(len(fights)+1, 8, mean_enemies)
     for i,stat in enumerate(config.stats_to_compute):
         sheet1.write(len(fights)+1, 9+i, overall_squad_stats[stat])
@@ -1320,13 +1322,14 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
     used_fights_duration = sum([f.duration for f in used_fights])
     date = min([f.start_time.split()[0] for f in used_fights])
     start_time = min([f.start_time.split()[1] for f in used_fights])
-    end_time = max([f.end_time.split()[1] for f in used_fights])    
+    end_time = max([f.end_time.split()[1] for f in used_fights])
+    skipped_fights = len(fights) - num_used_fights
     mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
     mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
 
     print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
     myprint(output, print_string)
-    print_string = f"{' ':>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{' ':>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"
+    print_string = f"{num_used_fights:>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{skipped_fights:>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"
     for stat in overall_squad_stats:
         print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
     print_string += "\n\n"
