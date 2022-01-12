@@ -34,9 +34,10 @@ debug = False # enable / disable debug output
 class StatType(Enum):
     TOTAL = 1
     CONSISTENT = 2
-    LATE_PERCENTAGE = 3
-    SWAPPED_PERCENTAGE = 4
-    PERCENTAGE = 5
+    AVERAGE = 3
+    LATE_PERCENTAGE = 4
+    SWAPPED_PERCENTAGE = 5
+    PERCENTAGE = 6
     
 
 # This class stores information about a player. Note that a different profession will be treated as a new player / character.
@@ -254,23 +255,42 @@ def sort_players_by_percentage(players, stat):
     return sorted_by_percentage
 
 
+# sort the list of players by average value in stat
+# Input:
+# players = list of all Players
+# stat = stat that is considered
+# Output:
+# list of player index and average stat value, sorted by average stat value ( total stat value / duration of fights attended)
+def sort_players_by_average(players, stat):
+    decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]                
+    if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
+        decorated.sort()
+    else:
+        decorated.sort(reverse=True)    
+    sorted_by_average = [(i, average) for average, consistency, total, i, player in decorated]
+    return sorted_by_average
+
+
 
 # Input:
 # players = list of Players
 # config = the configuration being used to determine top players
 # stat = which stat are we considering
-# total_or_consistent = enum StatType, either StatType.TOTAL or StatType.CONSISTENT, we are getting the players with top total values or top consistency values.
+# total_or_consistent_or_average = enum StatType, either StatType.TOTAL, StatType.CONSISTENT or StatType.AVERAGE, we are getting the players with top total values, top consistency values, or top average values.
 # Output:
-# list of player indices getting a consistency / total award
-def get_top_players(players, config, stat, total_or_consistent):
+# list of player indices getting a consistency / total / average award
+def get_top_players(players, config, stat, total_or_consistent_or_average):
     percentage = 0.
     sorted_index = []
-    if total_or_consistent == StatType.TOTAL:
+    if total_or_consistent_or_average == StatType.TOTAL:
         percentage = float(config.portion_of_top_for_total)
         sorted_index = sort_players_by_total(players, stat)
-    elif total_or_consistent == StatType.CONSISTENT:
+    elif total_or_consistent_or_average == StatType.CONSISTENT:
         percentage = float(config.portion_of_top_for_consistent)
         sorted_index = sort_players_by_consistency(players, stat)
+    elif total_or_consistent_or_average == StatType.AVERAGE:
+        percentage = 0.
+        sorted_index = sort_players_by_average(players, stat)        
     else:
         print("ERROR: Called get_top_players for stats that are not total or consistent")
         return        
@@ -387,7 +407,7 @@ def get_professions_and_length(players, indices, config):
 # list of player indices that got a top consistency award
 def get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, output_file):
     top_consistent_players = get_top_players(players, config, stat, StatType.CONSISTENT)
-    write_sorted_top_consistent(players, top_consistent_players, config, num_used_fights, stat, output_file)
+    write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, StatType.CONSISTENT, output_file)
     return top_consistent_players
 
 
@@ -402,17 +422,26 @@ def get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, 
 # output_file = the file to write the output to
 # Output:
 # list of player indices that got a top consistency award
-def write_sorted_top_consistent(players, top_consistent_players, config, num_used_fights, stat, output_file):
+def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, consistent_or_avg, output_file):
     max_name_length = max([len(players[i].name) for i in top_consistent_players])
     profession_strings, profession_length = get_professions_and_length(players, top_consistent_players, config)
-    
-    if stat == "dist":
-        print_string = "Top "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" consistency awards"
-    else:
-        print_string = "Top "+config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
-    myprint(output_file, print_string)
-    print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."    
-    myprint(output_file, print_string)
+
+    if consistent_or_avg == StatType.CONSISTENT:
+        if stat == "dist":
+            print_string = "Top "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" consistency awards"
+        else:
+            print_string = "Top "+config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
+            myprint(output_file, print_string)
+            print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
+            myprint(output_file, print_string)
+    elif consistent_or_avg == StatType.AVERAGE:
+        if stat == "dist":
+            print_string = "Top average "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" awards"
+        else:
+            print_string = "Top average "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places)"
+            myprint(output_file, print_string)
+            print_string = "Attendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
+            myprint(output_file, print_string)
     print_string = "-------------------------------------------------------------------------------"    
     myprint(output_file, print_string)
 
@@ -421,7 +450,7 @@ def write_sorted_top_consistent(players, top_consistent_players, config, num_use
     print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+" Attendance " + " Times Top"
     if stat != "dist":
         print_string += f" {'Total':>9}"
-    if stat in config.buff_ids:
+    if stat in config.buff_ids or stat == 'dmg_taken':
         print_string += f"  {'Average':>7}"
         
     myprint(output_file, print_string)    
@@ -435,9 +464,9 @@ def write_sorted_top_consistent(players, top_consistent_players, config, num_use
         if player.consistency_stats[stat] != last_val:
             place += 1
         print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
-        if stat != "dist" and stat not in config.buff_ids:
+        if stat != "dist" and stat not in config.buff_ids and stat != 'dmg_taken':
             print_string += f" {round(player.total_stats[stat]):>9}"
-        if stat in config.buffs_stacking_intensity:
+        if stat in config.buffs_stacking_intensity or stat == 'dmg_taken':
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
         elif stat in config.buffs_stacking_duration:
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
@@ -564,7 +593,7 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
         myprint(output_file, print_string)
         last_val = player.total_stats[stat]
     myprint(output_file, "\n")
-
+    
    
 
 # Get and write the top x people who achieved top in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top spot in 1 of them.
