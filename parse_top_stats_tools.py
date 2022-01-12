@@ -79,7 +79,6 @@ class Fight:
 # This class stores the configuration for running the top stats.
 @dataclass
 class Config:
-    # fields for all stats: dmg, rips, stab, cleanses, heal, dist, deaths, kills
     num_players_listed: dict = field(default_factory=dict)          # How many players will be listed who achieved top stats most often for each stat?
     num_players_considered_top: dict = field(default_factory=dict)  # How many players are considered to be "top" in each fight for each stat?
     
@@ -948,7 +947,10 @@ def collect_stat_data(args, config, log, anonymize=False):
                     elif stat in config.buffs_stacking_intensity:
                         #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
                         fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
-                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)                        
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                    elif stat == 'dist':
+                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
                     else:
                         # all non-buff stats
                         fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]

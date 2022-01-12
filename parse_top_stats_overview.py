@@ -122,6 +122,8 @@ if __name__ == '__main__':
             write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
         elif stat == 'barrier' and found_barrier:
             write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+        elif stat == 'deaths':
+            write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename)
         else:
             write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
 
