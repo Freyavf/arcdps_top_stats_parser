@@ -412,6 +412,22 @@ def get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, 
 
 
 
+# Get and write the people who achieved top x average in stat
+# Input:
+# players = list of Players
+# config = the configuration being used to determine the top consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = the file to write the output to
+# Output:
+# list of player indices that got a top consistency award
+def get_and_write_sorted_average(players, config, num_used_fights, stat, output_file):
+    top_average_players = get_top_players(players, config, stat, StatType.AVERAGE)
+    write_sorted_top_consistent_or_avg(players, top_average_players, config, num_used_fights, stat, StatType.AVERAGE, output_file)
+    return top_average_players
+
+
+
 # Write the top x people who achieved top y in stat most often.
 # Input:
 # players = list of Players
