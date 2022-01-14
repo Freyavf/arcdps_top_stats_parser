@@ -161,36 +161,55 @@ def fill_config(config_input):
 # config = configuration to use
 # stat = stat that is considered
 def increase_top_x_reached(players, sortedList, config, stat):
-    # if stat isn't dist, increase top stats reached for the first num_players_considered_top players
     valid_values = 0
-    if stat != 'dist':
+    # filter out com for dist to tag
+    if stat == 'dist':
+        # different for dist
+        first_valid = True
         i = 0
         last_val = 0
-        while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+        while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat]+1 or sortedList[i][1] == last_val):
+            # sometimes dist is -1, filter these out
+            if sortedList[i][1] >= 0:
+                # first valid dist is the comm, don't consider
+                if first_valid:
+                    first_valid  = False
+                else:
+                    players[sortedList[i][0]].consistency_stats[stat] += 1
+                    valid_values += 1
+            last_val = sortedList[i][1]
+            i += 1
+        return
+
+    # total value doesn't need to be > 0 for deaths
+    elif stat == 'deaths':
+        i = 0
+        last_val = 0
+        while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val):
             if sortedList[i][1] < 0:
                 i += 1
                 continue
-            players[sortedList[i][0]].consistency_stats[stat] += 1
-            last_val = sortedList[i][1]
+            if sortedList[i][1] == 0:
+                players[sortedList[i][0]].consistency_stats[stat] += 1
+                last_val = sortedList[i][1]
             i += 1
             valid_values += 1
         return
-
-    # different for dist
-    first_valid = True
+    
+    
+    # increase top stats reached for the first num_players_considered_top players
     i = 0
     last_val = 0
-    while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat]+1 or sortedList[i][1] == last_val):
-        # sometimes dist is -1, filter these out
-        if sortedList[i][1] >= 0:
-            # first valid dist is the comm, don't consider
-            if first_valid:
-                first_valid  = False
-            else:
-                players[sortedList[i][0]].consistency_stats[stat] += 1
-                valid_values += 1
+    while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+        if sortedList[i][1] < 0:
+            i += 1
+            continue
+        players[sortedList[i][0]].consistency_stats[stat] += 1
         last_val = sortedList[i][1]
         i += 1
+        valid_values += 1
+    return
+
 
 
         

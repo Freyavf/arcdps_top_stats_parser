@@ -19,7 +19,7 @@ stats_to_compute = ['dmg', 'rips', 'stab', 'cleanses', 'heal', 'barrier', 'dist'
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed = {'dmg': 5, 'rips': 3, 'stab': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'deaths': 5, 'kills': 5}
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'barrier': 5, 'dist': 5, 'deaths': 5, 'kills': 5}
+num_players_considered_top = {'dmg': 10, 'rips': 5, 'stab': 5, 'cleanses': 5, 'heal': 5, 'barrier': 5, 'dist': 5, 'deaths': 1, 'kills': 5}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
