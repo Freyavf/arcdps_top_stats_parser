@@ -146,6 +146,8 @@ def fill_config(config_input):
 
     config.stats_to_compute = config_input.stats_to_compute
     config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
+    config.empty_stats['time_active'] = -1
+    config.empty_stats['time_in_combat'] = -1
 
     config.buff_abbrev["Stability"] = 'stab'
     config.buff_abbrev["Protection"] = 'prot'
@@ -994,6 +996,12 @@ def collect_stat_data(args, config, log, anonymize=False):
 
             player = players[player_index[name_and_prof]]
 
+            if args.filetype == "xml":
+                player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
+            else:
+                player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
+                player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
+            
             # get all stats that are supposed to be computed from the player data
             for stat in config.stats_to_compute:
                 if args.filetype == "xml":
@@ -1003,10 +1011,14 @@ def collect_stat_data(args, config, log, anonymize=False):
                     
                 if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_healing = True
-                if stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
+                elif stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_barrier = True                    
-                if stat == 'dist':
+                elif stat == 'dist':
                     player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
+                elif stat == 'dmg_taken':
+                    if player.stats_per_fight[fight_number]['time_in_combat'] == 0:
+                        player.stats_per_fight[fight_number]['time_in_combat'] = 1
+                    player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['time_in_combat']
                     
                 # add stats of this fight and player to total stats of this fight and player
                 if player.stats_per_fight[fight_number][stat] > 0:
@@ -1022,6 +1034,9 @@ def collect_stat_data(args, config, log, anonymize=False):
                     elif stat == 'dist':
                         fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
                         player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
+                    elif stat == 'dmg_taken':
+                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
                     else:
                         # all non-buff stats
                         fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
@@ -1035,11 +1050,8 @@ def collect_stat_data(args, config, log, anonymize=False):
 
             player.num_fights_present += 1
             player.duration_fights_present += fight.duration
-            if args.filetype == "xml":
-                player.duration_active += get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
-            else:
-                player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
-                player.duration_in_combat += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
+            player.duration_active += player.stats_per_fight[fight_number]['time_active']
+            player.duration_in_combat += player.stats_per_fight[fight_number]['time_in_combat']
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
@@ -1101,6 +1113,32 @@ def anonymize_players(players, account_index):
         player.name = "Anon "+str(i)
 
 
+def get_combat_start_from_player_json(initial_time, player_json):
+    start_combat = -1
+    # TODO check healthPercents exists
+    last_health_percent = 100
+    for change in player_json['healthPercents']:
+        #if player_json['name'] == "Mo Qu Ta":
+        #    print("health at "+str(change[0])+" = "+str(change[1])+", last_health_percent = "+str(last_health_percent))
+        if change[0] < initial_time:
+            last_health_percent = change[1]
+            continue
+        if change[1] - last_health_percent < 0:
+            # got dmg
+            start_combat = change[0]
+            break
+        last_health_percent = change[1]
+    for i in range(math.ceil(initial_time/1000), len(player_json['damage1S'][0])):
+        if i == 0:
+            continue
+        if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
+            if start_combat == -1:
+                start_combat = i*1000
+            else:
+                start_combat = min(start_combat, i*1000)
+            break
+    return start_combat
+        
         
 # get value of stat from player_json
 def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
@@ -1112,7 +1150,8 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         if 'dead' not in replay:
             return 0
         combat_time = 0
-        start_combat = 0
+        start_combat = get_combat_start_from_player_json(0, player_json)
+            
         for death in replay['dead']:
             time_of_death = death[0]
             time_of_revive = death[1]
@@ -1122,29 +1161,7 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
                 combat_time += (time_of_death - start_combat)
                 #if player_json['name'] == "Mo Qu Ta":
                 #    print("combat time until death: "+str(combat_time))
-            start_combat = -1
-            # TODO check healthPercents exists
-            last_health_percent = 100
-            for change in player_json['healthPercents']:
-                #if player_json['name'] == "Mo Qu Ta":
-                #    print("health at "+str(change[0])+" = "+str(change[1])+", last_health_percent = "+str(last_health_percent))
-                if change[0] < time_of_revive:
-                    last_health_percent = change[1]
-                    continue
-                if change[1] - last_health_percent < 0:
-                    # got dmg
-                    start_combat = change[0]
-                    break
-                last_health_percent = change[1]
-            for i in range(math.ceil(time_of_revive/1000), len(player_json['damage1S'][0])):
-                if i == 0:
-                    continue
-                if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
-                    if start_combat == -1:
-                        start_combat = i*1000
-                    else:
-                        start_combat = min(start_combat, i*1000)
-                    break
+            start_combat = get_combat_start_from_player_json(time_of_revive, player_json)
         end_combat = len(player_json['damage1S'][0]*1000)
         if start_combat != -1:
             combat_time += end_combat - start_combat
