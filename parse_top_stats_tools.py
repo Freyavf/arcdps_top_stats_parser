@@ -28,6 +28,7 @@ import xlrd
 from xlutils.copy import copy
 import json
 import jsons
+import math
 
 debug = False # enable / disable debug output
 
@@ -50,6 +51,7 @@ class Player:
     attendance_percentage: float = 0.   # the percentage of fights the player was involved in out of all fights
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
     duration_active: int = 0            # the total duration a player was active (alive or down)
+    duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)    
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
     # fields for all stats defined in config
@@ -501,7 +503,9 @@ def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, 
         print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
         if stat != "dist" and stat not in config.buff_ids and stat != 'dmg_taken':
             print_string += f" {round(player.total_stats[stat]):>9}"
-        if stat in config.buffs_stacking_intensity or stat == 'dmg_taken':
+        if stat == 'dmg_taken':
+            print_string += f" {player.total_stats[stat]:>9}"+f" {player.average_stats[stat]:>8}"
+        elif stat in config.buffs_stacking_intensity:
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
         elif stat in config.buffs_stacking_duration:
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
@@ -1031,7 +1035,8 @@ def collect_stat_data(args, config, log, anonymize=False):
             if args.filetype == "xml":
                 player.duration_active += get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
             else:
-                player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)                
+                player.duration_active += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
+                player.duration_in_combat += get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
             player.swapped_build |= build_swapped
 
         # create lists sorted according to stats
@@ -1065,7 +1070,8 @@ def collect_stat_data(args, config, log, anonymize=False):
             if stat == 'dmg' or stat == 'heal' or stat == 'barrier':
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present)
             elif stat == 'dmg_taken':
-                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_active)                
+                #player.average_stats[stat] = round(player.total_stats[stat]/player.duration_active)
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_in_combat)                
             elif stat == 'deaths' or stat == 'kills':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_fights_present/60), 2)
             elif stat in config.buffs_stacking_duration:
@@ -1095,6 +1101,56 @@ def anonymize_players(players, account_index):
         
 # get value of stat from player_json
 def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
+    if stat == 'time_in_combat':
+        if 'combatReplayData' not in player_json:
+            print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
+        replay = player_json['combatReplayData']
+        if 'dead' not in replay:
+            return 0
+        combat_time = 0
+        start_combat = 0
+        for death in replay['dead']:
+            time_of_death = death[0]
+            time_of_revive = death[1]
+            #if player_json['name'] == "Mo Qu Ta":
+            #    print("started combat "+str(start_combat)+", died "+str(time_of_death)+", rezzed "+str(time_of_revive))
+            if start_combat != -1:
+                combat_time += (time_of_death - start_combat)
+                #if player_json['name'] == "Mo Qu Ta":
+                #    print("combat time until death: "+str(combat_time))
+            start_combat = -1
+            # TODO check healthPercents exists
+            last_health_percent = 100
+            for change in player_json['healthPercents']:
+                #if player_json['name'] == "Mo Qu Ta":
+                #    print("health at "+str(change[0])+" = "+str(change[1])+", last_health_percent = "+str(last_health_percent))
+                if change[0] < time_of_revive:
+                    last_health_percent = change[1]
+                    continue
+                if change[1] - last_health_percent < 0:
+                    # got dmg
+                    start_combat = change[0]
+                    break
+                last_health_percent = change[1]
+            for i in range(math.ceil(time_of_revive/1000), len(player_json['damage1S'][0])):
+                if i == 0:
+                    continue
+                if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
+                    if start_combat == -1:
+                        start_combat = i*1000
+                    else:
+                        start_combat = min(start_combat, i*1000)
+                    break
+        end_combat = len(player_json['damage1S'][0]*1000)
+        if start_combat != -1:
+            combat_time += end_combat - start_combat
+        #if player_json['name'] == "Mo Qu Ta":
+        #    print("combat time until end: "+str(combat_time))            
+        combat_time /= 1000
+        #print(player_json['name']+": in combat for "+str(combat_time)+"s")
+        return round(combat_time)
+        
     if stat == 'time_active':
         if 'activeTimes' not in player_json:
             return 0
