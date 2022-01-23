@@ -87,7 +87,8 @@ class Config:
     
     min_attendance_portion_for_percentage: float = 0.  # For what portion of all fights does a player need to be there to be considered for "percentage" awards?
     min_attendance_portion_for_late: float = 0.        # For what portion of all fights does a player need to be there to be considered for "late but great" awards?     
-    min_attendance_portion_for_buildswap: float = 0.   # For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards? 
+    min_attendance_portion_for_buildswap: float = 0.   # For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards?
+    min_attendance_percentage_for_average: float = 0.  # For what percentage of all fights does a player need to be there to be considered for "jack of all trades" awards?     
 
     portion_of_top_for_total: float = 0.         # What portion of the top total player stat does someone need to reach to be considered for total awards?
     portion_of_top_for_consistent: float = 0.    # What portion of the total stat of the top consistent player does someone need to reach to be considered for consistency awards?
@@ -128,6 +129,7 @@ def fill_config(config_input):
     config.min_attendance_portion_for_percentage = config_input.attendance_percentage_for_percentage/100.
     config.min_attendance_portion_for_late = config_input.attendance_percentage_for_late/100.    
     config.min_attendance_portion_for_buildswap = config_input.attendance_percentage_for_buildswap/100.
+    config.min_attendance_percentage_for_average = config_input.attendance_percentage_for_average
 
     config.portion_of_top_for_consistent = config_input.percentage_of_top_for_consistent/100.
     config.portion_of_top_for_total = config_input.percentage_of_top_for_total/100.
@@ -328,9 +330,10 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
             break
         last_value = new_value
 
-        if stat == "dist" or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
-            # if stat isn't distance, total value must be at least percentage % of top value
-            top_players.append(sorted_index[i][0])
+        # if stat isn't distance or dmg taken, total value must be at least percentage % of top value
+        if stat == "dist" or stat == "dmg_taken" or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
+            if total_or_consistent_or_average != StatType.AVERAGE or players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average:
+                top_players.append(sorted_index[i][0])
 
         i += 1
 
