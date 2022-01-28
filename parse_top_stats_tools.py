@@ -335,8 +335,8 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
 
         # if stat isn't distance or dmg taken, total value must be at least percentage % of top value
         if stat == "dist" or stat == "dmg_taken" or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
-            #if total_or_consistent_or_average != StatType.AVERAGE or players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average:
-            top_players.append(sorted_index[i][0])
+            if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
+                top_players.append(sorted_index[i][0])
 
         i += 1
 
