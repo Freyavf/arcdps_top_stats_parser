@@ -208,7 +208,7 @@ def increase_top_x_reached(players, sortedList, config, stat):
     i = 0
     last_val = 0
     while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
-        if sortedList[i][1] < 0:
+        if sortedList[i][1] < 0 or (sortedList[i][1] == 0 and stat != 'dmg_taken'):
             i += 1
             continue
         players[sortedList[i][0]].consistency_stats[stat] += 1
