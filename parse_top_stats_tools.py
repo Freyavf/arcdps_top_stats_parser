@@ -21,7 +21,7 @@ from dataclasses import dataclass,field
 import os.path
 from os import listdir
 import sys
-import xml.etree.ElementTree as ET
+#import xml.etree.ElementTree as ET
 from enum import Enum
 import importlib
 import xlrd
@@ -718,137 +718,137 @@ def write_sorted_top_percentage(players, top_players, comparison_percentage, con
 
 
 
-# get value of stat from player_xml
-def get_stat_from_player_xml(player_xml, players_running_healing_addon, stat, config):
-    if stat == 'time_active':
-        return round(int(player_xml.find('activeTimes').text)/1000)
-        
-    if stat == 'dmg_taken':
-        return int(player_xml.find('defenses').find('damageTaken').text)+int(player_xml.find('defenses').find('damageBarrier').text)
-
-    if stat == 'deaths':
-        return int(player_xml.find('defenses').find('deadCount').text)
-
-    #if stat == 'kills':
-    #    return int(player_xml.find('statsAll').find('killed').text)
-
-    if stat == 'dmg':
-        return int(player_xml.find('dpsAll').find('damage').text)            
-
-    if stat == 'rips':
-        return int(player_xml.find('support').find('boonStrips').text)
-    
-    if stat == 'cleanses':
-        return int(player_xml.find('support').find('condiCleanse').text)            
-
-    if stat == 'dist':
-        return float(player_xml.find('statsAll').find('distToCom').text)
-
-    ### Buffs ###
-    if stat in config.buff_ids:
-        # get buffs in squad generation -> need to loop over all buffs
-        for buff in player_xml.iter('squadBuffs'):
-            # find right buff
-            buffId = buff.find('id').text
-            if buffId == config.buff_ids[stat]:
-                return float(buff.find('buffData').find('generation').text) 
-        return 0.
-
-    if stat == 'heal':
-        # check if healing was logged, save it
-        heal = -1
-        if player_xml.find('name').text not in players_running_healing_addon:
-            return heal
-        ext_healing_xml = player_xml.find('extHealingStats')
-        if(ext_healing_xml != None):
-            heal = 0
-            for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
-                outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
-                # TODO why is this in the xml twice?
-                if not outgoing_healing_xml2 is None:
-                    heal += int(outgoing_healing_xml2.find('healing').text)
-        return heal
-
-    if stat == 'barrier':
-        # check if barrier was logged, save it
-        barrier = -1
-        if player_xml.find('name').text not in players_running_healing_addon:
-            return barrier        
-        ext_barrier_xml = player_xml.find('extBarrierStats')
-        if(ext_barrier_xml != None):
-            barrier = 0
-            for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
-                outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
-                # TODO why is this in the xml twice?                
-                if not outgoing_barrier_xml2 is None:
-                    barrier += int(outgoing_barrier_xml2.find('barrier').text)
-        return barrier
-
-
-
-# get stats for this fight from fight_xml
-# Input:
-# fight_xml = xml object including one fight
-# config = the config to use
-# log = log file to write to
-def get_stats_from_fight_xml(fight_xml, config, log):
-    # get fight duration
-    fight_duration_xml = fight_xml.find('duration')
-    split_duration = fight_duration_xml.text.split('m ', 1)
-    mins = int(split_duration[0])
-    split_duration = split_duration[1].split('s', 1)
-    secs = int(split_duration[0])
-    if debug:
-        print("duration: ", mins, "m", secs, "s")
-    duration = mins*60 + secs
-
-    num_allies = len(fight_xml.findall('players'))
-    num_enemies = 0
-    for enemy in fight_xml.iter('targets'):
-        is_enemy_player_xml = enemy.find('enemyPlayer')
-        if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
-            num_enemies += 1
-                
-    # initialize fight         
-    fight = Fight()
-    fight.duration = duration
-    fight.enemies = num_enemies
-    fight.allies = num_allies
-    fight.start_time = fight_xml.find('timeStartStd').text
-    fight.end_time = fight_xml.find('timeEndStd').text        
-    fight.total_stats = {key: 0 for key in config.stats_to_compute}
-        
-    # skip fights that last less than min_fight_duration seconds
-    if(duration < config.min_fight_duration):
-        fight.skipped = True
-        print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
-        myprint(log, print_string)
-        
-    # skip fights with less than min_allied_players allies
-    if num_allies < config.min_allied_players:
-        fight.skipped = True
-        print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
-        myprint(log, print_string)
-
-    # skip fights with less than min_enemy_players enemies
-    if num_enemies < config.min_enemy_players:
-        fight.skipped = True
-        print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
-        myprint(log, print_string)
-
-    for extension in fight_xml.iter('usedExtensions'):
-        if extension.find('name').text == "Healing Stats":
-            players_running_healing_addon = [player.text for player in extension.iter('runningExtension')]
-
-    return fight, players_running_healing_addon
+## get value of stat from player_xml
+#def get_stat_from_player_xml(player_xml, players_running_healing_addon, stat, config):
+#    if stat == 'time_active':
+#        return round(int(player_xml.find('activeTimes').text)/1000)
+#        
+#    if stat == 'dmg_taken':
+#        return int(player_xml.find('defenses').find('damageTaken').text)+int(player_xml.find('defenses').find('damageBarrier').text)
+#
+#    if stat == 'deaths':
+#        return int(player_xml.find('defenses').find('deadCount').text)
+#
+#    #if stat == 'kills':
+#    #    return int(player_xml.find('statsAll').find('killed').text)
+#
+#    if stat == 'dmg':
+#        return int(player_xml.find('dpsAll').find('damage').text)            
+#
+#    if stat == 'rips':
+#        return int(player_xml.find('support').find('boonStrips').text)
+#    
+#    if stat == 'cleanses':
+#        return int(player_xml.find('support').find('condiCleanse').text)            
+#
+#    if stat == 'dist':
+#        return float(player_xml.find('statsAll').find('distToCom').text)
+#
+#    ### Buffs ###
+#    if stat in config.buff_ids:
+#        # get buffs in squad generation -> need to loop over all buffs
+#        for buff in player_xml.iter('squadBuffs'):
+#            # find right buff
+#            buffId = buff.find('id').text
+#            if buffId == config.buff_ids[stat]:
+#                return float(buff.find('buffData').find('generation').text) 
+#        return 0.
+#
+#    if stat == 'heal':
+#        # check if healing was logged, save it
+#        heal = -1
+#        if player_xml.find('name').text not in players_running_healing_addon:
+#            return heal
+#        ext_healing_xml = player_xml.find('extHealingStats')
+#        if(ext_healing_xml != None):
+#            heal = 0
+#            for outgoing_healing_xml in ext_healing_xml.iter('outgoingHealingAllies'):
+#                outgoing_healing_xml2 = outgoing_healing_xml.find('outgoingHealingAllies')
+#                # TODO why is this in the xml twice?
+#                if not outgoing_healing_xml2 is None:
+#                    heal += int(outgoing_healing_xml2.find('healing').text)
+#        return heal
+#
+#    if stat == 'barrier':
+#        # check if barrier was logged, save it
+#        barrier = -1
+#        if player_xml.find('name').text not in players_running_healing_addon:
+#            return barrier        
+#        ext_barrier_xml = player_xml.find('extBarrierStats')
+#        if(ext_barrier_xml != None):
+#            barrier = 0
+#            for outgoing_barrier_xml in ext_barrier_xml.iter('outgoingBarrierAllies'):
+#                outgoing_barrier_xml2 = outgoing_barrier_xml.find('outgoingBarrierAllies')
+#                # TODO why is this in the xml twice?                
+#                if not outgoing_barrier_xml2 is None:
+#                    barrier += int(outgoing_barrier_xml2.find('barrier').text)
+#        return barrier
 
 
-# get account, character name and profession from xml object
-def get_basic_player_data_from_xml(player_xml):
-    account = player_xml.find('account').text
-    name = player_xml.find('name').text
-    profession = player_xml.find('profession').text
-    return account, name, profession
+
+## get stats for this fight from fight_xml
+## Input:
+## fight_xml = xml object including one fight
+## config = the config to use
+## log = log file to write to
+#def get_stats_from_fight_xml(fight_xml, config, log):
+#    # get fight duration
+#    fight_duration_xml = fight_xml.find('duration')
+#    split_duration = fight_duration_xml.text.split('m ', 1)
+#    mins = int(split_duration[0])
+#    split_duration = split_duration[1].split('s', 1)
+#    secs = int(split_duration[0])
+#    if debug:
+#        print("duration: ", mins, "m", secs, "s")
+#    duration = mins*60 + secs
+#
+#    num_allies = len(fight_xml.findall('players'))
+#    num_enemies = 0
+#    for enemy in fight_xml.iter('targets'):
+#        is_enemy_player_xml = enemy.find('enemyPlayer')
+#        if is_enemy_player_xml != None and is_enemy_player_xml.text == "true":
+#            num_enemies += 1
+#                
+#    # initialize fight         
+#    fight = Fight()
+#    fight.duration = duration
+#    fight.enemies = num_enemies
+#    fight.allies = num_allies
+#    fight.start_time = fight_xml.find('timeStartStd').text
+#    fight.end_time = fight_xml.find('timeEndStd').text        
+#    fight.total_stats = {key: 0 for key in config.stats_to_compute}
+#        
+#    # skip fights that last less than min_fight_duration seconds
+#    if(duration < config.min_fight_duration):
+#        fight.skipped = True
+#        print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
+#        myprint(log, print_string)
+#        
+#    # skip fights with less than min_allied_players allies
+#    if num_allies < config.min_allied_players:
+#        fight.skipped = True
+#        print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
+#        myprint(log, print_string)
+#
+#    # skip fights with less than min_enemy_players enemies
+#    if num_enemies < config.min_enemy_players:
+#        fight.skipped = True
+#        print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
+#        myprint(log, print_string)
+#
+#    for extension in fight_xml.iter('usedExtensions'):
+#        if extension.find('name').text == "Healing Stats":
+#            players_running_healing_addon = [player.text for player in extension.iter('runningExtension')]
+#
+#    return fight, players_running_healing_addon
+#
+#
+## get account, character name and profession from xml object
+#def get_basic_player_data_from_xml(player_xml):
+#    account = player_xml.find('account').text
+#    name = player_xml.find('name').text
+#    profession = player_xml.find('profession').text
+#    return account, name, profession
 
 
 
@@ -873,19 +873,19 @@ def get_buff_ids_from_json(json_data, config):
 
             
 
-def get_buff_ids_from_xml(xml_data, config):
-    buffs = xml_data.find('buffMap')
-    for buff in buffs:
-        buff_xml = buffs.find(buff.tag)
-        buffname = buff_xml.find('name').text
-        if buffname in config.buff_abbrev:
-            abbrev_name = config.buff_abbrev[buffname]
-            config.buff_ids[abbrev_name] = buff.tag[1:]
-
-            if buff_xml.find('stacking').text == "true":
-                config.buffs_stacking_intensity.append(abbrev_name)
-            else:
-                config.buffs_stacking_duration.append(abbrev_name)
+#def get_buff_ids_from_xml(xml_data, config):
+#    buffs = xml_data.find('buffMap')
+#    for buff in buffs:
+#        buff_xml = buffs.find(buff.tag)
+#        buffname = buff_xml.find('name').text
+#        if buffname in config.buff_abbrev:
+#            abbrev_name = config.buff_abbrev[buffname]
+#            config.buff_ids[abbrev_name] = buff.tag[1:]
+#
+#            if buff_xml.find('stacking').text == "true":
+#                config.buffs_stacking_intensity.append(abbrev_name)
+#            else:
+#                config.buffs_stacking_duration.append(abbrev_name)
             
     
 # Collect the top stats data.
@@ -898,10 +898,10 @@ def get_buff_ids_from_xml(xml_data, config):
 # list of all fights (also the skipped ones)
 # was healing found in the logs?
 def collect_stat_data(args, config, log, anonymize=False):
-    if args.filetype != "json" and args.filetype != "xml":
-        print("unsupported filetype "+args.filetype+". Please choose json or xml.")
+#    if args.filetype != "json" and args.filetype != "xml":
+#        print("unsupported filetype "+args.filetype+". Please choose json or xml.")
 
-    # healing only in xml if addon was installed
+    # healing only in logs if addon was installed
     found_healing = False # Todo what if some logs have healing and some don't
     found_barrier = False    
 
@@ -927,24 +927,24 @@ def collect_stat_data(args, config, log, anonymize=False):
         file_path = "".join((args.input_directory,"/",filename))
 
         # load file
-        if args.filetype == "xml":
-            # create xml tree
-            xml_tree = ET.parse(file_path)
-            xml_root = xml_tree.getroot()
-            # get fight stats
-            fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
-        else: # filetype == "json"
-            json_datafile = open(file_path, encoding='utf-8')
-            json_data = json.load(json_datafile)
-            # get fight stats
-            fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
+#        if args.filetype == "xml":
+#            # create xml tree
+#            xml_tree = ET.parse(file_path)
+#            xml_root = xml_tree.getroot()
+#            # get fight stats
+#            fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
+#        else: # filetype == "json"
+        json_datafile = open(file_path, encoding='utf-8')
+        json_data = json.load(json_datafile)
+        # get fight stats
+        fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
             
         if first:
             first = False
-            if args.filetype == "json":
-                get_buff_ids_from_json(json_data, config)
-            else:
-                get_buff_ids_from_xml(xml_root, config)
+            #if args.filetype == "json":
+            get_buff_ids_from_json(json_data, config)
+            #else:
+            #    get_buff_ids_from_xml(xml_root, config)
                     
         # add new entry for this fight in all players
         for player in players:
@@ -960,14 +960,15 @@ def collect_stat_data(args, config, log, anonymize=False):
         fight_number = used_fights-1
 
         # get stats for each player
-        for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
+        #for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
+        for player_data in json_data['players']:
             create_new_player = False
             build_swapped = False
 
-            if args.filetype == "xml":
-                account, name, profession = get_basic_player_data_from_xml(player_data)
-            else:
-                account, name, profession = get_basic_player_data_from_json(player_data)                
+            #if args.filetype == "xml":
+            #    account, name, profession = get_basic_player_data_from_xml(player_data)
+            #else:
+            account, name, profession = get_basic_player_data_from_json(player_data)                
 
             # if this combination of charname + profession is not in the player index yet, create a new entry
             name_and_prof = name+" "+profession
@@ -997,18 +998,18 @@ def collect_stat_data(args, config, log, anonymize=False):
 
             player = players[player_index[name_and_prof]]
 
-            if args.filetype == "xml":
-                player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
-            else:
-                player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
-                player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
+            #if args.filetype == "xml":
+            #    player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
+            #else:
+            player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
+            player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
             
             # get all stats that are supposed to be computed from the player data
             for stat in config.stats_to_compute:
-                if args.filetype == "xml":
-                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, players_running_healing_addon, stat, config)
-                else:
-                    player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
+                #if args.filetype == "xml":
+                #    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, players_running_healing_addon, stat, config)
+                #else:
+                player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
                     
                 if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
                     found_healing = True
@@ -1523,12 +1524,13 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
 
 
     
-def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
+def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
     json_dict = {}
     json_dict["overall_squad_stats"] = {key: value for key, value in overall_squad_stats.items()}
     json_dict["fights"] = [jsons.dump(fight) for fight in fights]
     json_dict["players"] = [jsons.dump(player) for player in players]
     json_dict["top_total_players"] =  {key: value for key, value in top_total_stat_players.items()}
+    json_dict["top_average_players"] =  {key: value for key, value in top_average_stat_players.items()}
     json_dict["top_consistent_players"] =  {key: value for key, value in top_consistent_stat_players.items()}
     json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}
     json_dict["top_late_players"] =  {key: value for key, value in top_late_players.items()}

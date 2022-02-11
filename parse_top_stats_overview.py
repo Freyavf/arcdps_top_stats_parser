@@ -84,6 +84,7 @@ if __name__ == '__main__':
     # same amount of top x achieved.
 
     top_total_stat_players = {key: list() for key in config.stats_to_compute}
+    top_average_stat_players = {key: list() for key in config.stats_to_compute}
     top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
     top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
     top_late_players = {key: list() for key in config.stats_to_compute}
@@ -112,8 +113,9 @@ if __name__ == '__main__':
                 top_percentage_stat_players[stat],top_percentage_comparison_percentage[stat] = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
         top_late_players[stat],top_late_comparison_percentage[stat] = get_top_percentage_players(players, config, stat, StatType.LATE_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], list())            
         top_jack_of_all_trades_players[stat],top_jack_comparison_percentage[stat] = get_top_percentage_players(players, config, stat, StatType.SWAPPED_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], top_late_players[stat])
+        top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
 
-    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
+    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:
         if stat == 'dist' or stat == 'dmg_taken':
