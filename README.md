@@ -23,6 +23,8 @@ Provided are two scripts: ```parse_top_stats_overview.py``` and ```parse_top_sta
 Output is given as .txt, and as .xls and .json file for further processing. 
 Here are some example output files: ![example output](/example_output/). They are explained in detail on the ![wiki](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Output-Files).
 
+Note that currently, this tool is meant mainly for analyzing wwv fights, and I am not sure how applicable it is for pve raids since I don't do them - feel free to test and give me a shout if anything is not working though (contact details below).
+
 # How does it work? #
 ## Preparation ##
 To be able to generate the top stats, you need to install/download a few things.
