@@ -533,28 +533,30 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
     wb = copy(book)
     sheet1 = wb.add_sheet(stat)
 
-    sheet1.write(0, 0, "Name")
-    sheet1.write(0, 1, "Profession")
-    sheet1.write(0, 2, "Attendance (number of fights)")
-    sheet1.write(0, 3, "Attendance (duration fights)")
-    sheet1.write(0, 4, "Times Top")
-    sheet1.write(0, 5, "Percentage Top")
-    sheet1.write(0, 6, "Total "+stat)
+    sheet1.write(0, 0, "Account")
+    sheet1.write(0, 1, "Name")
+    sheet1.write(0, 2, "Profession")
+    sheet1.write(0, 3, "Attendance (number of fights)")
+    sheet1.write(0, 4, "Attendance (duration fights)")
+    sheet1.write(0, 5, "Times Top")
+    sheet1.write(0, 6, "Percentage Top")
+    sheet1.write(0, 7, "Total "+stat)
     if stat == 'deaths':
-        sheet1.write(0, 7, "Average "+stat+" per min")
+        sheet1.write(0, 8, "Average "+stat+" per min")
     else:
-        sheet1.write(0, 7, "Average "+stat+" per s")        
+        sheet1.write(0, 8, "Average "+stat+" per s")        
 
     for i in range(len(top_players)):
         player = players[top_players[i]]
-        sheet1.write(i+1, 0, player.name)
-        sheet1.write(i+1, 1, player.profession)
-        sheet1.write(i+1, 2, player.num_fights_present)
-        sheet1.write(i+1, 3, player.duration_fights_present)
-        sheet1.write(i+1, 4, player.consistency_stats[stat])        
-        sheet1.write(i+1, 5, round(player.portion_top_stats[stat]*100))
-        sheet1.write(i+1, 6, round(player.total_stats[stat]))
-        sheet1.write(i+1, 7, player.average_stats[stat])
+        sheet1.write(i+1, 0, player.account)
+        sheet1.write(i+1, 1, player.name)
+        sheet1.write(i+1, 2, player.profession)
+        sheet1.write(i+1, 3, player.num_fights_present)
+        sheet1.write(i+1, 4, player.duration_fights_present)
+        sheet1.write(i+1, 5, player.consistency_stats[stat])        
+        sheet1.write(i+1, 6, round(player.portion_top_stats[stat]*100))
+        sheet1.write(i+1, 7, round(player.total_stats[stat]))
+        sheet1.write(i+1, 8, player.average_stats[stat])
 
     wb.save(xls_output_filename)
 
@@ -1003,7 +1005,8 @@ def collect_stat_data(args, config, log, anonymize=False):
             #    player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
             #else:
             player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
-            player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)                                
+            player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)
+            player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'group', config)
             
             # get all stats that are supposed to be computed from the player data
             for stat in config.stats_to_compute:
@@ -1175,7 +1178,12 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         combat_time /= 1000
         #print(player_json['name']+": in combat for "+str(combat_time)+"s")
         return round(combat_time)
-        
+
+    if stat == 'group':
+        if 'group' not in player_json:
+            return 0
+        return int(player_json['group'])
+    
     if stat == 'time_active':
         if 'activeTimes' not in player_json:
             return 0
