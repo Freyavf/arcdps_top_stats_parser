@@ -1,0 +1,62 @@
+.menu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.menu .nav-link {
+    color: rgb(255, 255, 255);
+    padding: 0px 5px;
+    text-decoration: none;
+}
+
+
+/* Change the link color on hover */
+
+.menu .nav-link:hover {
+    color: rgb(116, 0, 0);
+}
+
+#login-row {
+    background-color: #212121;
+    border-bottom: rgb(255, 255, 255) solid 1px;
+}
+
+#user-status-div {
+    float: right;
+    padding: 5px;
+    text-align: center;
+}
+
+#login-div {
+    text-align: center;
+}
+
+.column-header--select {
+    float: unset !important;
+}
+
+#api-row {
+    position: absolute;
+    margin-top: 10px;
+}
+
+#api-col {
+    display: flex;
+}
+
+#api-container {
+    display: none;
+}
+
+#api-link {
+    cursor: pointer;
+}
+
+#character-table table {
+    table-layout: fixed;
+}
+
+.updatemenu-item-text {
+    pointer-events: none;
+}

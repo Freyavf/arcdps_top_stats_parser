@@ -1,0 +1,154 @@
+body {
+    background-color: #303030;
+    color: #EEE;
+}
+table#summary{
+    table-layout: fixed;
+    width: 100%;
+    text-align: center;
+    background-color: #424242;
+}
+#raids-table table{
+    table-layout: fixed;
+    width: 100%;
+    text-align: center;
+}
+th {
+    background-color: #212121 !important;
+    text-align: center;
+}
+td {
+    background-color: #424242;
+    text-align: center;
+}
+
+#upload-data {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    margin: 10px;
+}
+
+#upload-file {
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    margin: 10px;
+}
+
+#header{
+    display: flex;
+}
+
+#container{
+    max-width: 100%;
+}
+
+#title{
+    text-align: center;
+    margin-top: revert;
+}
+
+#logo{
+    display: block;
+    width: auto;
+    height: auto;
+}
+
+.tableFixHead          { overflow: auto; height: 100px; }
+.tableFixHead thead th { position: sticky; top: 0; z-index: 1; }
+
+.input-row{
+    margin-bottom: 10px;
+}
+
+#input-row-top{
+    display: flex;
+}
+
+#hr-header{
+    margin-top: auto;
+}
+
+.js-plotly-plot .plotly svg a{
+    fill: white !important;
+    text-decoration: none;
+}
+
+.js-plotly-plot .plotly a:hover{
+    text-decoration: none;
+    fill: rgb(116, 0, 0) !important;
+}
+
+#personal-raids-table{
+    padding: 12px;
+}
+
+#api-explain-row{
+    text-align: center;
+}
+
+#api-add-col{
+    display: flex;
+}
+
+#api-characters-row{
+    text-align: center;
+    padding-top: 20px;
+}
+
+.cell-markdown{
+    text-align: center !important;
+}
+
+.cell-markdown p{
+    margin: auto !important;
+}
+
+.cell-markdown img{
+    width: 35px !important;
+}
+
+.cell-markdown a{
+    text-decoration: none;
+    color: white;
+}
+
+.cell-markdown a:hover{
+    color: rgb(116, 0, 0);
+}
+
+#raids-top10-col{
+    margin: auto;
+}
+
+#footnote-heal-barrier{
+    font-size: small;
+    color: #939393;
+}
+
+#footnote-heal-barrier A{
+	text-decoration: none;
+	font-weight: bold;
+	color: white;
+}
+
+#footnote-heal-barrier A:hover{
+	color: rgb(116, 0, 0);
+}
+
+#api-explain-row A{
+	text-decoration: none;
+	font-weight: bold;
+	color: white;
+}
+
+#api-explain-row A:hover{
+	color: rgb(116, 0, 0);
+}
