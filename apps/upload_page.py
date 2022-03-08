@@ -11,6 +11,18 @@ from sqlalchemy.sql.elements import Null
 
 import pandas as pd
 from app import app #, db
+
+import os.path
+from os import listdir
+import sys
+from enum import Enum
+import importlib
+import xlwt
+
+from parse_top_stats_tools import *
+import parser_configs.parser_config_detailed as parser_config
+config = fill_config(parser_config)
+
 #from models import FightSummary, Raid, RaidType
 
 #dropdown_options = [{'label':s.name, 'value':s.id} for s in db.session.query(RaidType).all()]
@@ -95,6 +107,17 @@ def get_temp_data(content):
         content_type, content_string = content.split(',')
         return content_string
 
+@app.callback(Output('raid-summary', 'children'),
+            Input('temp-data', 'data'))
+def show_fights_summary_table(content):
+    if content:
+        print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+        print(print_string)
+        #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
+        return ["Config", print_string]
+        #decoded = base64.b64decode(content)
+        #df_fights = pd.read_excel(io.BytesIO(decoded), sheet_name='fights overview').tail(1).iloc[:,1:]
+        #return ["File Summary",dbc.Table.from_dataframe(df_fights, striped=True, bordered=True, hover=True, class_name='tableFixHead table table-striped table-bordered table-hover')]
 
 #@app.callback(
 #    Output('confirm-raid-delete', 'displayed'), 
@@ -131,13 +154,6 @@ def get_temp_data(content):
 #        return [f'Just removed {row}:{row.raid_date}' for row in row_list]
 #
 #
-@app.callback(Output('raid-summary', 'children'),
-            Input('temp-data', 'data'))
-def show_fights_summary_table(content):
-    if content:
-        decoded = base64.b64decode(content)
-        df_fights = pd.read_excel(io.BytesIO(decoded), sheet_name='fights overview').tail(1).iloc[:,1:]
-        return ["File Summary",dbc.Table.from_dataframe(df_fights, striped=True, bordered=True, hover=True, class_name='tableFixHead table table-striped table-bordered table-hover')]
 #
 #@app.callback(
 #    [Output("temp-raid", "data"),

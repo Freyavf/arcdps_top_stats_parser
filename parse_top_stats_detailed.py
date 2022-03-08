@@ -29,8 +29,8 @@ import xlwt
 from parse_top_stats_tools import *
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-    parser.add_argument('input_directory', help='Directory containing .xml or .json files from arcdps reports')
+    parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in json format and generates top stats.')
+    parser.add_argument('input_directory', help='Directory containing .json files from arcdps reports')
     parser.add_argument('-o', '--output', dest="output_filename", help="Text file to write the computed top stats")
     #parser.add_argument('-f', '--input_filetype', dest="filetype", help="filetype of input files. Currently supports json and xml, defaults to json.", default="json")
     parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="xls file to write the computed top stats")    
