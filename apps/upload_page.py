@@ -7,11 +7,11 @@ from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
 from sqlalchemy.sql.elements import Null
-from helpers import db_writer, graphs
+#from helpers import db_writer, graphs
 
 import pandas as pd
-from app import app, db
-from models import FightSummary, Raid, RaidType
+from app import app #, db
+#from models import FightSummary, Raid, RaidType
 
 dropdown_options = [{'label':s.name, 'value':s.id} for s in db.session.query(RaidType).all()]
 raids_dict = [s.to_dict() for s in db.session.query(FightSummary).all()]
