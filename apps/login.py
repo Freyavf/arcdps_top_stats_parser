@@ -11,7 +11,7 @@ from flask_login import login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import app, db
-from models import User
+#from models import User
 
 
 login = dbc.Row([
@@ -101,15 +101,16 @@ loggin_menu = dbc.Nav(className='menu', children=[
               [State('uname-box', 'value'), State('pwd-box', 'value')])
 def login_button_click(n_clicks, username, password):
     if n_clicks > 0:
-        user = db.session.query(User).filter_by(username = username).first()
-        if user is not None:
-            if check_password_hash(user.password, password):
-                login_user(user)
-                return '/success', ''
-            else:
-                return '/login', 'Incorrect username or password'
-        else:
-            return '/login', 'Incorrect username or password'
+        #user = db.session.query(User).filter_by(username = username).first()
+        #if user is not None:
+        #    if check_password_hash(user.password, password):
+        #        login_user(user)
+        #        return '/success', ''
+        #    else:
+        #        return '/login', 'Incorrect username or password'
+        #else:
+        #    return '/login', 'Incorrect username or password'
+        return '/success', ''
     return '/login', ''
 
 
