@@ -889,6 +889,148 @@ def get_buff_ids_from_json(json_data, config):
 #            else:
 #                config.buffs_stacking_duration.append(abbrev_name)
             
+
+def get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename):
+    # get fight stats
+    fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
+            
+    if first:
+        first = False
+        #if args.filetype == "json":
+        get_buff_ids_from_json(json_data, config)
+        #else:
+        #    get_buff_ids_from_xml(xml_root, config)
+                    
+    # add new entry for this fight in all players
+    for player in players:
+        player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})   
+
+    # don't compute anything for skipped fights
+    if fight.skipped:
+        fights.append(fight)
+        log.write("skipped "+filename)            
+        return used_fights, first, found_healing, found_barrier
+        
+    used_fights += 1
+    fight_number = used_fights-1
+
+    # get stats for each player
+    #for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
+    for player_data in json_data['players']:
+        create_new_player = False
+        build_swapped = False
+
+        #if args.filetype == "xml":
+        #    account, name, profession = get_basic_player_data_from_xml(player_data)
+        #else:
+        account, name, profession = get_basic_player_data_from_json(player_data)                
+
+        # if this combination of charname + profession is not in the player index yet, create a new entry
+        name_and_prof = name+" "+profession
+        if name_and_prof not in player_index.keys():
+            print("creating new player",name_and_prof)
+            create_new_player = True
+
+        # if this account is not in the account index yet, create a new entry
+        if account not in account_index.keys():
+            account_index[account] = [len(players)]
+        elif name_and_prof not in player_index.keys():
+            # if account does already exist, but name/prof combo does not, this player swapped build or character
+            # -> note for all Player instances of this account
+            for ind in range(len(account_index[account])):
+                players[account_index[account][ind]].swapped_build = True
+            account_index[account].append(len(players))
+            build_swapped = True
+
+        if create_new_player:
+            player = Player(account, name, profession)
+            player.initialize(config)
+            player_index[name_and_prof] = len(players)
+            # fill up fights where the player wasn't there yet with empty stats
+            while len(player.stats_per_fight) < used_fights:
+                player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})                
+            players.append(player)
+
+        player = players[player_index[name_and_prof]]
+
+        #if args.filetype == "xml":
+        #    player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
+        #else:
+        player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
+        player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)
+        player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'group', config)
+            
+        # get all stats that are supposed to be computed from the player data
+        for stat in config.stats_to_compute:
+            #if args.filetype == "xml":
+            #    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, players_running_healing_addon, stat, config)
+            #else:
+            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
+                    
+            if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
+                found_healing = True
+            elif stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
+                found_barrier = True                    
+            elif stat == 'dist':
+                player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
+            elif stat == 'dmg_taken':
+                if player.stats_per_fight[fight_number]['time_in_combat'] == 0:
+                    player.stats_per_fight[fight_number]['time_in_combat'] = 1
+                player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['time_in_combat']
+                    
+            # add stats of this fight and player to total stats of this fight and player
+            if player.stats_per_fight[fight_number][stat] > 0:
+                # buff are generation squad values, using total over time
+                if stat in config.buffs_stacking_duration:
+                    #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                elif stat in config.buffs_stacking_intensity:
+                    #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                elif stat == 'dist':
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
+                elif stat == 'dmg_taken':
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
+                else:
+                    # all non-buff stats
+                    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                    
+        if debug:
+            print(name)
+            for stat in player.stats_per_fight[fight_number].keys():
+                print(stat+": "+player.stats_per_fight[fight_number][stat])
+            print("\n")
+
+        player.num_fights_present += 1
+        player.duration_fights_present += fight.duration
+        player.duration_active += player.stats_per_fight[fight_number]['time_active']
+        player.duration_in_combat += player.stats_per_fight[fight_number]['time_in_combat']
+        player.swapped_build |= build_swapped
+
+    # create lists sorted according to stats
+    sortedStats = {key: list() for key in config.stats_to_compute}
+    for stat in config.stats_to_compute:
+        sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number)
+
+    if debug:
+        for stat in config.stats_to_compute:
+            print("sorted "+stat+": "+sortedStats[stat])
+        
+        # increase number of times top x was achieved for top x players in each stat
+    for stat in config.stats_to_compute:
+        increase_top_x_reached(players, sortedStats[stat], config, stat)
+        # round total_stats for this fight
+        fight.total_stats[stat] = round(fight.total_stats[stat])
+
+    fights.append(fight)
+
+    return used_fights, first, found_healing, found_barrier
+
     
 # Collect the top stats data.
 # Input:
@@ -939,147 +1081,23 @@ def collect_stat_data(args, config, log, anonymize=False):
 #        else: # filetype == "json"
         json_datafile = open(file_path, encoding='utf-8')
         json_data = json.load(json_datafile)
-        # get fight stats
-        fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
+
+        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
+
+    get_overall_stats(players, used_fights, anonymize, config)
+                
+    myprint(log, "\n")
+
+    if anonymize:
+        anonymize_players(players, account_index)
+    
+    return players, fights, found_healing, found_barrier
             
-        if first:
-            first = False
-            #if args.filetype == "json":
-            get_buff_ids_from_json(json_data, config)
-            #else:
-            #    get_buff_ids_from_xml(xml_root, config)
-                    
-        # add new entry for this fight in all players
-        for player in players:
-            player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})   
 
-        # don't compute anything for skipped fights
-        if fight.skipped:
-            fights.append(fight)
-            log.write("skipped "+filename)            
-            continue
-        
-        used_fights += 1
-        fight_number = used_fights-1
-
-        # get stats for each player
-        #for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
-        for player_data in json_data['players']:
-            create_new_player = False
-            build_swapped = False
-
-            #if args.filetype == "xml":
-            #    account, name, profession = get_basic_player_data_from_xml(player_data)
-            #else:
-            account, name, profession = get_basic_player_data_from_json(player_data)                
-
-            # if this combination of charname + profession is not in the player index yet, create a new entry
-            name_and_prof = name+" "+profession
-            if name_and_prof not in player_index.keys():
-                print("creating new player",name_and_prof)
-                create_new_player = True
-
-            # if this account is not in the account index yet, create a new entry
-            if account not in account_index.keys():
-                account_index[account] = [len(players)]
-            elif name_and_prof not in player_index.keys():
-                # if account does already exist, but name/prof combo does not, this player swapped build or character
-                # -> note for all Player instances of this account
-                for ind in range(len(account_index[account])):
-                    players[account_index[account][ind]].swapped_build = True
-                account_index[account].append(len(players))
-                build_swapped = True
-
-            if create_new_player:
-                player = Player(account, name, profession)
-                player.initialize(config)
-                player_index[name_and_prof] = len(players)
-                # fill up fights where the player wasn't there yet with empty stats
-                while len(player.stats_per_fight) < used_fights:
-                    player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})                
-                players.append(player)
-
-            player = players[player_index[name_and_prof]]
-
-            #if args.filetype == "xml":
-            #    player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_xml(player_data, players_running_healing_addon, 'time_active', config)
-            #else:
-            player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
-            player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)
-            player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'group', config)
-            
-            # get all stats that are supposed to be computed from the player data
-            for stat in config.stats_to_compute:
-                #if args.filetype == "xml":
-                #    player.stats_per_fight[fight_number][stat] = get_stat_from_player_xml(player_data, players_running_healing_addon, stat, config)
-                #else:
-                player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
-                    
-                if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
-                    found_healing = True
-                elif stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
-                    found_barrier = True                    
-                elif stat == 'dist':
-                    player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
-                elif stat == 'dmg_taken':
-                    if player.stats_per_fight[fight_number]['time_in_combat'] == 0:
-                        player.stats_per_fight[fight_number]['time_in_combat'] = 1
-                    player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['time_in_combat']
-                    
-                # add stats of this fight and player to total stats of this fight and player
-                if player.stats_per_fight[fight_number][stat] > 0:
-                    # buff are generation squad values, using total over time
-                    if stat in config.buffs_stacking_duration:
-                        #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
-                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
-                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
-                    elif stat in config.buffs_stacking_intensity:
-                        #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
-                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
-                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
-                    elif stat == 'dist':
-                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
-                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
-                    elif stat == 'dmg_taken':
-                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
-                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
-                    else:
-                        # all non-buff stats
-                        fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
-                        player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
-                    
-            if debug:
-                print(name)
-                for stat in player.stats_per_fight[fight_number].keys():
-                    print(stat+": "+player.stats_per_fight[fight_number][stat])
-                print("\n")
-
-            player.num_fights_present += 1
-            player.duration_fights_present += fight.duration
-            player.duration_active += player.stats_per_fight[fight_number]['time_active']
-            player.duration_in_combat += player.stats_per_fight[fight_number]['time_in_combat']
-            player.swapped_build |= build_swapped
-
-        # create lists sorted according to stats
-        sortedStats = {key: list() for key in config.stats_to_compute}
-        for stat in config.stats_to_compute:
-            sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number)
-
-        if debug:
-            for stat in config.stats_to_compute:
-                print("sorted "+stat+": "+sortedStats[stat])
-        
-        # increase number of times top x was achieved for top x players in each stat
-        for stat in config.stats_to_compute:
-            increase_top_x_reached(players, sortedStats[stat], config, stat)
-            # round total_stats for this fight
-            fight.total_stats[stat] = round(fight.total_stats[stat])
-
-        fights.append(fight)
-
+def get_overall_stats(players, used_fights, anonymize, config):
     if used_fights == 0:
         #print("ERROR: no valid fights with filetype "+args.filetype+" found in "+args.input_directory)
-        print("ERROR: no valid fights with filetype json found in "+args.input_directory)
+        print("ERROR: no valid fights found.")
         exit(1)
 
     # compute percentage top stats and attendance percentage for each player    
@@ -1100,15 +1118,6 @@ def collect_stat_data(args, config, log, anonymize=False):
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present*100, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present, 2)
-
-                
-    myprint(log, "\n")
-
-    if anonymize:
-        anonymize_players(players, account_index)
-    
-    return players, fights, found_healing, found_barrier
-            
 
 
 # replace all acount names with "account <number>" and all player names with "anon <number>"
