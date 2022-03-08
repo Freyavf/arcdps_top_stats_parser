@@ -118,7 +118,7 @@ def show_fights_summary_table(content):
         log = open(os.devnull,"w")
         decoded = base64.b64decode(content)
         #json_datafile = open(file_path, encoding='utf-8')
-        json_data = json.load(decoded)
+        json_data = json.loads(decoded)
         fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)        
 
         #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
