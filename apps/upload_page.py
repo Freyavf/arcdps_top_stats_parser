@@ -123,7 +123,7 @@ def show_fights_summary_table(content):
 
         #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
 
-        return ["players with addon ", players_running_healing_addon]
+        return ["duration ", fight.duration]
         #decoded = base64.b64decode(content)
         #df_fights = pd.read_excel(io.BytesIO(decoded), sheet_name='fights overview').tail(1).iloc[:,1:]
         #return ["File Summary",dbc.Table.from_dataframe(df_fights, striped=True, bordered=True, hover=True, class_name='tableFixHead table table-striped table-bordered table-hover')]
