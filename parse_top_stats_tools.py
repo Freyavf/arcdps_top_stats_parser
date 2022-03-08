@@ -1072,13 +1072,6 @@ def collect_stat_data(args, config, log, anonymize=False):
         file_path = "".join((args.input_directory,"/",filename))
 
         # load file
-#        if args.filetype == "xml":
-#            # create xml tree
-#            xml_tree = ET.parse(file_path)
-#            xml_root = xml_tree.getroot()
-#            # get fight stats
-#            fight, players_running_healing_addon = get_stats_from_fight_xml(xml_root, config, log)
-#        else: # filetype == "json"
         json_datafile = open(file_path, encoding='utf-8')
         json_data = json.load(json_datafile)
 

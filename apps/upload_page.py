@@ -48,7 +48,7 @@ layout = [
         dbc.Col(dcc.Upload(id='upload-file', children=html.Div([
                     'Drag and Drop or ',
                     html.A('Select Files')
-                ])),md=12)               
+                ]), multiple=True),md=12)               
     ]),
     dbc.Row([
         dbc.Col([
@@ -103,30 +103,77 @@ layout = [
 ]
 
 @app.callback(Output('temp-data', 'data'),
-            Input('upload-file', 'contents'))
-def get_temp_data(content):
-    if content:
+              Input('upload-file', 'contents'),
+              State('upload-file', 'filename'))
+def get_temp_data(list_of_contents, list_of_names):
+    if list_of_contents is None:
+        return
+    
+    print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+    print(print_string)
+
+    log = open(os.devnull,"w")
+
+    # healing only in logs if addon was installed
+    found_healing = False # Todo what if some logs have healing and some don't
+    found_barrier = False    
+
+    players = []        # list of all player/profession combinations
+    player_index = {}   # dictionary that matches each player/profession combo to its index in players list
+    account_index = {}  # dictionary that matches each account name to a list of its indices in players list
+
+    used_fights = 0
+    fights = []
+    first = True
+            
+    for content, filename in zip(list_of_contents, list_of_names):
         content_type, content_string = content.split(',')
-        return content_string
+        decoded = base64.b64decode(content_string)
 
-@app.callback(Output('raid-summary', 'children'),
-            Input('temp-data', 'data'))
-def show_fights_summary_table(content):
-    if content:
-        print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+        # skip files of incorrect filetype
+        file_start, file_extension = os.path.splitext(filename)
+        if 'json' not in file_extension or "top_stats" in file_start:
+            continue
+
+        print_string = "parsing "+filename
         print(print_string)
-        log = open(os.devnull,"w")
-        decoded = base64.b64decode(content)
-        #json_datafile = open(file_path, encoding='utf-8')
-        json_data = json.loads(decoded)
-        fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)        
+        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
 
-        #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
+    get_overall_stats(players, used_fights, anonymize, config)
+    print("\n")
 
-        return ["duration ", fight.duration]
-        #decoded = base64.b64decode(content)
-        #df_fights = pd.read_excel(io.BytesIO(decoded), sheet_name='fights overview').tail(1).iloc[:,1:]
-        #return ["File Summary",dbc.Table.from_dataframe(df_fights, striped=True, bordered=True, hover=True, class_name='tableFixHead table table-striped table-bordered table-hover')]
+    if anonymize:
+        anonymize_players(players, account_index)
+
+    print_string = "Welcome to the CARROT AWARDS!\n"
+    print(print_string)
+
+    # print overall stats
+    overall_squad_stats = get_overall_squad_stats(fights, config)
+    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
+
+    print_fights_overview(fights, overall_squad_stats, config, log)
+        
+    return players, fights, found_healing, found_barrier
+        
+    #return content_string
+
+#@app.callback(Output('raid-summary', 'children'),
+#            Input('temp-data', 'data'))
+#def show_fights_summary_table(content):
+#    if content:
+#        print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+#        print(print_string)
+#        log = open(os.devnull,"w")
+#        decoded = base64.b64decode(content)
+#        #json_datafile = open(file_path, encoding='utf-8')
+#        json_data = json.loads(decoded)
+#        fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)        
+#
+#        #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
+#
+#        return ["duration ", fight.duration]
+
 
 #@app.callback(
 #    Output('confirm-raid-delete', 'displayed'), 
