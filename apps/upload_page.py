@@ -18,6 +18,8 @@ import sys
 from enum import Enum
 import importlib
 import xlwt
+import json
+import jsons
 
 from parse_top_stats_tools import *
 import parser_configs.parser_config_detailed as parser_config
@@ -113,8 +115,15 @@ def show_fights_summary_table(content):
     if content:
         print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
         print(print_string)
-        #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
-        return ["Config", print_string]
+        log = open(os.devnull,"w")
+        decoded = base64.b64decode(content)
+        #json_datafile = open(file_path, encoding='utf-8')
+        json_data = json.load(decoded)
+        fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)        
+
+        #players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
+
+        return ["players with addon ", players_running_healing_addon]
         #decoded = base64.b64decode(content)
         #df_fights = pd.read_excel(io.BytesIO(decoded), sheet_name='fights overview').tail(1).iloc[:,1:]
         #return ["File Summary",dbc.Table.from_dataframe(df_fights, striped=True, bordered=True, hover=True, class_name='tableFixHead table table-striped table-bordered table-hover')]
