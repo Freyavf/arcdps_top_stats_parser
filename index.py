@@ -51,11 +51,11 @@ def display_page(pathname):
             view = login
             url = '/login'
     elif pathname == '/upload':
-        if current_user.is_authenticated:
-            view = upload_page.layout
-        else:
-            view = 'Redirecting to login...'
-            url = '/login'
+        #if current_user.is_authenticated:
+        view = upload_page.layout
+        #else:
+        #    view = 'Redirecting to login...'
+        #    url = '/login'
     elif pathname == '/':
         view = login.login
     else:
