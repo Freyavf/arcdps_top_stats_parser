@@ -20,7 +20,7 @@ app.layout = dbc.Container(id='container', children=[
     dbc.Row(id='header', children=[
         dbc.Col(html.Img(id='logo', src='../assets/logo.png'), sm=1),
         dbc.Col(children=[
-            html.H1('Records of Valhalla', 'title'),
+            html.H1('Writing the Records of Valhalla', 'title'),
             ], sm=10)]),
     html.Hr(id='hr-header'),
     dcc.Store(id='db-update-date'),

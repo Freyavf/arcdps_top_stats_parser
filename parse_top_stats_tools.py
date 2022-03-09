@@ -1501,7 +1501,8 @@ def get_fights_overview_string(fights, overall_squad_stats, config):
     for stat in overall_squad_stats:
         stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
         print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
-    myprint(output, print_string)
+    #myprint(output, print_string)
+    print_string += "\n"
     for i in range(len(fights)):
         fight = fights[i]
         skipped_str = "yes" if fight.skipped else "no"
