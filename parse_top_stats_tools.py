@@ -1536,9 +1536,10 @@ def get_fights_overview_string(fights, overall_squad_stats, config):
         print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
     print_string += "\n\n"
     return print_string
-    
+
+
 def print_fights_overview(fights, overall_squad_stats, config, output):
-    get_fights_overview_string(fights, overall_squad_stats, config)
+    print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     myprint(output, print_string)
 
 
