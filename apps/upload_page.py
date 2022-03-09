@@ -152,15 +152,16 @@ def get_temp_data(list_of_contents, list_of_names):
 
     print_fights_overview(fights, overall_squad_stats, config, log)
         
-    return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "found_healing":found_healing, "found_barrier":found_barrier}
+    return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "overall_stats": overall_squad_stats, "found_healing":found_healing, "found_barrier":found_barrier}
         
     #return content_string
 
-#@app.callback(Output('raid-summary', 'children'),
-#            Input('temp-data', 'data'))
-#def show_fights_summary_table(content):
-#    if content:
-#        print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+@app.callback(Output('raid-summary', 'children'),
+            Input('temp-data', 'data'))
+def show_fights_summary_table(collected_data):
+    if collected_data:
+        print_string = get_fights_overview_string(fights, overall_squad_stats, config, log)
+        return print_string
 #        print(print_string)
 #        log = open(os.devnull,"w")
 #        decoded = base64.b64decode(content)

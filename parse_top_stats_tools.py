@@ -1495,8 +1495,7 @@ def write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_fi
 
     wb.save(xls_output_filename)
 
-
-def print_fights_overview(fights, overall_squad_stats, config, output):
+def get_fights_overview_string(fights, overall_squad_stats, config):
     stat_len = {}
     print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
     for stat in overall_squad_stats:
@@ -1512,7 +1511,8 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
         print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
         for stat in overall_squad_stats:
             print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
-        myprint(output, print_string)
+        #myprint(output, print_string)
+        print_string += "\n"
 
     used_fights = [f for f in fights if not f.skipped]
     num_used_fights = len(used_fights)
@@ -1525,12 +1525,19 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
     mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
     total_kills = sum([f.kills for f in used_fights])
 
-    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
-    myprint(output, print_string)
-    print_string = f"{num_used_fights:>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{skipped_fights:>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"+"  "+f"{total_kills:>5}"
+#    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
+    print_string += "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
+    #myprint(output, print_string)
+    print_string += "\n"
+#    print_string = f"{num_used_fights:>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{skipped_fights:>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"+"  "+f"{total_kills:>5}"
+    print_string += f"{num_used_fights:>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{skipped_fights:>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"+"  "+f"{total_kills:>5}"
     for stat in overall_squad_stats:
         print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
     print_string += "\n\n"
+    return print_string
+    
+def print_fights_overview(fights, overall_squad_stats, config, output):
+    get_fights_overview_string(fights, overall_squad_stats, config)
     myprint(output, print_string)
 
 
