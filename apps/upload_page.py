@@ -152,7 +152,7 @@ def get_temp_data(list_of_contents, list_of_names):
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
 
     print_fights_overview(fights, overall_squad_stats, config, log)
-    print_string = get_fights_overview_string(fights, overall_stats, config)
+    print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     return print_string
 
     #return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "overall_stats": overall_squad_stats, "found_healing":found_healing, "found_barrier":found_barrier}
