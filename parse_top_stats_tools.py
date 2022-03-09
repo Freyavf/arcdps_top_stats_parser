@@ -67,7 +67,6 @@ class Player:
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
         self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
-
 # This class stores information about a fight
 @dataclass
 class Fight:
