@@ -143,9 +143,6 @@ def get_temp_data(list_of_contents, list_of_names):
     get_overall_stats(players, used_fights, False, config)
     print("\n")
 
-    if anonymize:
-        anonymize_players(players, account_index)
-
     print_string = "Welcome to the CARROT AWARDS!\n"
     print(print_string)
 
