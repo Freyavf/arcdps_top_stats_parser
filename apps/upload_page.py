@@ -24,6 +24,8 @@ import jsons
 from parse_top_stats_tools import *
 import parser_configs.parser_config_detailed as parser_config
 config = fill_config(parser_config)
+log = open("log_detailed.txt","w")
+
 
 #from models import FightSummary, Raid, RaidType
 
@@ -112,8 +114,6 @@ def get_temp_data(list_of_contents, list_of_names):
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     print(print_string)
 
-    log = open(os.devnull,"w")
-
     # healing only in logs if addon was installed
     found_healing = False # Todo what if some logs have healing and some don't
     found_barrier = False    
@@ -160,7 +160,7 @@ def get_temp_data(list_of_contents, list_of_names):
             Input('temp-data', 'data'))
 def show_fights_summary_table(collected_data):
     if collected_data:
-        print_string = get_fights_overview_string(fights, overall_squad_stats, config, log)
+        print_string = get_fights_overview_string(collected_data["fights"], collected_data["overall_squad_stats"], config, log)
         return print_string
 #        print(print_string)
 #        log = open(os.devnull,"w")
