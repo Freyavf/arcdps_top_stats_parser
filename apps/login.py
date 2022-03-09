@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from flask_login import login_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import app, db
+from app import app #, db
 #from models import User
 
 
@@ -73,8 +73,8 @@ logged_in_menu = dbc.Nav(className='menu', children=[
             nav=True,
             id='account-dpn',
         ),
-    dbc.NavItem(dbc.NavLink("Home", href='/')),
-    dbc.NavItem(dbc.NavLink("Details", href='/details')),
+#    dbc.NavItem(dbc.NavLink("Home", href='/')),
+#    dbc.NavItem(dbc.NavLink("Details", href='/details')),
     dbc.NavItem(dbc.NavLink("Upload", href='/upload')),
     dbc.NavItem(dbc.NavLink("Logout", href='/logout')),
 ],
@@ -89,9 +89,9 @@ loggin_menu = dbc.Nav(className='menu', children=[
             nav=True,
             id='account-dpn',
         ),
-    dbc.NavItem(dbc.NavLink("Home", href='/')),
+#    dbc.NavItem(dbc.NavLink("Home", href='/')),
     dbc.NavItem(dbc.NavLink("Details", href='/details')),
-    dbc.NavItem(dbc.NavLink("Admin", href='/login')),
+#    dbc.NavItem(dbc.NavLink("Admin", href='/login')),
 ])
 
 
