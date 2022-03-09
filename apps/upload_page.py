@@ -6,14 +6,14 @@ from dash.dependencies import Input, Output, State
 from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
-from dash.long_callback import DiskcacheLongCallbackManager
+#from dash.long_callback import DiskcacheLongCallbackManager
 #from sqlalchemy.sql.elements import Null
 #from helpers import db_writer, graphs
 
 ## Diskcache
-import diskcache
-cache = diskcache.Cache("./cache")
-long_callback_manager = DiskcacheLongCallbackManager(cache)
+#import diskcache
+#cache = diskcache.Cache("./cache")
+#long_callback_manager = DiskcacheLongCallbackManager(cache)
 
 
 import pandas as pd
