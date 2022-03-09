@@ -6,8 +6,15 @@ from dash.dependencies import Input, Output, State
 from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
-from sqlalchemy.sql.elements import Null
+from dash.long_callback import DiskcacheLongCallbackManager
+#from sqlalchemy.sql.elements import Null
 #from helpers import db_writer, graphs
+
+## Diskcache
+import diskcache
+cache = diskcache.Cache("./cache")
+long_callback_manager = DiskcacheLongCallbackManager(cache)
+
 
 import pandas as pd
 from app import app #, db
@@ -105,11 +112,13 @@ layout = [
     #]),
 ]
 
+#@app.long_callback(#Output('fights-table', 'data'),
 @app.callback(#Output('fights-table', 'data'),
               Output('raid-summary', 'children'),
               #Output('temp-data', 'data'),
               Input('upload-file', 'contents'),
-              State('upload-file', 'filename'))
+              State('upload-file', 'filename'),)
+#              manager=long_callback_manager,)
 def get_temp_data(list_of_contents, list_of_names):
     if list_of_contents is None:
         return
@@ -162,7 +171,7 @@ def get_temp_data(list_of_contents, list_of_names):
     book.add_sheet("fights overview")
     book.save(xls_output_filename)
     
-    myprint(output, print_string)
+    #myprint(output, print_string)
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
