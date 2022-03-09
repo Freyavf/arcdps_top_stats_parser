@@ -104,7 +104,8 @@ layout = [
     #]),
 ]
 
-@app.callback(Output('temp-data', 'data'),
+@app.callback(Output('raid-summary', 'children'),
+              #Output('temp-data', 'data'),
               Input('upload-file', 'contents'),
               State('upload-file', 'filename'))
 def get_temp_data(list_of_contents, list_of_names):
@@ -151,17 +152,18 @@ def get_temp_data(list_of_contents, list_of_names):
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
 
     print_fights_overview(fights, overall_squad_stats, config, log)
-        
-    return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "overall_stats": overall_squad_stats, "found_healing":found_healing, "found_barrier":found_barrier}
+    print_string = get_fights_overview_string(fights, overall_stats, config)
+    return print_string
+
+    #return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "overall_stats": overall_squad_stats, "found_healing":found_healing, "found_barrier":found_barrier}
         
     #return content_string
 
-@app.callback(Output('raid-summary', 'children'),
-            Input('temp-data', 'data'))
-def show_fights_summary_table(collected_data):
-    if collected_data:
-        print_string = get_fights_overview_string(collected_data["fights"], collected_data["overall_stats"], config)
-        return print_string
+#@app.callback(Output('raid-summary', 'children'),
+#            Input('temp-data', 'data'))
+#def show_fights_summary_table(collected_data):
+#    if collected_data:
+
 #        print(print_string)
 #        log = open(os.devnull,"w")
 #        decoded = base64.b64decode(content)
