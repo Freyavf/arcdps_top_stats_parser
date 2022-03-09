@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 from dash import dcc, dash
 from dash import html

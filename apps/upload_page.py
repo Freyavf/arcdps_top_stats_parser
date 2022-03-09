@@ -56,7 +56,7 @@ layout = [
         dbc.Col([
             dbc.Row(id='input-row', class_name='input-row', children=[
                 dbc.Col(dcc.Loading(html.Div(id='save-msg'))),
-                dbc.Col(dbc.Input(id='raid-name-input',placeholder='Raid title (optionel)', value='')),
+                #dbc.Col(dbc.Input(id='raid-name-input',placeholder='Raid title (optional)', value='')),
                 #dbc.Col(dcc.Dropdown(id='raid-type-dropdown',
                 #                    placeholder='Select raid type',
                 #                    options=dropdown_options,
@@ -72,14 +72,10 @@ layout = [
     #dbc.Row([
     #    dcc.Loading(html.Div(
     #        dash_table.DataTable(
-    #            id='raids-table',
-    #            columns=[{
-    #                'name': i,
-    #                'id': i,
-    #            } for i in raids_df.columns],
-    #            data=raids_dict,
+    #            id='fights-table',
+    #            data={"testing": "working"},
     #            editable=False,
-    #            row_selectable='multi',
+    #            row_selectable=False,
     #            cell_selectable=False,
     #            style_as_list_view=True,
     #            style_cell={
@@ -104,7 +100,8 @@ layout = [
     #]),
 ]
 
-@app.callback(Output('raid-summary', 'children'),
+@app.callback(#Output('fights-table', 'data'),
+              Output('raid-summary', 'children'),
               #Output('temp-data', 'data'),
               Input('upload-file', 'contents'),
               State('upload-file', 'filename'))
@@ -144,7 +141,7 @@ def get_temp_data(list_of_contents, list_of_names):
     get_overall_stats(players, used_fights, False, config)
     print("\n")
 
-    print_string = "Welcome to the CARROT AWARDS!\n"
+    print_string = "Welcome to the Records of Valhalla!\n"
     print(print_string)
 
     # print overall stats
@@ -152,6 +149,9 @@ def get_temp_data(list_of_contents, list_of_names):
     total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
 
     print_fights_overview(fights, overall_squad_stats, config, log)
+
+    #fights_dict = {fight.start_time: fight.__dict__ for fight in fights}
+
     print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     return print_string
 
