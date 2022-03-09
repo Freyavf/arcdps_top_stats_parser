@@ -127,9 +127,6 @@ def get_temp_data(list_of_contents, list_of_names):
     first = True
             
     for content, filename in zip(list_of_contents, list_of_names):
-        content_type, content_string = content.split(',')
-        decoded = base64.b64decode(content_string)
-
         # skip files of incorrect filetype
         file_start, file_extension = os.path.splitext(filename)
         if 'json' not in file_extension or "top_stats" in file_start:
@@ -137,7 +134,11 @@ def get_temp_data(list_of_contents, list_of_names):
 
         print_string = "parsing "+filename
         print(print_string)
-        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(decoded, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
+
+        content_type, content_string = content.split(',')
+        decoded = base64.b64decode(content_string)
+        json_data = json.loads(decoded)
+        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
 
     get_overall_stats(players, used_fights, anonymize, config)
     print("\n")
