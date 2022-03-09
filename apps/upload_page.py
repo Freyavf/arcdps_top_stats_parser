@@ -160,7 +160,7 @@ def get_temp_data(list_of_contents, list_of_names):
             Input('temp-data', 'data'))
 def show_fights_summary_table(collected_data):
     if collected_data:
-        print_string = get_fights_overview_string(collected_data["fights"], collected_data["overall_squad_stats"], config, log)
+        print_string = get_fights_overview_string(collected_data["fights"], collected_data["overall_stats"], config, log)
         return print_string
 #        print(print_string)
 #        log = open(os.devnull,"w")
