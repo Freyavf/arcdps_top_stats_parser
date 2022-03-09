@@ -140,7 +140,7 @@ def get_temp_data(list_of_contents, list_of_names):
         json_data = json.loads(decoded)
         used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
 
-    get_overall_stats(players, used_fights, anonymize, config)
+    get_overall_stats(players, used_fights, False, config)
     print("\n")
 
     if anonymize:
