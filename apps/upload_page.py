@@ -152,7 +152,7 @@ def get_temp_data(list_of_contents, list_of_names):
 
     print_fights_overview(fights, overall_squad_stats, config, log)
         
-    return players, fights, found_healing, found_barrier
+    return found_barrier #players #, fights, found_healing, found_barrier
         
     #return content_string
 
