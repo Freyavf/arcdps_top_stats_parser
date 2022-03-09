@@ -1509,7 +1509,7 @@ def get_fights_overview_string(fights, overall_squad_stats, config):
         date = fight.start_time.split()[0]
         start_time = fight.start_time.split()[1]
         end_time = fight.end_time.split()[1]        
-        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
+        print_string += f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
         for stat in overall_squad_stats:
             print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
         #myprint(output, print_string)
