@@ -56,10 +56,12 @@ layout = [
     ),
     dbc.Row([dcc.Loading(dbc.Col(id='raid-summary'))]),
     dbc.Row([
-        dbc.Col(dcc.Upload(id='upload-file', children=html.Div([
-                    'Drag and Drop or ',
-                    html.A('Select Files')
-                ]), multiple=True),md=12)               
+        #dbc.Col(dcc.Upload(id='upload-file', children=html.Div([
+        #            'Drag and Drop or ',
+        #            html.A('Select Files')
+        #        ]), multiple=True),md=12)
+        dbc.Col(dbc.Input(id='raid-files',placeholder='links to fight json files (comma-separated)', value='')),
+        dbc.Col(html.Button("Compute Stats", id = "btn_compute_stats")),
     ]),
     dbc.Row([
         dbc.Col([
@@ -112,15 +114,12 @@ layout = [
     #]),
 ]
 
-#@app.long_callback(#Output('fights-table', 'data'),
 @app.callback(#Output('fights-table', 'data'),
               Output('raid-summary', 'children'),
-              #Output('temp-data', 'data'),
-              Input('upload-file', 'contents'),
-              State('upload-file', 'filename'),)
-#              manager=long_callback_manager,)
-def get_temp_data(list_of_contents, list_of_names):
-    if list_of_contents is None:
+              Input('btn_compute_stats', 'n_clicks'),
+              State('raid-files', 'value'),)
+def get_temp_data(n, list_of_files):
+    if list_of_files is None or not n:
         return
 
     log = open("log_detailed.txt","w")
@@ -139,102 +138,106 @@ def get_temp_data(list_of_contents, list_of_names):
     used_fights = 0
     fights = []
     first = True
-            
-    for content, filename in zip(list_of_contents, list_of_names):
-        # skip files of incorrect filetype
-        file_start, file_extension = os.path.splitext(filename)
-        if 'json' not in file_extension or "top_stats" in file_start:
-            continue
 
-        print_string = "parsing "+filename
-        print(print_string)
-
-        content_type, content_string = content.split(',')
-        decoded = base64.b64decode(content_string)
-        json_data = json.loads(decoded)
-        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
-
-    get_overall_stats(players, used_fights, False, config)
-    print("\n")
-
-    print_string = "Welcome to the Records of Valhalla!\n"
-    myprint(output, print_string)
-
-    # print overall stats
-    overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
-
-    print_fights_overview(fights, overall_squad_stats, config, log)
-
-    # create xls file if it doesn't exist
-    book = xlwt.Workbook(encoding="utf-8")
-    book.add_sheet("fights overview")
-    book.save(xls_output_filename)
+    for filename in list_of_files.split(','):
+        print(filename)
     
+    #for content, filename in zip(list_of_contents, list_of_names):
+    #    # skip files of incorrect filetype
+    #    file_start, file_extension = os.path.splitext(filename)
+    #    if 'json' not in file_extension or "top_stats" in file_start:
+    #        continue
+    
+    #    print_string = "parsing "+filename
+    #    print(print_string)
+    
+    #    content_type, content_string = content.split(',')
+    #    decoded = base64.b64decode(content_string)
+    #    json_data = json.loads(decoded)
+    #    used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
+    
+    #get_overall_stats(players, used_fights, False, config)
+    #print("\n")
+    
+    #print_string = "Welcome to the Records of Valhalla!\n"
     #myprint(output, print_string)
-
+    
     # print overall stats
-    overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
-
-    print_fights_overview(fights, overall_squad_stats, config, output)
-    write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_filename)
+    #overall_squad_stats = get_overall_squad_stats(fights, config)
+    #total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
     
-    # print top x players for all stats. If less then x
-    # players, print all. If x-th place doubled, print all with the
-    # same amount of top x achieved.
-    num_used_fights = len([f for f in fights if not f.skipped])
-
-    top_total_stat_players = {key: list() for key in config.stats_to_compute}
-    top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
-    top_average_stat_players = {key: list() for key in config.stats_to_compute}
-    top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
-    top_late_players = {key: list() for key in config.stats_to_compute}
-    top_jack_of_all_trades_players = {key: list() for key in config.stats_to_compute}    
+    #print_fights_overview(fights, overall_squad_stats, config, log)
     
-    for stat in config.stats_to_compute:
-        if (stat == 'heal' and not found_healing) or (stat == 'barrier' and not found_barrier):
-            continue
-
-        myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
-        
-        if stat == 'dist':
-            top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
-            top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
-            top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)            
-            top_percentage_stat_players[stat],comparison_val = get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
-        elif stat == 'dmg_taken':
-            top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
-            top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
-            top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
-            top_average_stat_players[stat] = get_and_write_sorted_average(players, config, num_used_fights, stat, output)
-        else:
-            top_consistent_stat_players[stat] = get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, output)
-            top_total_stat_players[stat] = get_and_write_sorted_total(players, config, total_fight_duration, stat, output)
-            top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
-            top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
-
-    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, json_output_filename)
-
-    for stat in config.stats_to_compute:
-        if stat == 'dist':
-            write_stats_xls(players, top_percentage_stat_players[stat], stat, xls_output_filename)
-        elif stat == 'dmg_taken':
-            write_stats_xls(players, top_average_stat_players[stat], stat, xls_output_filename)
-        elif stat == 'heal' and found_healing:
-            write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)            
-        elif stat == 'barrier' and found_barrier:
-            write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)
-        elif stat == 'deaths':
-            write_stats_xls(players, top_consistent_stat_players[stat], stat, xls_output_filename)
-        else:
-            write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)
-
-    log.close()    
+    # create xls file if it doesn't exist
+    #book = xlwt.Workbook(encoding="utf-8")
+    #book.add_sheet("fights overview")
+    #book.save(xls_output_filename)
+    #
+    ##myprint(output, print_string)
+    #
+    ## print overall stats
+    #overall_squad_stats = get_overall_squad_stats(fights, config)
+    #total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
+    #
+    #print_fights_overview(fights, overall_squad_stats, config, output)
+    #write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_filename)
+    #
+    ## print top x players for all stats. If less then x
+    ## players, print all. If x-th place doubled, print all with the
+    ## same amount of top x achieved.
+    #num_used_fights = len([f for f in fights if not f.skipped])
+    #
+    #top_total_stat_players = {key: list() for key in config.stats_to_compute}
+    #top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
+    #top_average_stat_players = {key: list() for key in config.stats_to_compute}
+    #top_percentage_stat_players = {key: list() for key in config.stats_to_compute}
+    #top_late_players = {key: list() for key in config.stats_to_compute}
+    #top_jack_of_all_trades_players = {key: list() for key in config.stats_to_compute}    
+    #
+    #for stat in config.stats_to_compute:
+    #    if (stat == 'heal' and not found_healing) or (stat == 'barrier' and not found_barrier):
+    #        continue
+    #
+    #    myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
+    #    
+    #    if stat == 'dist':
+    #        top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+    #        top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+    #        top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)            
+    #        top_percentage_stat_players[stat],comparison_val = get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output, StatType.PERCENTAGE, top_consistent_stat_players[stat])
+    #    elif stat == 'dmg_taken':
+    #        top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
+    #        top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
+    #        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+    #        top_average_stat_players[stat] = get_and_write_sorted_average(players, config, num_used_fights, stat, output)
+    #    else:
+    #        top_consistent_stat_players[stat] = get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, output)
+    #        top_total_stat_players[stat] = get_and_write_sorted_total(players, config, total_fight_duration, stat, output)
+    #        top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
+    #        top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
+    #
+    #write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, json_output_filename)
+    #
+    #for stat in config.stats_to_compute:
+    #    if stat == 'dist':
+    #        write_stats_xls(players, top_percentage_stat_players[stat], stat, xls_output_filename)
+    #    elif stat == 'dmg_taken':
+    #        write_stats_xls(players, top_average_stat_players[stat], stat, xls_output_filename)
+    #    elif stat == 'heal' and found_healing:
+    #        write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)            
+    #    elif stat == 'barrier' and found_barrier:
+    #        write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)
+    #    elif stat == 'deaths':
+    #        write_stats_xls(players, top_consistent_stat_players[stat], stat, xls_output_filename)
+    #    else:
+    #        write_stats_xls(players, top_total_stat_players[stat], stat, xls_output_filename)
+    #
+    #log.close()    
+    #
+    #print_string = get_fights_overview_string(fights, overall_squad_stats, config)
+    #return print_string
+    return "blub"
     
-    print_string = get_fights_overview_string(fights, overall_squad_stats, config)
-    return print_string
-
     #return {"players":[player.__dict__ for player in players], "fights":[fight.__dict__ for fight in fights], "overall_stats": overall_squad_stats, "found_healing":found_healing, "found_barrier":found_barrier}
         
     #return content_string

@@ -1,2 +1,7 @@
+top_stats*
+log_detailed.txt
 *~
 __pycache__
+cache
+venv
+*.pyc
