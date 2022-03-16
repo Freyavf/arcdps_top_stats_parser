@@ -116,7 +116,7 @@ class Config:
 # prints output_string to the console and the output_file, with a linebreak at the end
 def myprint(output_file, output_string):
     print(output_string)
-    output_file.write(output_string+"\n")
+    #output_file.write(output_string+"\n")
 
 
 
@@ -1555,6 +1555,6 @@ def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, 
     json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}
     json_dict["top_late_players"] =  {key: value for key, value in top_late_players.items()}
     json_dict["top_jack_of_all_trades_players"] =  {key: value for key, value in top_jack_of_all_trades_players.items()}        
-    with open(output_file, 'w') as json_file:
-        json.dump(json_dict, json_file, indent=4)
+
+    return json_dict
 
