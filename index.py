@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 from urllib.parse import unquote
 
 from app import app
-from apps import login, upload_page
+from apps import login, upload_page, howto_page, contact
 
 server = app.server
 
@@ -58,6 +58,10 @@ def display_page(pathname):
         #else:
         #    view = 'Redirecting to login...'
         #    url = '/login'
+    elif pathname == '/howto':
+        view = howto_page.layout
+    elif pathname == '/contact':
+        view = contact.layout
     elif pathname == '/':
         view = login.login
     else:

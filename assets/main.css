@@ -152,3 +152,15 @@ td {
 #api-explain-row A:hover{
 	color: rgb(116, 0, 0);
 }
+
+.centered-col{
+    align: center;
+    text-align: center;
+}
+
+.bordered-img{
+    margin: 10px;
+    border-style: solid;
+    border-color: white;
+    border-width: thin;
+}
