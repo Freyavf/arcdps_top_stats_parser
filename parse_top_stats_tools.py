@@ -1351,27 +1351,35 @@ def get_overall_squad_stats(fights, config):
     return overall_squad_stats
 
 
+def get_overall_raid_stats(fights):
+    overall_raid_stats = {}
+    used_fights = [f for f in fights if not f.skipped]
+
+    overall_raid_stats['num_used_fights'] = len([f for f in fights if not f.skipped])
+    overall_raid_stats['used_fights_duration'] = sum([f.duration for f in used_fights])
+    overall_raid_stats['date'] = min([f.start_time.split()[0] for f in used_fights])
+    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights])
+    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights])
+    overall_raid_stats['num_skipped_fights'] = len([f for f in fights if f.skipped])
+    overall_raid_stats['min_allies'] = min([f.allies for f in used_fights])
+    overall_raid_stats['max_allies'] = max([f.allies for f in used_fights])    
+    overall_raid_stats['mean_allies'] = sum([f.allies for f in used_fights])/len(used_fights)
+    overall_raid_stats['min_enemies'] = min([f.enemies for f in used_fights])
+    overall_raid_stats['max_enemies'] = max([f.enemies for f in used_fights])        
+    overall_raid_stats['mean_enemies'] = sum([f.enemies for f in used_fights])/len(used_fights)
+    overall_raid_stats['total_kills'] = sum([f.kills for f in used_fights])
+    return overall_raid_stats
+
 
 # print the overall squad stats
-def print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output):
-    used_fights = [f for f in fights if not f.skipped]
-    used_fights_duration = sum([f.duration for f in used_fights])
-    
+def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, found_healing, found_barrier, config, output):
     #get total duration in h, m, s
     total_fight_duration = {}
-    total_fight_duration["h"] = int(used_fights_duration/3600)
-    total_fight_duration["m"] = int((used_fights_duration - total_fight_duration["h"]*3600) / 60)
-    total_fight_duration["s"] = int(used_fights_duration - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
-
-    min_players = min([f.allies for f in used_fights])
-    max_players = max([f.allies for f in used_fights])    
-    mean_players = sum([f.allies for f in used_fights])/len(used_fights)
-    min_enemies = min([f.enemies for f in used_fights])
-    max_enemies = max([f.enemies for f in used_fights])        
-    mean_enemies = sum([f.enemies for f in used_fights])/len(used_fights)
-    total_kills = sum([f.kills for f in used_fights])
+    total_fight_duration["h"] = int(overall_raid_stats['used_fights_duration']/3600)
+    total_fight_duration["m"] = int((overall_raid_stats['used_fights_duration'] - total_fight_duration["h"]*3600) / 60)
+    total_fight_duration["s"] = int(overall_raid_stats['used_fights_duration'] - total_fight_duration["h"]*3600 -  total_fight_duration["m"]*60)
     
-    print_string = "The following stats are computed over "+str(len(used_fights))+" out of "+str(len(fights))+" fights.\n"
+    print_string = "The following stats are computed over "+str(overall_raid_stats['num_used_fights'])+" out of "+str(len(fights))+" fights.\n"
     myprint(output, print_string)
     
     # print total squad stats
@@ -1413,17 +1421,17 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, found_ba
         elif stat == 'dmg_taken':
             print_string += "took "+str(round(overall_squad_stats['dmg_taken']))+" damage"
         elif stat == 'deaths':
-            print_string += "killed "+str(total_kills)+" enemies and had "+str(round(overall_squad_stats['deaths']))+" deaths"
+            print_string += "killed "+str(overall_raid_stats['total_kills'])+" enemies and had "+str(round(overall_squad_stats['deaths']))+" deaths"
             printed_kills = True
 
     if not printed_kills:
-        print_string += ", and killed "+str(total_kills)+" enemies"
+        print_string += ", and killed "+str(overall_raid_stats['total_kills'])+" enemies"
     print_string += " over a total time of "
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
-    print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(len(used_fights))+" fights.\n"
-    print_string += "There were between "+str(min_players)+" and "+str(max_players)+" allied players involved (average "+str(round(mean_players, 1))+" players).\n"
-    print_string += "The squad faced between "+str(min_enemies)+" and "+str(max_enemies)+" enemy players (average "+str(round(mean_enemies, 1))+" players).\n"    
+    print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s in "+str(overall_raid_stats['num_used_fights'])+" fights.\n"
+    print_string += "There were between "+str(overall_raid_stats['min_allies'])+" and "+str(overall_raid_stats['max_allies'])+" allied players involved (average "+str(round(overall_raid_stats['mean_allies'], 1))+" players).\n"
+    print_string += "The squad faced between "+str(overall_raid_stats['min_enemies'])+" and "+str(overall_raid_stats['max_enemies'])+" enemy players (average "+str(round(overall_raid_stats['mean_enemies'], 1))+" players).\n"    
         
     myprint(output, print_string)
     return total_fight_duration
@@ -1434,7 +1442,7 @@ def print_total_squad_stats(fights, overall_squad_stats, found_healing, found_ba
 # fights = list of Fights
 # overall_squad_stats = overall stats of the whole squad
 # xls_output_filename = where to write to
-def write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_filename):
+def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, xls_output_filename):
     book = xlrd.open_workbook(xls_output_filename)
     wb = copy(book)
     if len(book.sheet_names()) == 0 or book.sheet_names()[0] != 'fights overview':
@@ -1469,33 +1477,34 @@ def write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_fi
         for j,stat in enumerate(config.stats_to_compute):
             sheet1.write(i+1, 10+j, fight.total_stats[stat])
 
-    used_fights = [f for f in fights if not f.skipped]
-    used_fights_duration = sum([f.duration for f in used_fights])
-    num_used_fights = len(used_fights)
-    date = min([f.start_time.split()[0] for f in used_fights])
-    start_time = min([f.start_time.split()[1] for f in used_fights])
-    end_time = max([f.end_time.split()[1] for f in used_fights])
-    skipped_fights = len(fights) - num_used_fights
-    mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
-    mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
-    total_kills = sum([f.kills for f in used_fights])
+    #used_fights = [f for f in fights if not f.skipped]
+    #used_fights_duration = sum([f.duration for f in used_fights])
+    #num_used_fights = len(used_fights)
+    #date = min([f.start_time.split()[0] for f in used_fights])
+    #start_time = min([f.start_time.split()[1] for f in used_fights])
+    #end_time = max([f.end_time.split()[1] for f in used_fights])
+    #skipped_fights = len(fights) - num_used_fights
+    #mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
+    #mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
+    #total_kills = sum([f.kills for f in used_fights])
+
     sheet1.write(len(fights)+1, 0, "Sum/Avg. in used fights")
-    sheet1.write(len(fights)+1, 1, num_used_fights)
-    sheet1.write(len(fights)+1, 2, date)
-    sheet1.write(len(fights)+1, 3, start_time)
-    sheet1.write(len(fights)+1, 4, end_time)    
-    sheet1.write(len(fights)+1, 5, used_fights_duration)
-    sheet1.write(len(fights)+1, 6, skipped_fights)
-    sheet1.write(len(fights)+1, 7, mean_allies)    
-    sheet1.write(len(fights)+1, 8, mean_enemies)
-    sheet1.write(len(fights)+1, 9, total_kills)
+    sheet1.write(len(fights)+1, 1, overall_raid_stats['num_used_fights'])
+    sheet1.write(len(fights)+1, 2, overall_raid_stats['date'])
+    sheet1.write(len(fights)+1, 3, overall_raid_stats['start_time'])
+    sheet1.write(len(fights)+1, 4, overall_raid_stats['end_time'])    
+    sheet1.write(len(fights)+1, 5, overall_raid_stats['used_fights_duration'])
+    sheet1.write(len(fights)+1, 6, overall_raid_stats['num_skipped_fights'])
+    sheet1.write(len(fights)+1, 7, overall_raid_stats['mean_allies'])    
+    sheet1.write(len(fights)+1, 8, overall_raid_stats['mean_enemies'])
+    sheet1.write(len(fights)+1, 9, overall_raid_stats['total_kills'])
     for i,stat in enumerate(config.stats_to_compute):
         sheet1.write(len(fights)+1, 10+i, overall_squad_stats[stat])
 
     wb.save(xls_output_filename)
 
 
-def print_fights_overview(fights, overall_squad_stats, config, output):
+def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output):
     stat_len = {}
     print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
     for stat in overall_squad_stats:
@@ -1513,20 +1522,17 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
             print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
         myprint(output, print_string)
 
-    used_fights = [f for f in fights if not f.skipped]
-    num_used_fights = len(used_fights)
-    used_fights_duration = sum([f.duration for f in used_fights])
-    date = min([f.start_time.split()[0] for f in used_fights])
-    start_time = min([f.start_time.split()[1] for f in used_fights])
-    end_time = max([f.end_time.split()[1] for f in used_fights])
-    skipped_fights = len(fights) - num_used_fights
-    mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
-    mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
-    total_kills = sum([f.kills for f in used_fights])
+    #used_fights = [f for f in fights if not f.skipped]
+    #num_used_fights = len(used_fights)
+    #
+    #skipped_fights = len(fights) - num_used_fights
+    #mean_allies = round(sum([f.allies for f in used_fights])/num_used_fights, 1)
+    #mean_enemies = round(sum([f.enemies for f in used_fights])/num_used_fights, 1)
+    #total_kills = sum([f.kills for f in used_fights])
 
-    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len))
+    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len)+7)
     myprint(output, print_string)
-    print_string = f"{num_used_fights:>3}"+"  "+f"{date:>7}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{used_fights_duration:>13}"+"  "+f"{skipped_fights:>7}" +"  "+f"{mean_allies:>11}"+"  "+f"{mean_enemies:>12}"+"  "+f"{total_kills:>5}"
+    print_string = f"{overall_raid_stats['num_used_fights']:>3}"+"  "+f"{overall_raid_stats['date']:>7}"+"  "+f"{overall_raid_stats['start_time']:>10}"+"  "+f"{overall_raid_stats['end_time']:>8}"+"  "+f"{overall_raid_stats['used_fights_duration']:>13}"+"  "+f"{overall_raid_stats['num_skipped_fights']:>7}" +"  "+f"{overall_raid_stats['mean_allies']:>11}"+"  "+f"{overall_raid_stats['mean_enemies']:>12}"+"  "+f"{overall_raid_stats['total_kills']:>5}"
     for stat in overall_squad_stats:
         print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
     print_string += "\n\n"
@@ -1534,8 +1540,9 @@ def print_fights_overview(fights, overall_squad_stats, config, output):
 
 
     
-def write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
+def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
     json_dict = {}
+    json_dict["overall_raid_stats"] = {key: value for key, value in overall_raid_stats.items()}
     json_dict["overall_squad_stats"] = {key: value for key, value in overall_squad_stats.items()}
     json_dict["fights"] = [jsons.dump(fight) for fight in fights]
     json_dict["players"] = [jsons.dump(player) for player in players]

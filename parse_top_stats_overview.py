@@ -75,9 +75,11 @@ if __name__ == '__main__':
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
-    write_fights_overview_xls(fights, overall_squad_stats, config, args.xls_output_filename)    
-    num_used_fights = len([f for f in fights if not f.skipped])
+    overall_raid_stats = get_overall_raid_stats(fights)
+    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, found_healing, found_barrier, config, output)
+    
+    write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, args.xls_output_filename)    
+    num_used_fights = overall_raid_stats['num_used_fights']
     
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
@@ -115,7 +117,7 @@ if __name__ == '__main__':
         top_jack_of_all_trades_players[stat],top_jack_comparison_percentage[stat] = get_top_percentage_players(players, config, stat, StatType.SWAPPED_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], top_late_players[stat])
         top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
 
-    write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
+    write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
     for stat in config.stats_to_compute:
         if stat == 'dist' or stat == 'dmg_taken':
