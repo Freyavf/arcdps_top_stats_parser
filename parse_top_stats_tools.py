@@ -1542,10 +1542,23 @@ def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, confi
     return print_string
 
 
-def print_fights_overview(fights, overall_squad_stats, config, output):
-    print_string = get_fights_overview_string(fights, overall_squad_stats, config)
+def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output):
+    stat_len = {}
+    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
+    for stat in overall_squad_stats:
+        stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
+        print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
     myprint(output, print_string)
-
+    for i in range(len(fights)):
+        fight = fights[i]
+        skipped_str = "yes" if fight.skipped else "no"
+        date = fight.start_time.split()[0]
+        start_time = fight.start_time.split()[1]
+        end_time = fight.end_time.split()[1]        
+        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
+        for stat in overall_squad_stats:
+            print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
+        myprint(output, print_string)   
 
     
 def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):

@@ -67,21 +67,26 @@ def get_json_data(json_links):
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
+    #total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
 
     #print_fights_overview(fights, overall_squad_stats, config, log)
 
     # print overall stats
-    overall_squad_stats = get_overall_squad_stats(fights, config)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
+    #overall_squad_stats = get_overall_squad_stats(fights, config)
+    #total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, output)
 
-    print_fights_overview(fights, overall_squad_stats, config, output)
+    #print_fights_overview(fights, overall_squad_stats, config, output)
     #write_fights_overview_xls(fights, overall_squad_stats, config, xls_output_filename)
+
+    overall_raid_stats = get_overall_raid_stats(fights)
+    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, found_healing, found_barrier, config, output)
     
+    print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output)
+
     # print top x players for all stats. If less then x
     # players, print all. If x-th place doubled, print all with the
     # same amount of top x achieved.
-    num_used_fights = len([f for f in fights if not f.skipped])
+    num_used_fights = overall_raid_stats['num_used_fights']
 
     top_total_stat_players = {key: list() for key in config.stats_to_compute}
     top_consistent_stat_players = {key: list() for key in config.stats_to_compute}
@@ -112,8 +117,8 @@ def get_json_data(json_links):
             top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
             top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
 
-    json_dict = write_to_json(overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, json_output_filename) 
-    
-    print_string = get_fights_overview_string(fights, overall_squad_stats, config)
+    json_dict = write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output)
+
+    #print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     print(f'Raid data retrieved')
     return json_dict
