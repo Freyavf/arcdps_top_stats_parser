@@ -1163,7 +1163,7 @@ def write_sorted_top_percentage(players, top_players, comparison_percentage, con
 # overall_raid_stats = raid stats like start time, end time, total kills, etc.; output of get_overall_raid_stats
 # config = the config to use for stats computation
 # xls_output_filename = where to write to
-def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, overall_raid_stats, config, xls_output_filename):
+def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, xls_output_filename):
     book = xlrd.open_workbook(xls_output_filename)
     wb = copy(book)
     if len(book.sheet_names()) == 0 or book.sheet_names()[0] != 'fights overview':
