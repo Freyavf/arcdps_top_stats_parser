@@ -1359,15 +1359,15 @@ def get_overall_raid_stats(fights):
     overall_raid_stats['num_used_fights'] = len([f for f in fights if not f.skipped])
     overall_raid_stats['used_fights_duration'] = sum([f.duration for f in used_fights])
     overall_raid_stats['date'] = min([f.start_time.split()[0] for f in used_fights])
-    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights])
-    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights])
+    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights]) +" "+ used_fights[0].start_time.split()[2]
+    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights]) +" "+ used_fights[0].end_time.split()[2]
     overall_raid_stats['num_skipped_fights'] = len([f for f in fights if f.skipped])
     overall_raid_stats['min_allies'] = min([f.allies for f in used_fights])
     overall_raid_stats['max_allies'] = max([f.allies for f in used_fights])    
-    overall_raid_stats['mean_allies'] = sum([f.allies for f in used_fights])/len(used_fights)
+    overall_raid_stats['mean_allies'] = round(sum([f.allies for f in used_fights])/len(used_fights), 1)
     overall_raid_stats['min_enemies'] = min([f.enemies for f in used_fights])
     overall_raid_stats['max_enemies'] = max([f.enemies for f in used_fights])        
-    overall_raid_stats['mean_enemies'] = sum([f.enemies for f in used_fights])/len(used_fights)
+    overall_raid_stats['mean_enemies'] = round(sum([f.enemies for f in used_fights])/len(used_fights), 1)
     overall_raid_stats['total_kills'] = sum([f.kills for f in used_fights])
     return overall_raid_stats
 
