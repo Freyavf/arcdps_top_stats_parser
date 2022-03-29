@@ -1,8 +1,12 @@
 #import os
+import logging
 from flask import Flask
 #from apps import json_page
 
 #load_dotenv()
+
+log = logging.getLogger(f'{__name__}')
+logging.basicConfig(filename='app.log', level=logging.INFO)
 
 app = Flask(__name__)
 

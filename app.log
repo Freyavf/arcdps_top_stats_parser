@@ -1,0 +1,763 @@
+ERROR:app:Exception on /log_stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 21, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log_stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 21, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log_stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 21, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 21, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 24, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 23, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 23, in log_stream
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 23, in log_stream
+    @app.route('/json', methods=['POST'])
+NameError: name 'Response' is not defined
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 20, in log_stream
+    return flask_logger()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 14, in flask_logger
+    data = log_info.readlines()[-1]
+IndexError: list index out of range
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 20, in log_stream
+    return flask_logger()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 14, in flask_logger
+    data = log_info.readlines()[-1]
+IndexError: list index out of range
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 20, in log_stream
+    return flask_logger()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 14, in flask_logger
+    data = log_info.readlines()[-1]
+IndexError: list index out of range
+INFO:__name__:2022-03-28 09:36:31.507992 || PROCESSING DATA 
+
+INFO:__name__:2022-03-28 09:36:31.509234 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+
+INFO:__name__:2022-03-28 09:36:31.510028 || https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw 
+
+INFO:__name__:2022-03-28 09:36:31.510668 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:34.932954 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:34.934081 || Getting data from JSON 
+
+ERROR:__name__:2022-03-28 09:36:34.935533 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw'} 
+
+ERROR:__name__:2022-03-28 09:36:34.936110 || 'Logger' object has no attribute 'write' 
+
+INFO:__name__:2022-03-28 09:36:34.936554 || https://dps.report/getJson?permalink=LMJQ-20220325-192416_wvw 
+
+INFO:__name__:2022-03-28 09:36:34.936939 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:37.333274 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:37.334329 || Getting data from JSON 
+
+INFO:__name__:2022-03-28 09:36:37.384337 || Data retrieved 
+
+INFO:__name__:2022-03-28 09:36:37.385153 || https://dps.report/getJson?permalink=7fIX-20220325-192834_wvw 
+
+INFO:__name__:2022-03-28 09:36:37.385650 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:40.572204 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:40.573278 || Getting data from JSON 
+
+INFO:__name__:2022-03-28 09:36:40.618156 || Data retrieved 
+
+INFO:__name__:2022-03-28 09:36:40.618974 || https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw 
+
+INFO:__name__:2022-03-28 09:36:40.619464 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:42.144174 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:42.145325 || Getting data from JSON 
+
+ERROR:__name__:2022-03-28 09:36:42.146879 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw'} 
+
+ERROR:__name__:2022-03-28 09:36:42.147393 || 'Logger' object has no attribute 'write' 
+
+INFO:__name__:2022-03-28 09:36:42.147824 || https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw 
+
+INFO:__name__:2022-03-28 09:36:42.148211 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:45.053582 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:45.054648 || Getting data from JSON 
+
+ERROR:__name__:2022-03-28 09:36:45.056164 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw'} 
+
+ERROR:__name__:2022-03-28 09:36:45.056676 || 'Logger' object has no attribute 'write' 
+
+INFO:__name__:2022-03-28 09:36:45.057112 || https://dps.report/getJson?permalink=onWH-20220325-193442_wvw 
+
+INFO:__name__:2022-03-28 09:36:45.057537 || Getting JSON data 
+
+INFO:__name__:2022-03-28 09:36:54.122735 || JSON data Retrieved 
+
+INFO:__name__:2022-03-28 09:36:54.123813 || Getting data from JSON 
+
+INFO:__name__:2022-03-28 09:36:54.425492 || Data retrieved 
+
+INFO:__name__:2022-03-28 09:36:54.426333 || Getting Raid data 
+
+INFO:__name__:2022-03-28 09:36:54.434488 || Welcome to the Records of Valhalla!
+ 
+
+INFO:__name__:2022-03-28 09:36:55.469293 || Raid data retrieved 
+
+INFO:__name__:2022-03-28 09:36:55.726983 || DONE PROCESSING DATA 
+
+INFO:__name__:2022-03-28 09:44:18.170864 || PROCESSING DATA 
+INFO:__name__:2022-03-28 09:44:18.172842 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:__name__:2022-03-28 09:44:18.173794 || https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw 
+INFO:__name__:2022-03-28 09:44:18.174475 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:19.885574 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:19.886682 || Getting data from JSON 
+ERROR:__name__:2022-03-28 09:44:19.888120 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw'} 
+ERROR:__name__:2022-03-28 09:44:19.888761 || 'Logger' object has no attribute 'write' 
+INFO:__name__:2022-03-28 09:44:19.889238 || https://dps.report/getJson?permalink=LMJQ-20220325-192416_wvw 
+INFO:__name__:2022-03-28 09:44:19.889637 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:24.347261 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:24.348317 || Getting data from JSON 
+INFO:__name__:2022-03-28 09:44:24.399013 || Data retrieved 
+INFO:__name__:2022-03-28 09:44:24.399902 || https://dps.report/getJson?permalink=7fIX-20220325-192834_wvw 
+INFO:__name__:2022-03-28 09:44:24.400509 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:25.987684 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:25.988660 || Getting data from JSON 
+INFO:__name__:2022-03-28 09:44:26.034670 || Data retrieved 
+INFO:__name__:2022-03-28 09:44:26.035495 || https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw 
+INFO:__name__:2022-03-28 09:44:26.035993 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:29.255378 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:29.256470 || Getting data from JSON 
+ERROR:__name__:2022-03-28 09:44:29.258021 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw'} 
+ERROR:__name__:2022-03-28 09:44:29.258550 || 'Logger' object has no attribute 'write' 
+INFO:__name__:2022-03-28 09:44:29.258993 || https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw 
+INFO:__name__:2022-03-28 09:44:29.259383 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:30.447534 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:30.448546 || Getting data from JSON 
+ERROR:__name__:2022-03-28 09:44:30.450194 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw'} 
+ERROR:__name__:2022-03-28 09:44:30.450736 || 'Logger' object has no attribute 'write' 
+INFO:__name__:2022-03-28 09:44:30.451162 || https://dps.report/getJson?permalink=onWH-20220325-193442_wvw 
+INFO:__name__:2022-03-28 09:44:30.451628 || Getting JSON data 
+INFO:__name__:2022-03-28 09:44:38.079572 || JSON data Retrieved 
+INFO:__name__:2022-03-28 09:44:38.080926 || Getting data from JSON 
+INFO:__name__:2022-03-28 09:44:38.382256 || Data retrieved 
+INFO:__name__:2022-03-28 09:44:38.383093 || Getting Raid data 
+INFO:__name__:2022-03-28 09:44:38.391351 || Welcome to the Records of Valhalla! 
+INFO:__name__:2022-03-28 09:44:39.049289 || Raid data retrieved 
+INFO:__name__:2022-03-28 09:44:39.302797 || DONE PROCESSING DATA 
+INFO:app:2022-03-28 09:46:58.277338 || PROCESSING DATA 
+INFO:app:2022-03-28 09:46:58.278478 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:app:2022-03-28 09:46:58.279134 || https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw 
+INFO:app:2022-03-28 09:46:58.279699 || Getting JSON data from https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw
+INFO:app:2022-03-28 09:46:59.961232 || JSON data Retrieved 
+INFO:app:2022-03-28 09:46:59.962374 || Getting data from JSON 
+ERROR:app:2022-03-28 09:46:59.963854 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UJ41-20220325-192212_wvw'} 
+ERROR:app:2022-03-28 09:46:59.964438 || 'Logger' object has no attribute 'write' 
+INFO:app:2022-03-28 09:46:59.964876 || https://dps.report/getJson?permalink=LMJQ-20220325-192416_wvw 
+INFO:app:2022-03-28 09:46:59.965262 || Getting JSON data from https://dps.report/getJson?permalink=LMJQ-20220325-192416_wvw
+INFO:app:2022-03-28 09:47:04.444686 || JSON data Retrieved 
+INFO:app:2022-03-28 09:47:04.445775 || Getting data from JSON 
+INFO:app:2022-03-28 09:47:04.496066 || Data retrieved 
+INFO:app:2022-03-28 09:47:04.496891 || https://dps.report/getJson?permalink=7fIX-20220325-192834_wvw 
+INFO:app:2022-03-28 09:47:04.497378 || Getting JSON data from https://dps.report/getJson?permalink=7fIX-20220325-192834_wvw
+INFO:app:2022-03-28 09:47:06.061941 || JSON data Retrieved 
+INFO:app:2022-03-28 09:47:06.062961 || Getting data from JSON 
+INFO:app:2022-03-28 09:47:06.108629 || Data retrieved 
+INFO:app:2022-03-28 09:47:06.109444 || https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw 
+INFO:app:2022-03-28 09:47:06.110030 || Getting JSON data from https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw
+INFO:app:2022-03-28 09:47:09.312519 || JSON data Retrieved 
+INFO:app:2022-03-28 09:47:09.313699 || Getting data from JSON 
+ERROR:app:2022-03-28 09:47:09.315251 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=4bLV-20220325-193120_wvw'} 
+ERROR:app:2022-03-28 09:47:09.315765 || 'Logger' object has no attribute 'write' 
+INFO:app:2022-03-28 09:47:09.316291 || https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw 
+INFO:app:2022-03-28 09:47:09.316704 || Getting JSON data from https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw
+INFO:app:2022-03-28 09:47:12.142399 || JSON data Retrieved 
+INFO:app:2022-03-28 09:47:12.143494 || Getting data from JSON 
+ERROR:app:2022-03-28 09:47:12.145057 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=UCEL-20220325-193209_wvw'} 
+ERROR:app:2022-03-28 09:47:12.145588 || 'Logger' object has no attribute 'write' 
+INFO:app:2022-03-28 09:47:12.146026 || https://dps.report/getJson?permalink=onWH-20220325-193442_wvw 
+INFO:app:2022-03-28 09:47:12.146488 || Getting JSON data from https://dps.report/getJson?permalink=onWH-20220325-193442_wvw
+INFO:app:2022-03-28 09:47:19.912215 || JSON data Retrieved 
+INFO:app:2022-03-28 09:47:19.913353 || Getting data from JSON 
+INFO:app:2022-03-28 09:47:20.220131 || Data retrieved 
+INFO:app:2022-03-28 09:47:20.220987 || Getting Raid data 
+INFO:app:2022-03-28 09:47:20.229445 || Welcome to the Records of Valhalla! 
+INFO:app:2022-03-28 09:47:20.908257 || Raid data retrieved 
+INFO:app:2022-03-28 09:47:21.165070 || DONE PROCESSING DATA 
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1519, in full_dispatch_request
+    return self.finalize_request(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1538, in finalize_request
+    response = self.make_response(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1731, in make_response
+    "The view function did not return a valid"
+TypeError: The view function did not return a valid response. The return type must be a string, dict, tuple, Response instance, or WSGI callable, but it was a list.
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1519, in full_dispatch_request
+    return self.finalize_request(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1538, in finalize_request
+    response = self.make_response(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1731, in make_response
+    "The view function did not return a valid"
+TypeError: The view function did not return a valid response. The return type must be a string, dict, tuple, Response instance, or WSGI callable, but it was a generator.
+ERROR:app:Exception on /log-stream [GET]
+Traceback (most recent call last):
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1519, in full_dispatch_request
+    return self.finalize_request(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1538, in finalize_request
+    response = self.make_response(rv)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1702, in make_response
+    f"The view function for {request.endpoint!r} did not"
+TypeError: The view function for 'log_stream' did not return a valid response. The function either returned None or ended without a return statement.
+INFO:json_logger:2022-03-28 10:46:09.826451 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:46:09.828129 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 10:46:09.829143 || Getting Raid data 
+CRITICAL:concurrent.futures:Exception in worker
+Traceback (most recent call last):
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 80, in _worker
+    work_item.run()
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 59, in run
+    self.future.set_exception(exc)
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 534, in set_exception
+    self._invoke_callbacks()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 324, in _invoke_callbacks
+    callback(self)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 238, in finish_request
+    (keepalive, conn) = fs.result()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 425, in result
+    return self.__get_result()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 384, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 57, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 271, in handle
+    keepalive = self.handle_request(req, conn)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 323, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2091, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 43, in retrieve_data
+    json_dict = get_json_data(links)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 105, in get_json_data
+    get_overall_stats(players, used_fights, False, config)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/parse_top_stats_tools.py", line 1093, in get_overall_stats
+    exit(1)
+  File "/usr/lib/python3.7/_sitebuiltins.py", line 26, in __call__
+    raise SystemExit(code)
+SystemExit: 1
+INFO:json_logger:2022-03-28 10:50:12.211299 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:50:12.212826 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 10:50:12.213823 || Getting Raid data 
+CRITICAL:concurrent.futures:Exception in worker
+Traceback (most recent call last):
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 80, in _worker
+    work_item.run()
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 59, in run
+    self.future.set_exception(exc)
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 534, in set_exception
+    self._invoke_callbacks()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 324, in _invoke_callbacks
+    callback(self)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 238, in finish_request
+    (keepalive, conn) = fs.result()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 425, in result
+    return self.__get_result()
+  File "/usr/lib/python3.7/concurrent/futures/_base.py", line 384, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.7/concurrent/futures/thread.py", line 57, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 271, in handle
+    keepalive = self.handle_request(req, conn)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/gunicorn/workers/gthread.py", line 323, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2091, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/.venv/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 43, in retrieve_data
+    json_dict = get_json_data(links)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/apps/json_page.py", line 105, in get_json_data
+    get_overall_stats(players, used_fights, False, config)
+  File "/home/pi/Documents/Projects/arcdps_top_stats_parser/parse_top_stats_tools.py", line 1093, in get_overall_stats
+    exit(1)
+  File "/usr/lib/python3.7/_sitebuiltins.py", line 26, in __call__
+    raise SystemExit(code)
+SystemExit: 1
+INFO:json_logger:2022-03-28 10:54:47.289092 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:54:47.291064 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 10:54:47.292087 || https://dps.report/getJson?permalink=bxLP-20220325-192212_wvw 
+INFO:json_logger:2022-03-28 10:54:47.293065 || Getting JSON data from https://dps.report/getJson?permalink=bxLP-20220325-192212_wvw
+INFO:json_logger:2022-03-28 10:54:51.697139 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:54:51.698418 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:54:51.749368 || Data retrieved 
+INFO:json_logger:2022-03-28 10:54:51.750663 || https://dps.report/getJson?permalink=iDGD-20220325-192416_wvw 
+INFO:json_logger:2022-03-28 10:54:51.751393 || Getting JSON data from https://dps.report/getJson?permalink=iDGD-20220325-192416_wvw
+INFO:json_logger:2022-03-28 10:54:54.887763 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:54:54.889218 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:54:54.891175 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=iDGD-20220325-192416_wvw'} 
+ERROR:json_logger:2022-03-28 10:54:54.892026 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:54:54.892696 || https://dps.report/getJson?permalink=hX0j-20220325-192834_wvw 
+INFO:json_logger:2022-03-28 10:54:54.893299 || Getting JSON data from https://dps.report/getJson?permalink=hX0j-20220325-192834_wvw
+INFO:json_logger:2022-03-28 10:54:57.819538 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:54:57.821018 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:54:57.822791 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=hX0j-20220325-192834_wvw'} 
+ERROR:json_logger:2022-03-28 10:54:57.823557 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:54:57.824217 || https://dps.report/getJson?permalink=ZGut-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 10:54:57.824817 || Getting JSON data from https://dps.report/getJson?permalink=ZGut-20220325-193120_wvw
+INFO:json_logger:2022-03-28 10:55:00.760096 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:55:00.761484 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:55:00.810038 || Data retrieved 
+INFO:json_logger:2022-03-28 10:55:00.811173 || https://dps.report/getJson?permalink=muvT-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 10:55:00.811885 || Getting JSON data from https://dps.report/getJson?permalink=muvT-20220325-193209_wvw
+INFO:json_logger:2022-03-28 10:55:04.171719 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:55:04.173111 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:55:04.174985 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=muvT-20220325-193209_wvw'} 
+ERROR:json_logger:2022-03-28 10:55:04.175755 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:55:04.176406 || https://dps.report/getJson?permalink=YVMC-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 10:55:04.177013 || Getting JSON data from https://dps.report/getJson?permalink=YVMC-20220325-193442_wvw
+INFO:json_logger:2022-03-28 10:55:13.140140 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:55:13.141611 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:55:13.442612 || Data retrieved 
+INFO:json_logger:2022-03-28 10:55:13.443773 || Getting Raid data 
+INFO:json_logger:2022-03-28 10:55:13.452141 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 10:55:14.532492 || Raid data retrieved 
+INFO:json_logger:2022-03-28 10:55:14.787899 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:56:07.168847 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:56:07.170437 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 10:56:07.171478 || https://dps.report/getJson?permalink=zNLs-20220325-192416_wvw 
+INFO:json_logger:2022-03-28 10:56:07.172366 || Getting JSON data from https://dps.report/getJson?permalink=zNLs-20220325-192416_wvw
+INFO:json_logger:2022-03-28 10:56:09.967556 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:09.968979 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:56:09.970677 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=zNLs-20220325-192416_wvw'} 
+ERROR:json_logger:2022-03-28 10:56:09.971494 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:56:09.972152 || https://dps.report/getJson?permalink=hP2i-20220325-192834_wvw 
+INFO:json_logger:2022-03-28 10:56:09.972757 || Getting JSON data from https://dps.report/getJson?permalink=hP2i-20220325-192834_wvw
+INFO:json_logger:2022-03-28 10:56:14.074519 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:14.075978 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:56:14.184964 || Data retrieved 
+INFO:json_logger:2022-03-28 10:56:14.186126 || https://dps.report/getJson?permalink=bQvH-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 10:56:14.186851 || Getting JSON data from https://dps.report/getJson?permalink=bQvH-20220325-193120_wvw
+INFO:json_logger:2022-03-28 10:56:17.467529 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:17.469024 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:56:17.470758 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=bQvH-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 10:56:17.471597 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:56:17.472264 || https://dps.report/getJson?permalink=DX3W-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 10:56:17.472877 || Getting JSON data from https://dps.report/getJson?permalink=DX3W-20220325-193209_wvw
+INFO:json_logger:2022-03-28 10:56:20.387683 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:20.389157 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:56:20.439053 || Data retrieved 
+INFO:json_logger:2022-03-28 10:56:20.440297 || https://dps.report/getJson?permalink=PpBC-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 10:56:20.441026 || Getting JSON data from https://dps.report/getJson?permalink=PpBC-20220325-193442_wvw
+INFO:json_logger:2022-03-28 10:56:24.651810 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:24.653298 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:56:24.700755 || Data retrieved 
+INFO:json_logger:2022-03-28 10:56:24.701914 || https://dps.report/getJson?permalink=Fe8L-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 10:56:24.702637 || Getting JSON data from https://dps.report/getJson?permalink=Fe8L-20220326-102301_wvw
+INFO:json_logger:2022-03-28 10:56:28.238210 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:28.239741 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:56:28.242023 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=Fe8L-20220326-102301_wvw'} 
+ERROR:json_logger:2022-03-28 10:56:28.242817 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:56:28.243478 || Getting Raid data 
+INFO:json_logger:2022-03-28 10:56:28.254740 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 10:56:29.093437 || Raid data retrieved 
+INFO:json_logger:2022-03-28 10:56:29.160604 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:56:55.322369 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 10:56:55.323854 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 10:56:55.324862 || https://dps.report/getJson?permalink=v0Lw-20220325-192416_wvw 
+INFO:json_logger:2022-03-28 10:56:55.325746 || Getting JSON data from https://dps.report/getJson?permalink=v0Lw-20220325-192416_wvw
+INFO:json_logger:2022-03-28 10:56:58.685684 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:56:58.686920 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:56:58.688581 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=v0Lw-20220325-192416_wvw'} 
+ERROR:json_logger:2022-03-28 10:56:58.689351 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:56:58.690275 || https://dps.report/getJson?permalink=J2n4-20220325-192834_wvw 
+INFO:json_logger:2022-03-28 10:56:58.690945 || Getting JSON data from https://dps.report/getJson?permalink=J2n4-20220325-192834_wvw
+INFO:json_logger:2022-03-28 10:57:01.847216 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:57:01.848700 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:57:01.850425 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=J2n4-20220325-192834_wvw'} 
+ERROR:json_logger:2022-03-28 10:57:01.851256 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:57:01.851909 || https://dps.report/getJson?permalink=aJ7O-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 10:57:01.852505 || Getting JSON data from https://dps.report/getJson?permalink=aJ7O-20220325-193120_wvw
+INFO:json_logger:2022-03-28 10:57:06.002636 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:57:06.004102 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:57:06.054948 || Data retrieved 
+INFO:json_logger:2022-03-28 10:57:06.056077 || https://dps.report/getJson?permalink=oHtB-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 10:57:06.056783 || Getting JSON data from https://dps.report/getJson?permalink=oHtB-20220325-193209_wvw
+INFO:json_logger:2022-03-28 10:57:09.075869 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:57:09.077231 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:57:09.123302 || Data retrieved 
+INFO:json_logger:2022-03-28 10:57:09.124432 || https://dps.report/getJson?permalink=RqqU-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 10:57:09.125150 || Getting JSON data from https://dps.report/getJson?permalink=RqqU-20220325-193442_wvw
+INFO:json_logger:2022-03-28 10:57:13.250693 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:57:13.252156 || Getting data from JSON 
+INFO:json_logger:2022-03-28 10:57:13.341340 || Data retrieved 
+INFO:json_logger:2022-03-28 10:57:13.342512 || https://dps.report/getJson?permalink=2SKO-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 10:57:13.343338 || Getting JSON data from https://dps.report/getJson?permalink=2SKO-20220326-102301_wvw
+INFO:json_logger:2022-03-28 10:57:16.681927 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 10:57:16.683392 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 10:57:16.685355 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=2SKO-20220326-102301_wvw'} 
+ERROR:json_logger:2022-03-28 10:57:16.686139 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 10:57:16.686805 || Getting Raid data 
+INFO:json_logger:2022-03-28 10:57:16.698309 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 10:57:17.507269 || Raid data retrieved 
+INFO:json_logger:2022-03-28 10:57:17.558155 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:04:41.743192 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:04:41.744803 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 11:04:41.745794 || https://dps.report/getJson?permalink=ljfy-20220325-192416_wvw 
+INFO:json_logger:2022-03-28 11:04:41.746662 || Getting JSON data from https://dps.report/getJson?permalink=ljfy-20220325-192416_wvw
+INFO:json_logger:2022-03-28 11:04:45.143054 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:04:45.144509 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:04:45.146262 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=ljfy-20220325-192416_wvw'} 
+ERROR:json_logger:2022-03-28 11:04:45.147140 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:04:45.147804 || https://dps.report/getJson?permalink=XOAa-20220325-192834_wvw 
+INFO:json_logger:2022-03-28 11:04:45.148393 || Getting JSON data from https://dps.report/getJson?permalink=XOAa-20220325-192834_wvw
+INFO:json_logger:2022-03-28 11:04:48.276271 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:04:48.277686 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:04:48.279235 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=XOAa-20220325-192834_wvw'} 
+ERROR:json_logger:2022-03-28 11:04:48.280183 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:04:48.280903 || https://dps.report/getJson?permalink=IXdI-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 11:04:48.281518 || Getting JSON data from https://dps.report/getJson?permalink=IXdI-20220325-193120_wvw
+INFO:json_logger:2022-03-28 11:04:51.438221 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:04:51.439615 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:04:51.441376 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=IXdI-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 11:04:51.442179 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:04:51.442840 || https://dps.report/getJson?permalink=9J9p-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 11:04:51.443434 || Getting JSON data from https://dps.report/getJson?permalink=9J9p-20220325-193209_wvw
+INFO:json_logger:2022-03-28 11:04:54.344873 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:04:54.346289 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:04:54.396371 || Data retrieved 
+INFO:json_logger:2022-03-28 11:04:54.397516 || https://dps.report/getJson?permalink=i1NG-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 11:04:54.398227 || Getting JSON data from https://dps.report/getJson?permalink=i1NG-20220325-193442_wvw
+INFO:json_logger:2022-03-28 11:04:58.565077 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:04:58.566549 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:04:58.613792 || Data retrieved 
+INFO:json_logger:2022-03-28 11:04:58.615029 || https://dps.report/getJson?permalink=5QUL-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 11:04:58.615760 || Getting JSON data from https://dps.report/getJson?permalink=5QUL-20220326-102301_wvw
+INFO:json_logger:2022-03-28 11:05:02.829162 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:02.830706 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:05:02.942812 || Data retrieved 
+INFO:json_logger:2022-03-28 11:05:02.943956 || Getting Raid data 
+INFO:json_logger:2022-03-28 11:05:02.955430 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 11:05:03.741016 || Raid data retrieved 
+INFO:json_logger:2022-03-28 11:05:03.823222 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:05:37.648691 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:05:37.650540 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 11:05:37.651583 || https://dps.report/getJson?permalink=E10S-20220325-192416_wvw 
+INFO:json_logger:2022-03-28 11:05:37.652474 || Getting JSON data from https://dps.report/getJson?permalink=E10S-20220325-192416_wvw
+INFO:json_logger:2022-03-28 11:05:40.946559 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:40.947822 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:05:40.949416 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=E10S-20220325-192416_wvw'} 
+ERROR:json_logger:2022-03-28 11:05:40.950496 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:05:40.951190 || https://dps.report/getJson?permalink=ZbW9-20220325-192834_wvw 
+INFO:json_logger:2022-03-28 11:05:40.951793 || Getting JSON data from https://dps.report/getJson?permalink=ZbW9-20220325-192834_wvw
+INFO:json_logger:2022-03-28 11:05:42.752490 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:42.753789 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:05:42.755518 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=ZbW9-20220325-192834_wvw'} 
+ERROR:json_logger:2022-03-28 11:05:42.756301 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:05:42.756983 || https://dps.report/getJson?permalink=p402-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 11:05:42.757578 || Getting JSON data from https://dps.report/getJson?permalink=p402-20220325-193120_wvw
+INFO:json_logger:2022-03-28 11:05:46.233125 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:46.234521 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:05:46.236162 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=p402-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 11:05:46.236935 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:05:46.237590 || https://dps.report/getJson?permalink=6Gul-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 11:05:46.238165 || Getting JSON data from https://dps.report/getJson?permalink=6Gul-20220325-193209_wvw
+INFO:json_logger:2022-03-28 11:05:50.443948 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:50.445349 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:05:50.496693 || Data retrieved 
+INFO:json_logger:2022-03-28 11:05:50.497822 || https://dps.report/getJson?permalink=djCU-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 11:05:50.498541 || Getting JSON data from https://dps.report/getJson?permalink=djCU-20220325-193442_wvw
+INFO:json_logger:2022-03-28 11:05:53.772512 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:53.773977 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:05:53.819571 || Data retrieved 
+INFO:json_logger:2022-03-28 11:05:53.820794 || https://dps.report/getJson?permalink=16YF-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 11:05:53.821502 || Getting JSON data from https://dps.report/getJson?permalink=16YF-20220326-102301_wvw
+INFO:json_logger:2022-03-28 11:05:58.113193 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:05:58.114696 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:05:58.203704 || Data retrieved 
+INFO:json_logger:2022-03-28 11:05:58.204876 || Getting Raid data 
+INFO:json_logger:2022-03-28 11:05:58.216363 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 11:05:58.967712 || Raid data retrieved 
+INFO:json_logger:2022-03-28 11:05:59.048165 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:07:27.054246 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:07:27.055883 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 11:07:27.056874 || https://dps.report/getJson?permalink=g18D-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 11:07:27.057757 || Getting JSON data from https://dps.report/getJson?permalink=g18D-20220325-193120_wvw
+INFO:json_logger:2022-03-28 11:07:30.201277 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:07:30.202635 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:07:30.204256 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=g18D-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 11:07:30.205180 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:07:30.205832 || https://dps.report/getJson?permalink=Rdcn-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 11:07:30.206455 || Getting JSON data from https://dps.report/getJson?permalink=Rdcn-20220325-193209_wvw
+INFO:json_logger:2022-03-28 11:07:33.546172 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:07:33.547548 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:07:33.549225 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=Rdcn-20220325-193209_wvw'} 
+ERROR:json_logger:2022-03-28 11:07:33.550165 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:07:33.550892 || https://dps.report/getJson?permalink=wzLr-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 11:07:33.551499 || Getting JSON data from https://dps.report/getJson?permalink=wzLr-20220325-193442_wvw
+INFO:json_logger:2022-03-28 11:07:36.668552 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:07:36.670048 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:07:36.671682 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=wzLr-20220325-193442_wvw'} 
+ERROR:json_logger:2022-03-28 11:07:36.672446 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:07:36.673087 || https://dps.report/getJson?permalink=HBlv-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 11:07:36.673684 || Getting JSON data from https://dps.report/getJson?permalink=HBlv-20220326-102301_wvw
+INFO:json_logger:2022-03-28 11:07:40.760814 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:07:40.762376 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:07:40.873960 || Data retrieved 
+INFO:json_logger:2022-03-28 11:07:40.875113 || Getting Raid data 
+INFO:json_logger:2022-03-28 11:07:40.881033 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 11:07:41.286774 || Raid data retrieved 
+INFO:json_logger:2022-03-28 11:07:41.367641 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:09:07.676238 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:09:07.677686 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 11:09:07.678682 || https://dps.report/getJson?permalink=aCRr-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 11:09:07.679566 || Getting JSON data from https://dps.report/getJson?permalink=aCRr-20220325-193120_wvw
+INFO:json_logger:2022-03-28 11:09:11.010680 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:09:11.011992 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:09:11.013634 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=aCRr-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 11:09:11.014403 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:09:11.015057 || https://dps.report/getJson?permalink=afQC-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 11:09:11.015644 || Getting JSON data from https://dps.report/getJson?permalink=afQC-20220325-193209_wvw
+INFO:json_logger:2022-03-28 11:09:14.094768 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:09:14.096226 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:09:14.097787 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=afQC-20220325-193209_wvw'} 
+ERROR:json_logger:2022-03-28 11:09:14.098658 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:09:14.099338 || https://dps.report/getJson?permalink=U0L5-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 11:09:14.100188 || Getting JSON data from https://dps.report/getJson?permalink=U0L5-20220325-193442_wvw
+INFO:json_logger:2022-03-28 11:09:17.148805 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:09:17.150332 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:09:17.151932 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=U0L5-20220325-193442_wvw'} 
+ERROR:json_logger:2022-03-28 11:09:17.152701 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:09:17.153357 || https://dps.report/getJson?permalink=1R0D-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 11:09:17.153979 || Getting JSON data from https://dps.report/getJson?permalink=1R0D-20220326-102301_wvw
+INFO:json_logger:2022-03-28 11:09:21.411962 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:09:21.413444 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:09:21.522357 || Data retrieved 
+INFO:json_logger:2022-03-28 11:09:21.523518 || Getting Raid data 
+INFO:json_logger:2022-03-28 11:09:21.529319 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 11:09:21.888702 || Raid data retrieved 
+INFO:json_logger:2022-03-28 11:09:21.969130 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:10:47.707847 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 11:10:47.709280 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 11:10:47.710627 || https://dps.report/getJson?permalink=Wqs2-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 11:10:47.711614 || Getting JSON data from https://dps.report/getJson?permalink=Wqs2-20220325-193120_wvw
+INFO:json_logger:2022-03-28 11:10:50.726234 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:10:50.728230 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:10:50.729957 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=Wqs2-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 11:10:50.730834 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:10:50.731609 || https://dps.report/getJson?permalink=ZG0O-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 11:10:50.732222 || Getting JSON data from https://dps.report/getJson?permalink=ZG0O-20220325-193209_wvw
+INFO:json_logger:2022-03-28 11:10:53.863173 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:10:53.864534 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:10:53.866062 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=ZG0O-20220325-193209_wvw'} 
+ERROR:json_logger:2022-03-28 11:10:53.866827 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:10:53.867480 || https://dps.report/getJson?permalink=xd4w-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 11:10:53.868075 || Getting JSON data from https://dps.report/getJson?permalink=xd4w-20220325-193442_wvw
+INFO:json_logger:2022-03-28 11:10:57.466805 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:10:57.468193 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 11:10:57.469946 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=xd4w-20220325-193442_wvw'} 
+ERROR:json_logger:2022-03-28 11:10:57.470779 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 11:10:57.471450 || https://dps.report/getJson?permalink=hj5K-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 11:10:57.472038 || Getting JSON data from https://dps.report/getJson?permalink=hj5K-20220326-102301_wvw
+INFO:json_logger:2022-03-28 11:11:01.464373 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 11:11:01.465783 || Getting data from JSON 
+INFO:json_logger:2022-03-28 11:11:01.553630 || Data retrieved 
+INFO:json_logger:2022-03-28 11:11:01.554780 || Getting Raid data 
+INFO:json_logger:2022-03-28 11:11:01.560776 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 11:11:01.887549 || Raid data retrieved 
+INFO:json_logger:2022-03-28 11:11:01.968167 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 12:38:53.792280 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 12:38:53.793761 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 12:38:53.794749 || https://dps.report/getJson?permalink=Yk12-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 12:38:53.795624 || Getting JSON data from https://dps.report/getJson?permalink=Yk12-20220325-193120_wvw
+INFO:json_logger:2022-03-28 12:38:56.717223 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 12:38:56.718772 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 12:38:56.720458 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=Yk12-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 12:38:56.721345 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 12:38:56.722005 || https://dps.report/getJson?permalink=NNDq-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 12:38:56.722590 || Getting JSON data from https://dps.report/getJson?permalink=NNDq-20220325-193209_wvw
+INFO:json_logger:2022-03-28 12:39:01.406912 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 12:39:01.408300 || Getting data from JSON 
+INFO:json_logger:2022-03-28 12:39:01.521535 || Data retrieved 
+INFO:json_logger:2022-03-28 12:39:01.522711 || https://dps.report/getJson?permalink=YrTy-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 12:39:01.523423 || Getting JSON data from https://dps.report/getJson?permalink=YrTy-20220325-193442_wvw
+INFO:json_logger:2022-03-28 12:39:04.547936 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 12:39:04.549366 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 12:39:04.551183 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=YrTy-20220325-193442_wvw'} 
+ERROR:json_logger:2022-03-28 12:39:04.551956 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 12:39:04.552606 || https://dps.report/getJson?permalink=wYOT-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 12:39:04.553200 || Getting JSON data from https://dps.report/getJson?permalink=wYOT-20220326-102301_wvw
+INFO:json_logger:2022-03-28 12:39:07.982456 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 12:39:07.983863 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 12:39:07.985502 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=wYOT-20220326-102301_wvw'} 
+ERROR:json_logger:2022-03-28 12:39:07.986249 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 12:39:07.986889 || Getting Raid data 
+INFO:json_logger:2022-03-28 12:39:07.992793 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 12:39:08.382867 || Raid data retrieved 
+INFO:json_logger:2022-03-28 12:39:08.445792 || DONE PROCESSING DATA 
+INFO:json_logger:2022-03-28 15:10:15.014653 || PROCESSING DATA 
+INFO:json_logger:2022-03-28 15:10:15.016091 || Considering fights with at least 10 allied players and at least 10 enemies that took longer than 30 s. 
+INFO:json_logger:2022-03-28 15:10:15.020056 || https://dps.report/getJson?permalink=GIQs-20220325-193120_wvw 
+INFO:json_logger:2022-03-28 15:10:15.021593 || Getting JSON data from https://dps.report/getJson?permalink=GIQs-20220325-193120_wvw
+INFO:json_logger:2022-03-28 15:10:18.424588 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 15:10:18.426063 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 15:10:18.427735 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=GIQs-20220325-193120_wvw'} 
+ERROR:json_logger:2022-03-28 15:10:18.428515 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 15:10:18.429168 || https://dps.report/getJson?permalink=ckhO-20220325-193209_wvw 
+INFO:json_logger:2022-03-28 15:10:18.429771 || Getting JSON data from https://dps.report/getJson?permalink=ckhO-20220325-193209_wvw
+INFO:json_logger:2022-03-28 15:10:21.758179 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 15:10:21.759675 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 15:10:21.762122 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=ckhO-20220325-193209_wvw'} 
+ERROR:json_logger:2022-03-28 15:10:21.762935 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 15:10:21.763593 || https://dps.report/getJson?permalink=iDjC-20220325-193442_wvw 
+INFO:json_logger:2022-03-28 15:10:21.764184 || Getting JSON data from https://dps.report/getJson?permalink=iDjC-20220325-193442_wvw
+INFO:json_logger:2022-03-28 15:10:24.551518 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 15:10:24.552983 || Getting data from JSON 
+ERROR:json_logger:2022-03-28 15:10:24.554552 || Couldnt get json/data from {'href': 'https://dps.report/getJson?permalink=iDjC-20220325-193442_wvw'} 
+ERROR:json_logger:2022-03-28 15:10:24.555329 || 'Logger' object has no attribute 'write' 
+INFO:json_logger:2022-03-28 15:10:24.555986 || https://dps.report/getJson?permalink=KUtq-20220326-102301_wvw 
+INFO:json_logger:2022-03-28 15:10:24.556567 || Getting JSON data from https://dps.report/getJson?permalink=KUtq-20220326-102301_wvw
+INFO:json_logger:2022-03-28 15:10:28.888142 || JSON data Retrieved 
+INFO:json_logger:2022-03-28 15:10:28.889634 || Getting data from JSON 
+INFO:json_logger:2022-03-28 15:10:28.977922 || Data retrieved 
+INFO:json_logger:2022-03-28 15:10:28.979162 || Getting Raid data 
+INFO:json_logger:2022-03-28 15:10:28.985428 || Welcome to the Records of Valhalla! 
+INFO:json_logger:2022-03-28 15:10:29.302816 || Raid data retrieved 
+INFO:json_logger:2022-03-28 15:10:29.383449 || DONE PROCESSING DATA 

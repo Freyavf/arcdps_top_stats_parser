@@ -1,11 +1,34 @@
-from flask import request
+import json
+from flask import Response, request
 from app import app
 import requests
+from datetime import datetime
+import logging
 
 from parse_top_stats_tools import *
 import parser_configs.parser_config_detailed as parser_config
 config = fill_config(parser_config)
 json_output_filename = "top_stats_detailed.json"
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler = logging.FileHandler('json.log')
+handler.setFormatter(formatter)
+log = logging.getLogger('json_logger')
+log.setLevel(logging.INFO)
+log.addHandler(handler)
+
+
+def flask_logger():
+        with open("json.log") as log_info:
+            for line in log_info.readlines():
+                yield line
+
+        
+
+
+@app.route('/log-stream', methods=['GET'])
+def log_stream():
+    return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
 
 
 @app.route('/json', methods=['POST'])
@@ -14,9 +37,18 @@ def retrieve_data():
         if 'links' in request.json:
             links = request.json['links']
             print(f'LINK: {links}')
-            json_dict = get_json_data(links)
-            print('Sending back data')
-            return json_dict
+            #with open('logs.txt', 'w') as log:
+            try:
+                log.info(f'{datetime.now()} || PROCESSING DATA ')
+                json_dict = get_json_data(links)
+                log.info(f'{datetime.now()} || DONE PROCESSING DATA ')
+                print('Sending back data')
+                return json_dict
+            except Exception as e:
+                log.error(f'{datetime.now()} || ERROR ')
+                log.error(f'{datetime.now()} || {e}')
+                print(e)
+                return {'Error': f'{e}'}
         return {'msg': 'No links'}
     else:
         print('No POST request')
@@ -28,9 +60,10 @@ def get_json_data(json_links):
         return
 
     #log = open("log_detailed.txt","w")
-    log = ''
+    #log = ''
 
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
+    log.info(f'{datetime.now()} || {print_string} ')
     print(print_string)
 
     # healing only in logs if addon was installed
@@ -49,22 +82,31 @@ def get_json_data(json_links):
             
     for link in json_links:
         filename=link['href']
+        log.info(f'{datetime.now()} || {filename} ')
         try:
             print(f'Getting JSON data')
+            log.info(f'{datetime.now()} || Getting JSON data from {filename}')
             json_data = requests.get(link['href']).json()
+            log.info(f'{datetime.now()} || JSON data Retrieved ')
             print(f'JSON data retrieved')
             print(f'Getting data from json')
+            log.info(f'{datetime.now()} || Getting data from JSON ')
             used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
+            log.info(f'{datetime.now()} || Data retrieved ')
             print(f'Data retrieved')
         except Exception as e:
             print(f'''Could't get json from: {link}''')
+            log.error(f'{datetime.now()} || Couldnt get json/data from {link} ')
+            log.error(f'{datetime.now()} || {e} ')
             print(e)
+
+    log.info(f'{datetime.now()} || Getting Raid data ')
     print(f'Getting raid data')
     get_overall_stats(players, used_fights, False, config)
-    print("\n")
+    print("")
 
-    print_string = "Welcome to the Records of Valhalla!\n"
-
+    print_string = "Welcome to the Records of Valhalla!"
+    log.info(f'{datetime.now()} || {print_string} ')
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
     #total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, found_healing, found_barrier, config, log)
@@ -121,4 +163,5 @@ def get_json_data(json_links):
 
     #print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     print(f'Raid data retrieved')
+    log.info(f'{datetime.now()} || Raid data retrieved ')
     return json_dict
