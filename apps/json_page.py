@@ -1,6 +1,6 @@
 import json
-from flask import Response, request
-from app import app
+from flask import Response, request, jsonify, url_for
+from app import app, celery
 import requests
 from datetime import datetime
 import logging
@@ -24,7 +24,35 @@ def flask_logger():
                 yield line
 
         
-
+@app.route('/status/<task_id>')
+def taskstatus(task_id):
+    task = get_json_data.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        # job did not start yet
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return jsonify(response)
 
 @app.route('/log-stream', methods=['GET'])
 def log_stream():
@@ -40,10 +68,12 @@ def retrieve_data():
             #with open('logs.txt', 'w') as log:
             try:
                 log.info(f'{datetime.now()} || PROCESSING DATA ')
-                json_dict = get_json_data(links)
+                #json_dict = get_json_data(links)
+                task = get_json_data.delay(json_links=links)
                 log.info(f'{datetime.now()} || DONE PROCESSING DATA ')
                 print('Sending back data')
-                return json_dict
+                return jsonify({}), 202, {'Location': url_for('taskstatus',
+                                                  task_id=task.id)}
             except Exception as e:
                 log.error(f'{datetime.now()} || ERROR ')
                 log.error(f'{datetime.now()} || {e}')
@@ -55,7 +85,8 @@ def retrieve_data():
         return {'msg':'No POST request'}
 
 
-def get_json_data(json_links):
+@celery.task(name='apps.get_json_data',bind=True)
+def get_json_data(self,json_links):
     if json_links is None:
         return
 
@@ -78,9 +109,8 @@ def get_json_data(json_links):
     fights = []
     first = True
 
-    output = ''
-            
-    for link in json_links:
+    output = ''      
+    for i, link in enumerate(json_links):
         filename=link['href']
         log.info(f'{datetime.now()} || {filename} ')
         try:
@@ -94,6 +124,9 @@ def get_json_data(json_links):
             used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
             log.info(f'{datetime.now()} || Data retrieved ')
             print(f'Data retrieved')
+            self.update_state(state='PROGRESS',
+                          meta={'current': i, 'total': len(json_links),
+                                'status': 'Getting Data from links'})
         except Exception as e:
             print(f'''Could't get json from: {link}''')
             log.error(f'{datetime.now()} || Couldnt get json/data from {link} ')
@@ -102,6 +135,9 @@ def get_json_data(json_links):
 
     log.info(f'{datetime.now()} || Getting Raid data ')
     print(f'Getting raid data')
+    self.update_state(state='PROGRESS',
+                          meta={'current': len(json_links), 'total': len(json_links),
+                                'status': 'Getting overall stats'})
     get_overall_stats(players, used_fights, False, config)
     print("")
 
@@ -163,5 +199,10 @@ def get_json_data(json_links):
 
     #print_string = get_fights_overview_string(fights, overall_squad_stats, config)
     print(f'Raid data retrieved')
+    self.update_state(state='PROGRESS',
+                        meta={'current': len(json_links), 'total': len(json_links),
+                            'status': 'Done'})
     log.info(f'{datetime.now()} || Raid data retrieved ')
+    return {'current': len(json_links), 'total': len(json_links), 'status': 'Task completed!',
+            'result': json_dict}
     return json_dict
