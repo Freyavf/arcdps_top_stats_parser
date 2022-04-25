@@ -78,6 +78,7 @@ class Fight:
     allies: int = 0
     kills: int = 0
     start_time: str = ""
+    squad_composition: dict = field(default_factory=dict)
     
     
 # This class stores the configuration for running the top stats.
@@ -971,7 +972,11 @@ def collect_stat_data(args, config, log, anonymize=False):
             #if args.filetype == "xml":
             #    account, name, profession = get_basic_player_data_from_xml(player_data)
             #else:
-            account, name, profession = get_basic_player_data_from_json(player_data)                
+            account, name, profession = get_basic_player_data_from_json(player_data)
+            if profession in fight.squad_composition:
+                fight.squad_composition[profession] += 1
+            else:
+                fight.squad_composition[profession] = 1
 
             # if this combination of charname + profession is not in the player index yet, create a new entry
             name_and_prof = name+" "+profession
@@ -1368,6 +1373,16 @@ def get_overall_raid_stats(fights):
     overall_raid_stats['max_enemies'] = max([f.enemies for f in used_fights])        
     overall_raid_stats['mean_enemies'] = round(sum([f.enemies for f in used_fights])/len(used_fights), 1)
     overall_raid_stats['total_kills'] = sum([f.kills for f in used_fights])
+    overall_raid_stats['avg_squad_composition'] = {}
+    for f in used_fights:
+        for prof in f.squad_composition:
+            if prof in overall_raid_stats['avg_squad_composition']:
+                overall_raid_stats['avg_squad_composition'][prof] += f.squad_composition[prof]
+            else:
+                overall_raid_stats['avg_squad_composition'][prof] = 1
+    for prof in overall_raid_stats['avg_squad_composition']:
+        overall_raid_stats['avg_squad_composition'][prof] /= len(used_fights) 
+                
     return overall_raid_stats
 
 
