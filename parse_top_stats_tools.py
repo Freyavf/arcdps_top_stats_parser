@@ -954,6 +954,7 @@ def collect_stat_data(args, config, log, anonymize=False):
         for player in players:
             player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})   
 
+        fight_number = int(len(fights))
         # don't compute anything for skipped fights
         if fight.skipped:
             fights.append(fight)
@@ -961,8 +962,8 @@ def collect_stat_data(args, config, log, anonymize=False):
             continue
         
         used_fights += 1
-        fight_number = used_fights-1
-
+        #fight_number = used_fights-1
+        
         # get stats for each player
         #for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
         for player_data in json_data['players']:
@@ -1000,7 +1001,8 @@ def collect_stat_data(args, config, log, anonymize=False):
                 player.initialize(config)
                 player_index[name_and_prof] = len(players)
                 # fill up fights where the player wasn't there yet with empty stats
-                while len(player.stats_per_fight) < used_fights:
+                #while len(player.stats_per_fight) < used_fights:
+                while len(player.stats_per_fight) <= fight_number:
                     player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})                
                 players.append(player)
 
