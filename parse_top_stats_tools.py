@@ -77,6 +77,7 @@ class Fight:
     allies: int = 0
     kills: int = 0
     start_time: str = ""
+    squad_composition: dict = field(default_factory=dict)
     
     
 # This class stores the configuration for running the top stats.
@@ -904,6 +905,8 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
     for player in players:
         player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})   
 
+    fight_number = int(len(fights))
+        
     # don't compute anything for skipped fights
     if fight.skipped:
         fights.append(fight)
@@ -911,7 +914,6 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         return used_fights, first, found_healing, found_barrier
         
     used_fights += 1
-    fight_number = used_fights-1
 
     # get stats for each player
     #for player_data in (xml_root.iter('players') if args.filetype == "xml" else json_data['players']):
@@ -924,6 +926,12 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         #else:
         account, name, profession = get_basic_player_data_from_json(player_data)                
 
+        if profession in fight.squad_composition:
+            fight.squad_composition[profession] += 1
+        else:
+            fight.squad_composition[profession] = 1
+
+        
         # if this combination of charname + profession is not in the player index yet, create a new entry
         name_and_prof = name+" "+profession
         if name_and_prof not in player_index.keys():
@@ -946,7 +954,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
             player.initialize(config)
             player_index[name_and_prof] = len(players)
             # fill up fights where the player wasn't there yet with empty stats
-            while len(player.stats_per_fight) < used_fights:
+            while len(player.stats_per_fight) <= fight_number:
                 player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})                
             players.append(player)
 
@@ -1359,8 +1367,8 @@ def get_overall_raid_stats(fights):
     overall_raid_stats['num_used_fights'] = len([f for f in fights if not f.skipped])
     overall_raid_stats['used_fights_duration'] = sum([f.duration for f in used_fights])
     overall_raid_stats['date'] = min([f.start_time.split()[0] for f in used_fights])
-    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights]) +" "+ used_fights[0].start_time.split()[2]
-    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights]) +" "+ used_fights[0].end_time.split()[2]
+    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights])# +" "+ used_fights[0].start_time.split()[2]
+    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights])# +" "+ used_fights[0].end_time.split()[2]
     overall_raid_stats['num_skipped_fights'] = len([f for f in fights if f.skipped])
     overall_raid_stats['min_allies'] = min([f.allies for f in used_fights])
     overall_raid_stats['max_allies'] = max([f.allies for f in used_fights])    
@@ -1369,6 +1377,16 @@ def get_overall_raid_stats(fights):
     overall_raid_stats['max_enemies'] = max([f.enemies for f in used_fights])        
     overall_raid_stats['mean_enemies'] = round(sum([f.enemies for f in used_fights])/len(used_fights), 1)
     overall_raid_stats['total_kills'] = sum([f.kills for f in used_fights])
+    overall_raid_stats['avg_squad_composition'] = {}
+    for f in used_fights:
+        for prof in f.squad_composition:
+            if prof in overall_raid_stats['avg_squad_composition']:
+                overall_raid_stats['avg_squad_composition'][prof] += f.squad_composition[prof]
+            else:
+                overall_raid_stats['avg_squad_composition'][prof] = 1
+    for prof in overall_raid_stats['avg_squad_composition']:
+        overall_raid_stats['avg_squad_composition'][prof] /= len(used_fights) 
+                
     return overall_raid_stats
 
 
