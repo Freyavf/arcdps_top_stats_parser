@@ -32,12 +32,13 @@ import math
 debug = False # enable / disable debug output
 
 class StatType(Enum):
-    TOTAL = 1
-    CONSISTENT = 2
-    AVERAGE = 3
-    LATE_PERCENTAGE = 4
-    SWAPPED_PERCENTAGE = 5
-    PERCENTAGE = 6
+    TOTAL = 1                       # top total stat value over all fights
+    CONSISTENT = 2                  # top consistency value over all fights = achieved top in most fights
+    AVERAGE = 3                     # top average value over all fights
+    LATE_PERCENTAGE = 4             # not there for all fights, but great consistency in the fights present. late but great awards
+    SWAPPED_PERCENTAGE = 5          # not there for all fights, swapped build at least once. Jack of all trades awards
+    PERCENTAGE = 6                  # top consistency percentage = times top / fights present
+
     
 
 # This class stores information about a player. Note that a different profession will be treated as a new player / character.
@@ -58,6 +59,7 @@ class Player:
     total_stats: dict = field(default_factory=dict)           # what's the total value for this player for each stat?
     average_stats: dict = field(default_factory=dict)         # what's the average stat per second for this player? (exception: deaths are per minute)
     portion_top_stats: dict = field(default_factory=dict)     # what percentage of fights did this player get into top for each stat, in relation to the number of fights they were involved in?
+                                                              # = consistency_stats/num_fights_present
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
@@ -66,18 +68,21 @@ class Player:
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
         self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
+
+        
 # This class stores information about a fight
 @dataclass
 class Fight:
-    skipped: bool = False
-    duration: int = 0
+    skipped: bool = False                           # a fight is skipped in the top stats computation if number of enemies or allies is too small, or if it is too short
+    duration: int = 0                               # duration of the fight in seconds
     total_stats: dict = field(default_factory=dict) # what's the over total value for the whole squad for each stat in this fight?
-    enemies: int = 0
-    allies: int = 0
-    kills: int = 0
-    start_time: str = ""
+    enemies: int = 0                                # number of enemy players involved
+    allies: int = 0                                 # number of squad players involved
+    kills: int = 0                                  # number of kills
+    start_time: str = ""                            # start time of the fight
     squad_composition: dict = field(default_factory=dict)
     
+
     
 # This class stores the configuration for running the top stats.
 @dataclass
@@ -100,23 +105,23 @@ class Config:
     min_fight_duration: int = 0   # minimum duration of a fight to be considered in the stats
     min_enemy_players: int = 0    # minimum number of enemies to consider a fight in the stats
 
-    stat_names: dict = field(default_factory=dict)
-    profession_abbreviations: dict = field(default_factory=dict)
+    stat_names: dict = field(default_factory=dict)                  # the names under which the stats appear in the output
+    profession_abbreviations: dict = field(default_factory=dict)    # the names under which each profession appears in the output
 
-    empty_stats: dict = field(default_factory=dict)
-    stats_to_compute: list = field(default_factory=list)
+    empty_stats: dict = field(default_factory=dict)                 # all stat values = -1 for initialization
+    stats_to_compute: list = field(default_factory=list)            # all stats that should be computed
 
-    buff_ids: dict = field(default_factory=dict)
-    buffs_stacking_duration: list = field(default_factory=list)
-    buffs_stacking_intensity: list = field(default_factory=list)
-    buff_abbrev: dict = field(default_factory=dict)
+    buff_ids: dict = field(default_factory=dict)                    # dict of buff name to buff id as read from buffMap
+    buffs_stacking_duration: list = field(default_factory=list)     # list of buff names stacking duration
+    buffs_stacking_intensity: list = field(default_factory=list)    # list of buff names stacking intensity
+    buff_abbrev: dict = field(default_factory=dict)                 # abbreviations of buff names
     
 
     
 # prints output_string to the console and the output_file, with a linebreak at the end
 def myprint(output_file, output_string):
     print(output_string)
-    #output_file.write(output_string+"\n")
+    output_file.write(output_string+"\n")
 
 
 
@@ -157,20 +162,274 @@ def fill_config(config_input):
     
     return config
     
+
+
+# get ids of buffs in the log from the buff map
+# Input:
+# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+# config: config to use in top stats computation
+# changes config.buffs_stacking_intensity and config.buffs_stacking_duration inplace
+def get_buff_ids_from_json(json_data, config):
+    buffs = json_data['buffMap']
+    for buff_id, buff in buffs.items():
+        if buff['name'] in config.buff_abbrev:
+            abbrev_name = config.buff_abbrev[buff['name']]
+            config.buff_ids[abbrev_name] = buff_id[1:]
+            if buff['stacking']:
+                config.buffs_stacking_intensity.append(abbrev_name)
+            else:
+                config.buffs_stacking_duration.append(abbrev_name)
+
+
+
+# get stats for this fight from fight_json
+# Input:
+# fight_json = json object including one fight
+# config = the config to use for top stat computation
+# log = log file to write to
+def get_stats_from_fight_json(fight_json, config, log):
+    # get fight duration
+    fight_duration_json = fight_json['duration']
+    split_duration = fight_duration_json.split('m ', 1)
+    mins = int(split_duration[0])
+    split_duration = split_duration[1].split('s', 1)
+    secs = int(split_duration[0])
+    if debug:
+        print("duration: ", mins, "m", secs, "s")
+    duration = mins*60 + secs
+
+    num_allies = len(fight_json['players'])
+    num_enemies = 0
+    num_kills = 0
+    for enemy in fight_json['targets']:
+        if 'enemyPlayer' in enemy and enemy['enemyPlayer'] == True:
+            num_enemies += 1
+            if 'combatReplayData' in enemy:
+                num_kills += len(enemy['combatReplayData']['dead'])
+                
+    # initialize fight         
+    fight = Fight()
+    fight.duration = duration
+    fight.enemies = num_enemies
+    fight.allies = num_allies
+    fight.kills = num_kills
+    fight.start_time = fight_json['timeStartStd']
+    fight.end_time = fight_json['timeEndStd']        
+    fight.total_stats = {key: 0 for key in config.stats_to_compute}
         
+    # skip fights that last less than min_fight_duration seconds
+    if(duration < config.min_fight_duration):
+        fight.skipped = True
+        print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
+        myprint(log, print_string)
+        
+    # skip fights with less than min_allied_players allies
+    if num_allies < config.min_allied_players:
+        fight.skipped = True
+        print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
+        myprint(log, print_string)
+
+    # skip fights with less than min_enemy_players enemies
+    if num_enemies < config.min_enemy_players:
+        fight.skipped = True
+        print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
+        myprint(log, print_string)
+
+    if 'usedExtensions' not in fight_json:
+        players_running_healing_addon = []
+    else:
+        extensions = fight_json['usedExtensions']
+        for extension in extensions:
+            if extension['name'] == "Healing Stats":
+                players_running_healing_addon = extension['runningExtension']
+        
+    return fight, players_running_healing_addon
+
+
+
+# get account, character name and profession from json object
+# Input:
+# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+# Output: account, character name, profession
+def get_basic_player_data_from_json(player_json):
+    account = player_json['account']
+    name = player_json['name']
+    profession = player_json['profession']
+    return account, name, profession
+
+
+
+# get value of stat from player_json
+# Input:
+# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+# players_running_healing_addon: names of all characters running the healing addon
+# stat: the stat being considered
+# config: the config used for top stats computation
+def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
+    if stat == 'time_in_combat':
+        if 'combatReplayData' not in player_json:
+            print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
+        replay = player_json['combatReplayData']
+        if 'dead' not in replay:
+            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
+        
+        combat_time = 0
+        start_combat = get_combat_start_from_player_json(0, player_json)
+            
+        for death in replay['dead']:
+            time_of_death = death[0]
+            time_of_revive = death[1]
+            if start_combat != -1:
+                combat_time += (time_of_death - start_combat)
+            start_combat = get_combat_start_from_player_json(time_of_revive, player_json)
+        end_combat = len(player_json['damage1S'][0]*1000)
+        if start_combat != -1:
+            combat_time += end_combat - start_combat
+        combat_time /= 1000
+        return round(combat_time)
+
+    if stat == 'group':
+        if 'group' not in player_json:
+            return 0
+        return int(player_json['group'])
+    
+    if stat == 'time_active':
+        if 'activeTimes' not in player_json:
+            return 0
+        return round(int(player_json['activeTimes'][0])/1000)
+    
+    if stat == 'dmg_taken':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0] or 'damageBarrier' not in player_json['defenses'][0]:
+            return 0
+        return int(player_json['defenses'][0]['damageTaken']+player_json['defenses'][0]['damageBarrier'])
+
+    if stat == 'deaths':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
+            return 0        
+        return int(player_json['defenses'][0]['deadCount'])
+
+    #if stat == 'kills':
+    #    if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'killed' not in player_json['statsAll'][0]:
+    #        return 0        
+    #    return int(player_json['statsAll'][0]['killed'])
+
+    if stat == 'dmg':
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
+            return 0
+        return int(player_json['dpsAll'][0]['damage'])            
+
+    if stat == 'rips':
+        if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
+            return 0
+        return int(player_json['support'][0]['boonStrips'])
+    
+    if stat == 'cleanses':
+        if 'support' not in player_json or len(player_json['support']) != 1 or 'condiCleanse' not in player_json['support'][0]:
+            return 0
+        return int(player_json['support'][0]['condiCleanse'])            
+
+    if stat == 'dist':
+        if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
+            return -1
+        return float(player_json['statsAll'][0]['distToCom'])
+
+    ### Buffs ###
+    if stat in config.buff_ids:
+        if 'squadBuffs' not in player_json:
+            return 0
+        # get buffs in squad generation -> need to loop over all buffs
+        for buff in player_json['squadBuffs']:
+            if 'id' not in buff:
+                continue 
+            # find right buff
+            buffId = buff['id']
+            if buffId == int(config.buff_ids[stat]):
+                if 'generation' not in buff['buffData'][0]:
+                    return 0.
+                return float(buff['buffData'][0]['generation'])
+        return 0.
+
+    if stat == 'heal':
+        # check if healing was logged, save it
+        heal = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return heal
+        if 'extHealingStats' in player_json:
+            heal = 0
+            if 'outgoingHealingAllies' not in player_json['extHealingStats']:
+                return 0
+            for outgoing_healing_json in player_json['extHealingStats']['outgoingHealingAllies']:
+                # TODO why is this in the json twice?                
+                for outgoing_healing_json2 in outgoing_healing_json:
+                    if 'healing' in outgoing_healing_json2:
+                        heal += int(outgoing_healing_json2['healing'])
+                        break
+        return heal
+
+    if stat == 'barrier':
+        # check if barrier was logged, save it
+        barrier = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return barrier
+        if 'extBarrierStats' in player_json:
+            barrier = 0
+            if 'outgoingBarrierAllies' not in player_json['extBarrierStats']:
+                return 0
+            for outgoing_barrier_json in player_json['extBarrierStats']['outgoingBarrierAllies']:
+                # TODO why is this in the json twice?                
+                for outgoing_barrier_json2 in outgoing_barrier_json:
+                    barrier += outgoing_barrier_json2['barrier']
+                    break
+        return barrier
+
+
+
+# find the first time a player took or dealt damage after initial_time
+# Input:
+# initial_time = check for first time this player was in combat after this time in the fight
+# player_json = the json data for this player in this fight
+# Output:
+# First time the player took or dealt damage after initial_time
+def get_combat_start_from_player_json(initial_time, player_json):
+    start_combat = -1
+    # TODO check healthPercents exists
+    last_health_percent = 100
+    for change in player_json['healthPercents']:
+        if change[0] < initial_time:
+            last_health_percent = change[1]
+            continue
+        if change[1] - last_health_percent < 0:
+            # got dmg
+            start_combat = change[0]
+            break
+        last_health_percent = change[1]
+    for i in range(math.ceil(initial_time/1000), len(player_json['damage1S'][0])):
+        if i == 0:
+            continue
+        if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
+            if start_combat == -1:
+                start_combat = i*1000
+            else:
+                start_combat = min(start_combat, i*1000)
+            break
+    return start_combat
+
+
+
 # For all players considered to be top in stat in this fight, increase
 # the number of fights they reached top by 1 (i.e. increase
 # consistency_stats[stat]).
 # Input:
 # players = list of all players
-# sortedList = list of player names+profession, stat_value sorted by stat value in this fight
+# sortedList = list of (player names+profession, stat_value) sorted by stat value in this fight
 # config = configuration to use
 # stat = stat that is considered
 def increase_top_x_reached(players, sortedList, config, stat):
     valid_values = 0
     # filter out com for dist to tag
     if stat == 'dist':
-        # different for dist
+        # different for dist, filter out com since his distance is always 0
         first_valid = True
         i = 0
         last_val = 0
@@ -218,21 +477,24 @@ def increase_top_x_reached(players, sortedList, config, stat):
 
 
 
-        
-# sort the list of players by total value in stat
+# sort the list of players by value in stat in fight fight_num
 # Input:
 # players = list of all Players
 # stat = stat that is considered
 # fight_num = number of the fight that is considered
 # Output:
-# list of player index and total stat value, sorted by total stat value
+# list of (player index, stat value in fight fight_num), sorted by total stat value in fight fight_num
 def sort_players_by_value_in_fight(players, stat, fight_num):
-    decorated = [(player.stats_per_fight[fight_num][stat], i, player) for i, player in enumerate(players)]
+    # get list of (stat value, index)
+    decorated = [(player.stats_per_fight[fight_num][stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
+        # for tag distance, dmg taken, and deaths, low numbers are good
         decorated.sort()
     else:
+        # for all other stats, high numbers are good
         decorated.sort(reverse=True)
-    sorted_by_value = [(i, value) for value, i, player in decorated]
+    # extract list of (index, stat value)
+    sorted_by_value = [(i, value) for value, i in decorated]
     return sorted_by_value
 
 
@@ -242,14 +504,18 @@ def sort_players_by_value_in_fight(players, stat, fight_num):
 # players = list of all Players
 # stat = stat that is considered
 # Output:
-# list of player index and total stat value, sorted by total stat value
+# list of (player index, total stat value), sorted by total stat value
 def sort_players_by_total(players, stat):
-    decorated = [(player.total_stats[stat], i, player) for i, player in enumerate(players)]
+    # get list of (total stat, index)
+    decorated = [(player.total_stats[stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
+        # for tag distance, dmg taken, and deaths, low numbers are good
         decorated.sort()
     else:
+        # for all other stats, high numbers are good
         decorated.sort(reverse=True)
-    sorted_by_total = [(i, total) for total, i, player in decorated]
+    # extract list of (index, total stat)
+    sorted_by_total = [(i, total) for total, i in decorated]
     return sorted_by_total
 
 
@@ -259,12 +525,15 @@ def sort_players_by_total(players, stat):
 # players = list of all Players
 # stat = stat that is considered
 # Output:
-# list of player index and consistency stat value, sorted by consistency stat value (how often was top x reached)
+# list of (player index, consistency stat value), sorted by consistency stat value (how often was top x reached)
 def sort_players_by_consistency(players, stat):
-    decorated = [(player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]
-    decorated.sort(reverse=True)    
-    sorted_by_consistency = [(i, consistency) for consistency, total, i, player in decorated]
+    # get list of (times top, total stat, index), sort first by times top (high value = good) and then by total
+    decorated = [(player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
+    decorated.sort(reverse=True)
+    # extract list of (index, times top)
+    sorted_by_consistency = [(i, consistency) for consistency, total, i in decorated]
     return sorted_by_consistency
+
 
 
 # sort the list of players by percentage value in stat
@@ -272,12 +541,15 @@ def sort_players_by_consistency(players, stat):
 # players = list of all Players
 # stat = stat that is considered
 # Output:
-# list of player index and percentage stat value, sorted by percentage stat value (how often was top x reached / number of fights attended)
+# list of (player index, percentage stat value), sorted by percentage stat value (how often was top x reached / number of fights attended)
 def sort_players_by_percentage(players, stat):
-    decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]                
-    decorated.sort(reverse=True)    
-    sorted_by_percentage = [(i, percentage) for percentage, consistency, total, i, player in decorated]
+    # get list of (percentage times top, times top, total stat, index), sort first by percentage times top (high value = good), then by times top, and then by total
+    decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]                
+    decorated.sort(reverse=True)
+    # extract list of (index, percentage times top)
+    sorted_by_percentage = [(i, percentage) for percentage, consistency, total, i in decorated]
     return sorted_by_percentage
+
 
 
 # sort the list of players by average value in stat
@@ -285,18 +557,32 @@ def sort_players_by_percentage(players, stat):
 # players = list of all Players
 # stat = stat that is considered
 # Output:
-# list of player index and average stat value, sorted by average stat value ( total stat value / duration of fights attended)
+# list of (player index, average stat value), sorted by average stat value ( total stat value / duration of fights attended)
 def sort_players_by_average(players, stat):
-    decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i, player) for i, player in enumerate(players)]                
+    # get list of (average stat, times top, total stat, index), sort first by average stat, then by times top, and then by total
+    decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or stat == 'dmg_taken' or stat == 'deaths':
+        # for dist, dmg taken, and deaths: low values good
         decorated.sort()
     else:
-        decorated.sort(reverse=True)    
-    sorted_by_average = [(i, average) for average, consistency, total, i, player in decorated]
+        # for all other stats: low values good
+        decorated.sort(reverse=True)
+    # extract list of (index, average stat)
+    sorted_by_average = [(i, average) for average, consistency, total, i in decorated]
     return sorted_by_average
 
 
 
+# replace all acount names with "account <number>" and all player names with "anon <number>"
+def anonymize_players(players, account_index):
+    for account in account_index:
+        for i in account_index[account]:
+            players[i].account = "Account "+str(i)
+    for i,player in enumerate(players):
+        player.name = "Anon "+str(i)
+
+
+        
 # Input:
 # players = list of Players
 # config = the configuration being used to determine top players
@@ -307,6 +593,7 @@ def sort_players_by_average(players, stat):
 def get_top_players(players, config, stat, total_or_consistent_or_average):
     percentage = 0.
     sorted_index = []
+    # get correct portion of total value and get sorted list of (player index, total/consistency/average stat) 
     if total_or_consistent_or_average == StatType.TOTAL:
         percentage = float(config.portion_of_top_for_total)
         sorted_index = sort_players_by_total(players, stat)
@@ -317,23 +604,24 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
         percentage = 0.
         sorted_index = sort_players_by_average(players, stat)        
     else:
-        print("ERROR: Called get_top_players for stats that are not total or consistent")
+        print("ERROR: Called get_top_players for stats that are not total or consistent or average")
         return        
         
-    top_value = players[sorted_index[0][0]].total_stats[stat] # using total value for both top consistent and top total 
+    top_value = players[sorted_index[0][0]].total_stats[stat] # using total value for top to compare with
     top_players = list()
 
     i = 0
     last_value = 0
     while i < len(sorted_index):
-        new_value = sorted_index[i][1] # value by which was sorted, i.e. total or consistency
+        new_value = sorted_index[i][1] # value by which was sorted, i.e. total, consistency, or average
         # index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
         if i >= config.num_players_listed[stat] and new_value != last_value:
             break
         last_value = new_value
 
-        # if stat isn't distance or dmg taken, total value must be at least percentage % of top value
-        if stat == "dist" or stat == "dmg_taken" or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
+        # if stat isn't distance, dmg taken, or deaths, total value must be at least percentage % of top value
+        if stat == "dist" or stat == "dmg_taken" or stat == "deaths" or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
+            # consider minimum attendance percentage for average stats
             if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
                 top_players.append(sorted_index[i][0])
 
@@ -358,7 +646,8 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
 def get_top_percentage_players(players, config, stat, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_percentage_players, top_late_players):    
     sorted_index = sort_players_by_percentage(players, stat)
     top_percentage = players[sorted_index[0][0]].portion_top_stats[stat]
-    
+
+    # get correct comparison value for top percentage and minimum attendance
     comparison_value = 0
     min_attendance = 0
     if late_or_swapping == StatType.LATE_PERCENTAGE:
@@ -401,345 +690,6 @@ def get_top_percentage_players(players, config, stat, late_or_swapping, num_used
     return top_players, comparison_value
  
 
-
-# get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
-# Input:
-# players = list of all players
-# indices = list of relevant indices
-# config = config to use for top stats computation/printing
-# Output:
-# list of profession strings, maximum profession length
-def get_professions_and_length(players, indices, config):
-    profession_strings = list()
-    profession_length = 0
-    for i in indices:
-        player = players[i]
-        professions_str = config.profession_abbreviations[player.profession]
-        profession_strings.append(professions_str)
-        if len(professions_str) > profession_length:
-            profession_length = len(professions_str)
-    return profession_strings, profession_length
-
-
-
-# Get and write the top x people who achieved top y in stat most often.
-# Input:
-# players = list of Players
-# config = the configuration being used to determine the top consistent players
-# num_used_fights = the number of fights that are being used in stat computation
-# stat = which stat are we considering
-# output_file = the file to write the output to
-# Output:
-# list of player indices that got a top consistency award
-def get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, output_file):
-    top_consistent_players = get_top_players(players, config, stat, StatType.CONSISTENT)
-    write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, StatType.CONSISTENT, output_file)
-    return top_consistent_players
-
-
-
-# Get and write the people who achieved top x average in stat
-# Input:
-# players = list of Players
-# config = the configuration being used to determine the top consistent players
-# num_used_fights = the number of fights that are being used in stat computation
-# stat = which stat are we considering
-# output_file = the file to write the output to
-# Output:
-# list of player indices that got a top consistency award
-def get_and_write_sorted_average(players, config, num_used_fights, stat, output_file):
-    top_average_players = get_top_players(players, config, stat, StatType.AVERAGE)
-    write_sorted_top_consistent_or_avg(players, top_average_players, config, num_used_fights, stat, StatType.AVERAGE, output_file)
-    return top_average_players
-
-
-
-# Write the top x people who achieved top y in stat most often.
-# Input:
-# players = list of Players
-# top_consistent_players = list of Player indices considered top consistent players
-# config = the configuration being used to determine the top consistent players
-# num_used_fights = the number of fights that are being used in stat computation
-# stat = which stat are we considering
-# output_file = the file to write the output to
-# Output:
-# list of player indices that got a top consistency award
-def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, consistent_or_avg, output_file):
-    max_name_length = max([len(players[i].name) for i in top_consistent_players])
-    profession_strings, profession_length = get_professions_and_length(players, top_consistent_players, config)
-
-    if consistent_or_avg == StatType.CONSISTENT:
-        if stat == "dist":
-            print_string = "Top "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" consistency awards"
-        else:
-            print_string = "Top "+config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
-            myprint(output_file, print_string)
-            print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
-            myprint(output_file, print_string)
-    elif consistent_or_avg == StatType.AVERAGE:
-        if stat == "dist":
-            print_string = "Top average "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" awards"
-        else:
-            print_string = "Top average "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places)"
-            myprint(output_file, print_string)
-            print_string = "Attendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
-            myprint(output_file, print_string)
-    print_string = "-------------------------------------------------------------------------------"    
-    myprint(output_file, print_string)
-
-
-    # print table header
-    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+" Attendance " + " Times Top"
-    if stat != "dist":
-        print_string += f" {'Total':>9}"
-    if stat in config.buff_ids or stat == 'dmg_taken':
-        print_string += f"  {'Average':>7}"
-        
-    myprint(output_file, print_string)    
-
-    
-    place = 0
-    last_val = 0
-    # print table
-    for i in range(len(top_consistent_players)):
-        player = players[top_consistent_players[i]]
-        if player.consistency_stats[stat] != last_val:
-            place += 1
-        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
-        if stat != "dist" and stat not in config.buff_ids and stat != 'dmg_taken':
-            print_string += f" {round(player.total_stats[stat]):>9}"
-        if stat == 'dmg_taken':
-            print_string += f" {player.total_stats[stat]:>9}"+f" {player.average_stats[stat]:>8}"
-        elif stat in config.buffs_stacking_intensity:
-            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
-        elif stat in config.buffs_stacking_duration:
-            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
-
-        myprint(output_file, print_string)
-        last_val = player.consistency_stats[stat]
-    myprint(output_file, "\n")
-        
-                
-
-# Write the top x people who achieved top total stat.
-# Input:
-# players = list of Players
-# top_players = list of indices in players that are considered as top
-# stat = which stat are we considering
-# xls_output_filename = where to write to
-def write_stats_xls(players, top_players, stat, xls_output_filename):
-    book = xlrd.open_workbook(xls_output_filename)
-    wb = copy(book)
-    sheet1 = wb.add_sheet(stat)
-
-    sheet1.write(0, 0, "Account")
-    sheet1.write(0, 1, "Name")
-    sheet1.write(0, 2, "Profession")
-    sheet1.write(0, 3, "Attendance (number of fights)")
-    sheet1.write(0, 4, "Attendance (duration fights)")
-    sheet1.write(0, 5, "Times Top")
-    sheet1.write(0, 6, "Percentage Top")
-    sheet1.write(0, 7, "Total "+stat)
-    if stat == 'deaths':
-        sheet1.write(0, 8, "Average "+stat+" per min")
-    else:
-        sheet1.write(0, 8, "Average "+stat+" per s")        
-
-    for i in range(len(top_players)):
-        player = players[top_players[i]]
-        sheet1.write(i+1, 0, player.account)
-        sheet1.write(i+1, 1, player.name)
-        sheet1.write(i+1, 2, player.profession)
-        sheet1.write(i+1, 3, player.num_fights_present)
-        sheet1.write(i+1, 4, player.duration_fights_present)
-        sheet1.write(i+1, 5, player.consistency_stats[stat])        
-        sheet1.write(i+1, 6, round(player.portion_top_stats[stat]*100))
-        sheet1.write(i+1, 7, round(player.total_stats[stat]))
-        sheet1.write(i+1, 8, player.average_stats[stat])
-
-    wb.save(xls_output_filename)
-
-
-# Get and write the top x people who achieved top total stat.
-# Input:
-# players = list of Players
-# config = the configuration being used to determine topx consistent players
-# total_fight_duration = the total duration of all fights
-# stat = which stat are we considering
-# output_file = where to write to
-# Output:
-# list of top total player indices
-def get_and_write_sorted_total(players, config, total_fight_duration, stat, output_file):
-    # get players that get an award and their professions
-    top_total_players = get_top_players(players, config, stat, StatType.TOTAL)
-    write_sorted_total(players, top_total_players, config, total_fight_duration, stat, output_file)
-    return top_total_players
-
-
-
-# Write the top x people who achieved top total stat.
-# Input:
-# players = list of Players
-# top_total_players = list of Player indices considered top total players
-# config = the configuration being used to determine topx consistent players
-# total_fight_duration = the total duration of all fights
-# stat = which stat are we considering
-# output_file = where to write to
-# Output:
-# list of top total player indices
-def write_sorted_total(players, top_total_players, config, total_fight_duration, stat, output_file):
-    max_name_length = max([len(players[i].name) for i in top_total_players])    
-    profession_strings, profession_length = get_professions_and_length(players, top_total_players, config)
-    profession_length = max(profession_length, 5)
-    
-    print_string = "Top overall "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
-    myprint(output_file, print_string)
-    print_string = "Attendance = total duration of fights attended out of "
-    if total_fight_duration["h"] > 0:
-        print_string += str(total_fight_duration["h"])+"h "
-    print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s."    
-    myprint(output_file, print_string)
-    print_string = "------------------------------------------------------------------------"
-    myprint(output_file, print_string)
-
-
-    # print table header
-    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>9}"
-    if stat in config.buff_ids:
-        print_string += f"  {'Average':>7}"
-    myprint(output_file, print_string)    
-
-    place = 0
-    last_val = -1
-    # print table
-    for i in range(len(top_total_players)):
-        player = players[top_total_players[i]]
-        if player.total_stats[stat] != last_val:
-            place += 1
-
-        fight_time_h = int(player.duration_fights_present/3600)
-        fight_time_m = int((player.duration_fights_present - fight_time_h*3600)/60)
-        fight_time_s = int(player.duration_fights_present - fight_time_h*3600 - fight_time_m*60)
-
-        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "
-
-        if fight_time_h > 0:
-            print_string += f" {fight_time_h:>2}h {fight_time_m:>2}m {fight_time_s:>2}s"
-        else:
-            print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
-
-        if stat in config.buffs_stacking_duration:
-            print_string += f" {round(player.total_stats[stat]):>8}s"
-            print_string += f" {player.average_stats[stat]:>7}%"
-        elif stat in config.buffs_stacking_intensity:
-            print_string += f" {round(player.total_stats[stat]):>8}s"
-            print_string += f" {player.average_stats[stat]:>8}"
-        else:
-            print_string += f" {round(player.total_stats[stat]):>9}"
-        myprint(output_file, print_string)
-        last_val = player.total_stats[stat]
-    myprint(output_file, "\n")
-    
-   
-
-# Get and write the top x people who achieved top in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top spot in 1 of them.
-# Input:
-# players = list of Players
-# config = the configuration being used to determine topx consistent players
-# num_used_fights = the number of fights that are being used in stat computation
-# stat = which stat are we considering
-# output_file = file to write to
-# late_or_swapping = which type of stat. can be StatType.PERCENTAGE, StatType.LATE_PERCENTAGE or StatType.SWAPPED_PERCENTAGE
-# top_consistent_players = list with indices of top consistent players
-# top_total_players = list with indices of top total players
-# top_percentage_players = list with indices of players with top percentage award
-# top_late_players = list with indices of players who got a late but great award
-# Output:
-# list of players that got a top percentage award (or late but great or jack of all trades)
-def get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players = list(), top_percentage_players = list(), top_late_players = list()):
-    # get names that get on the list and their professions
-    top_percentage_players, comparison_percentage = get_top_percentage_players(players, config, stat, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_percentage_players, top_late_players)
-    write_sorted_top_percentage(players, top_percentage_players, comparison_percentage, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players, top_percentage_players, top_late_players)
-    return top_percentage_players, comparison_percentage
-
-
-# Write the top x people who achieved top in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top spot in 1 of them.
-# Input:
-# players = list of Players
-# top_players = list of Player indices considered top percentage players
-# config = the configuration being used to determine topx consistent players
-# num_used_fights = the number of fights that are being used in stat computation
-# stat = which stat are we considering
-# output_file = file to write to
-# late_or_swapping = which type of stat. can be StatType.PERCENTAGE, StatType.LATE_PERCENTAGE or StatType.SWAPPED_PERCENTAGE
-# top_consistent_players = list with indices of top consistent players
-# top_total_players = list with indices of top total players
-# top_percentage_players = list with indices of players with top percentage award
-# top_late_players = list with indices of players who got a late but great award
-# Output:
-# list of players that got a top percentage award (or late but great or jack of all trades)
-def write_sorted_top_percentage(players, top_players, comparison_percentage, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players = list(), top_percentage_players = list(), top_late_players = list()):
-    # get names that get on the list and their professions
-    if len(top_players) <= 0:
-        return top_players
-
-    profession_strings, profession_length = get_professions_and_length(players, top_players, config)
-    max_name_length = max([len(players[i].name) for i in top_players])
-    profession_length = max(profession_length, 5)
-
-    # print table header
-    print_string = "Top "+config.stat_names[stat]+" percentage (Minimum percentage = "+f"{comparison_percentage*100:.0f}%)"
-    myprint(output_file, print_string)
-    print_string = "------------------------------------------------------------------------"     
-    myprint(output_file, print_string)                
-
-    # print table header
-    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times Top':>9} " + f" {'Out of':>6}"
-    if stat != "dist":
-        print_string += f" {'Total':>8}"
-    myprint(output_file, print_string)    
-
-    # print stats for top players
-    place = 0
-    last_val = 0
-    # print table
-    for i in range(len(top_players)):
-        player = players[top_players[i]]
-        if player.portion_top_stats[stat] != last_val:
-            place += 1
-
-        percentage = int(player.portion_top_stats[stat]*100)
-        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} " +f" {percentage:>10}% " +f" {round(player.consistency_stats[stat]):>9} "+f" {player.num_fights_present:>6} "
-
-        if stat != "dist":
-            print_string += f" {round(player.total_stats[stat]):>7}"
-        myprint(output_file, print_string)
-        last_val = player.portion_top_stats[stat]
-    myprint(output_file, "\n")
-
-
-
-# get account, character name and profession from json object
-def get_basic_player_data_from_json(player_json):
-    account = player_json['account']
-    name = player_json['name']
-    profession = player_json['profession']
-    return account, name, profession
-
-
-
-def get_buff_ids_from_json(json_data, config):
-    buffs = json_data['buffMap']
-    for buff_id, buff in buffs.items():
-        if buff['name'] in config.buff_abbrev:
-            abbrev_name = config.buff_abbrev[buff['name']]
-            config.buff_ids[abbrev_name] = buff_id[1:]
-            if buff['stacking']:
-                config.buffs_stacking_intensity.append(abbrev_name)
-            else:
-                config.buffs_stacking_duration.append(abbrev_name)
-
-            
 
 def get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename):
     # get fight stats
@@ -918,7 +868,7 @@ def collect_stat_data(args, config, log, anonymize=False):
 
         used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
 
-    get_overall_stats(players, used_fights, anonymize, config)
+    get_overall_stats(players, used_fights, config)
                 
     myprint(log, "\n")
 
@@ -926,9 +876,15 @@ def collect_stat_data(args, config, log, anonymize=False):
         anonymize_players(players, account_index)
     
     return players, fights, found_healing, found_barrier
-            
 
-def get_overall_stats(players, used_fights, anonymize, config):
+
+
+# compute average stats and some other overall stats for each player
+# Input:
+# players = list of Players
+# used_fights = number of fights that weren't skipped in the stat computation
+# config = config used in the stats computation
+def get_overall_stats(players, used_fights, config):
     if used_fights == 0:
         print("ERROR: no valid fights found.")
         exit(1)
@@ -953,227 +909,14 @@ def get_overall_stats(players, used_fights, anonymize, config):
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present, 2)
 
 
-# replace all acount names with "account <number>" and all player names with "anon <number>"
-def anonymize_players(players, account_index):
-    for account in account_index:
-        for i in account_index[account]:
-            players[i].account = "Account "+str(i)
-    for i,player in enumerate(players):
-        player.name = "Anon "+str(i)
 
 
-def get_combat_start_from_player_json(initial_time, player_json):
-    start_combat = -1
-    # TODO check healthPercents exists
-    last_health_percent = 100
-    for change in player_json['healthPercents']:
-        if change[0] < initial_time:
-            last_health_percent = change[1]
-            continue
-        if change[1] - last_health_percent < 0:
-            # got dmg
-            start_combat = change[0]
-            break
-        last_health_percent = change[1]
-    for i in range(math.ceil(initial_time/1000), len(player_json['damage1S'][0])):
-        if i == 0:
-            continue
-        if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
-            if start_combat == -1:
-                start_combat = i*1000
-            else:
-                start_combat = min(start_combat, i*1000)
-            break
-    return start_combat
-        
-        
-# get value of stat from player_json
-def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
-    if stat == 'time_in_combat':
-        if 'combatReplayData' not in player_json:
-            print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
-            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
-        replay = player_json['combatReplayData']
-        if 'dead' not in replay:
-            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
-        
-        combat_time = 0
-        start_combat = get_combat_start_from_player_json(0, player_json)
-            
-        for death in replay['dead']:
-            time_of_death = death[0]
-            time_of_revive = death[1]
-            if start_combat != -1:
-                combat_time += (time_of_death - start_combat)
-            start_combat = get_combat_start_from_player_json(time_of_revive, player_json)
-        end_combat = len(player_json['damage1S'][0]*1000)
-        if start_combat != -1:
-            combat_time += end_combat - start_combat
-        combat_time /= 1000
-        return round(combat_time)
-
-    if stat == 'group':
-        if 'group' not in player_json:
-            return 0
-        return int(player_json['group'])
-    
-    if stat == 'time_active':
-        if 'activeTimes' not in player_json:
-            return 0
-        return round(int(player_json['activeTimes'][0])/1000)
-    
-    if stat == 'dmg_taken':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0] or 'damageBarrier' not in player_json['defenses'][0]:
-            return 0
-        return int(player_json['defenses'][0]['damageTaken']+player_json['defenses'][0]['damageBarrier'])
-
-    if stat == 'deaths':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
-            return 0        
-        return int(player_json['defenses'][0]['deadCount'])
-
-    #if stat == 'kills':
-    #    if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'killed' not in player_json['statsAll'][0]:
-    #        return 0        
-    #    return int(player_json['statsAll'][0]['killed'])
-
-    if stat == 'dmg':
-        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
-            return 0
-        return int(player_json['dpsAll'][0]['damage'])            
-
-    if stat == 'rips':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
-            return 0
-        return int(player_json['support'][0]['boonStrips'])
-    
-    if stat == 'cleanses':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'condiCleanse' not in player_json['support'][0]:
-            return 0
-        return int(player_json['support'][0]['condiCleanse'])            
-
-    if stat == 'dist':
-        if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
-            return -1
-        return float(player_json['statsAll'][0]['distToCom'])
-
-    ### Buffs ###
-    if stat in config.buff_ids:
-        if 'squadBuffs' not in player_json:
-            return 0
-        # get buffs in squad generation -> need to loop over all buffs
-        for buff in player_json['squadBuffs']:
-            if 'id' not in buff:
-                continue 
-            # find right buff
-            buffId = buff['id']
-            if buffId == int(config.buff_ids[stat]):
-                if 'generation' not in buff['buffData'][0]:
-                    return 0.
-                return float(buff['buffData'][0]['generation'])
-        return 0.
-
-    if stat == 'heal':
-        # check if healing was logged, save it
-        heal = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return heal
-        if 'extHealingStats' in player_json:
-            heal = 0
-            if 'outgoingHealingAllies' not in player_json['extHealingStats']:
-                return 0
-            for outgoing_healing_json in player_json['extHealingStats']['outgoingHealingAllies']:
-                # TODO why is this in the json twice?                
-                for outgoing_healing_json2 in outgoing_healing_json:
-                    if 'healing' in outgoing_healing_json2:
-                        heal += int(outgoing_healing_json2['healing'])
-                        break
-        return heal
-
-    if stat == 'barrier':
-        # check if barrier was logged, save it
-        barrier = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return barrier
-        if 'extBarrierStats' in player_json:
-            barrier = 0
-            if 'outgoingBarrierAllies' not in player_json['extBarrierStats']:
-                return 0
-            for outgoing_barrier_json in player_json['extBarrierStats']['outgoingBarrierAllies']:
-                # TODO why is this in the json twice?                
-                for outgoing_barrier_json2 in outgoing_barrier_json:
-                    barrier += outgoing_barrier_json2['barrier']
-                    break
-        return barrier
-
-
-
-# get stats for this fight from fight_json
+# add up total squad stats over all fights
 # Input:
-# fight_json = json object including one fight
-# config = the config to use
-# log = log file to write to
-def get_stats_from_fight_json(fight_json, config, log):
-    # get fight duration
-    fight_duration_json = fight_json['duration']
-    split_duration = fight_duration_json.split('m ', 1)
-    mins = int(split_duration[0])
-    split_duration = split_duration[1].split('s', 1)
-    secs = int(split_duration[0])
-    if debug:
-        print("duration: ", mins, "m", secs, "s")
-    duration = mins*60 + secs
-
-    num_allies = len(fight_json['players'])
-    num_enemies = 0
-    num_kills = 0
-    for enemy in fight_json['targets']:
-        if 'enemyPlayer' in enemy and enemy['enemyPlayer'] == True:
-            num_enemies += 1
-            if 'combatReplayData' in enemy:
-                num_kills += len(enemy['combatReplayData']['dead'])
-                
-    # initialize fight         
-    fight = Fight()
-    fight.duration = duration
-    fight.enemies = num_enemies
-    fight.allies = num_allies
-    fight.kills = num_kills
-    fight.start_time = fight_json['timeStartStd']
-    fight.end_time = fight_json['timeEndStd']        
-    fight.total_stats = {key: 0 for key in config.stats_to_compute}
-        
-    # skip fights that last less than min_fight_duration seconds
-    if(duration < config.min_fight_duration):
-        fight.skipped = True
-        print_string = "\nFight only took "+str(mins)+"m "+str(secs)+"s. Skipping fight."
-        myprint(log, print_string)
-        
-    # skip fights with less than min_allied_players allies
-    if num_allies < config.min_allied_players:
-        fight.skipped = True
-        print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
-        myprint(log, print_string)
-
-    # skip fights with less than min_enemy_players enemies
-    if num_enemies < config.min_enemy_players:
-        fight.skipped = True
-        print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
-        myprint(log, print_string)
-
-    if 'usedExtensions' not in fight_json:
-        players_running_healing_addon = []
-    else:
-        extensions = fight_json['usedExtensions']
-        for extension in extensions:
-            if extension['name'] == "Healing Stats":
-                players_running_healing_addon = extension['runningExtension']
-        
-    return fight, players_running_healing_addon
-
-
-
-# add up total stats over all fights
+# fights = list of Fights
+# config = config used in the stat computation
+# Output:
+# Dictionary of total squad values over all fights for all stats to compute
 def get_overall_squad_stats(fights, config):
     # overall stats over whole squad
     overall_squad_stats = {key: 0 for key in config.stats_to_compute}
@@ -1184,6 +927,12 @@ def get_overall_squad_stats(fights, config):
     return overall_squad_stats
 
 
+
+# get raid stats like date, start and end time, number of skipped fights, etc.
+# Input:
+# fights = list of Fights
+# Output:
+# Dictionary of raid stats
 def get_overall_raid_stats(fights):
     overall_raid_stats = {}
     used_fights = [f for f in fights if not f.skipped]
@@ -1191,8 +940,8 @@ def get_overall_raid_stats(fights):
     overall_raid_stats['num_used_fights'] = len([f for f in fights if not f.skipped])
     overall_raid_stats['used_fights_duration'] = sum([f.duration for f in used_fights])
     overall_raid_stats['date'] = min([f.start_time.split()[0] for f in used_fights])
-    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights])# +" "+ used_fights[0].start_time.split()[2]
-    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights])# +" "+ used_fights[0].end_time.split()[2]
+    overall_raid_stats['start_time'] = min([f.start_time.split()[1] for f in used_fights])
+    overall_raid_stats['end_time'] = max([f.end_time.split()[1] for f in used_fights])
     overall_raid_stats['num_skipped_fights'] = len([f for f in fights if f.skipped])
     overall_raid_stats['min_allies'] = min([f.allies for f in used_fights])
     overall_raid_stats['max_allies'] = max([f.allies for f in used_fights])    
@@ -1214,7 +963,36 @@ def get_overall_raid_stats(fights):
     return overall_raid_stats
 
 
-# print the overall squad stats
+
+# get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
+# Input:
+# players = list of all players
+# indices = list of relevant indices
+# config = config to use for top stats computation/printing
+# Output:
+# list of profession strings, maximum profession length
+def get_professions_and_length(players, indices, config):
+    profession_strings = list()
+    profession_length = 0
+    for i in indices:
+        player = players[i]
+        professions_str = config.profession_abbreviations[player.profession]
+        profession_strings.append(professions_str)
+        if len(professions_str) > profession_length:
+            profession_length = len(professions_str)
+    return profession_strings, profession_length
+
+
+
+# print the overall squad stats and some overall raid stats
+# Input:
+# fights = list of Fights
+# overall_squad_stats = overall stats of the whole squad; output of get_overall_squad_stats
+# overall_raid_stats = raid stats like start time, end time, total kills, etc.; output of get_overall_raid_stats
+# found_healing = was healing logged
+# found_barrier = was barrier logged
+# config = the config used for stats computation
+# output = file to write to
 def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, found_healing, found_barrier, config, output):
     #get total duration in h, m, s
     total_fight_duration = {}
@@ -1280,10 +1058,340 @@ def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, fou
     return total_fight_duration
 
 
-# Write xls fight overview
+
+# print an overview of the fights
 # Input:
 # fights = list of Fights
-# overall_squad_stats = overall stats of the whole squad
+# overall_squad_stats = overall stats of the whole squad; output of get_overall_squad_stats
+# overall_raid_stats = raid stats like start time, end time, total kills, etc.; output of get_overall_raid_stats
+# config = the config used for stats computation
+# output = file to write to
+def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output):
+    stat_len = {}
+    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
+    for stat in overall_squad_stats:
+        stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
+        print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
+    myprint(output, print_string)
+    for i in range(len(fights)):
+        fight = fights[i]
+        skipped_str = "yes" if fight.skipped else "no"
+        date = fight.start_time.split()[0]
+        start_time = fight.start_time.split()[1]
+        end_time = fight.end_time.split()[1]        
+        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
+        for stat in overall_squad_stats:
+            print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
+        myprint(output, print_string)   
+
+
+        
+# Get and write the top x people who achieved top y in stat most often.
+# Input:
+# players = list of Players
+# config = the configuration being used to determine the top consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = the file to write the output to
+# Output:
+# list of player indices that got a top consistency award
+def get_and_write_sorted_top_consistent(players, config, num_used_fights, stat, output_file):
+    top_consistent_players = get_top_players(players, config, stat, StatType.CONSISTENT)
+    write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, StatType.CONSISTENT, output_file)
+    return top_consistent_players
+
+
+
+# Get and write the people who achieved top x average in stat
+# Input:
+# players = list of Players
+# config = the configuration being used to determine the top consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = the file to write the output to
+# Output:
+# list of player indices that got a top consistency award
+def get_and_write_sorted_average(players, config, num_used_fights, stat, output_file):
+    top_average_players = get_top_players(players, config, stat, StatType.AVERAGE)
+    write_sorted_top_consistent_or_avg(players, top_average_players, config, num_used_fights, stat, StatType.AVERAGE, output_file)
+    return top_average_players
+
+
+
+# Get and write the top x people who achieved top total stat.
+# Input:
+# players = list of Players
+# config = the configuration being used to determine topx consistent players
+# total_fight_duration = the total duration of all fights
+# stat = which stat are we considering
+# output_file = where to write to
+# Output:
+# list of top total player indices
+def get_and_write_sorted_total(players, config, total_fight_duration, stat, output_file):
+    # get players that get an award and their professions
+    top_total_players = get_top_players(players, config, stat, StatType.TOTAL)
+    write_sorted_total(players, top_total_players, config, total_fight_duration, stat, output_file)
+    return top_total_players
+
+
+
+# Get and write the top x people who achieved top in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top spot in 1 of them.
+# Input:
+# players = list of Players
+# config = the configuration being used to determine topx consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = file to write to
+# late_or_swapping = which type of stat. can be StatType.PERCENTAGE, StatType.LATE_PERCENTAGE or StatType.SWAPPED_PERCENTAGE
+# top_consistent_players = list with indices of top consistent players
+# top_total_players = list with indices of top total players
+# top_percentage_players = list with indices of players with top percentage award
+# top_late_players = list with indices of players who got a late but great award
+# Output:
+# list of players that got a top percentage award (or late but great or jack of all trades)
+def get_and_write_sorted_top_percentage(players, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players = list(), top_percentage_players = list(), top_late_players = list()):
+    # get names that get on the list and their professions
+    top_percentage_players, comparison_percentage = get_top_percentage_players(players, config, stat, late_or_swapping, num_used_fights, top_consistent_players, top_total_players, top_percentage_players, top_late_players)
+    write_sorted_top_percentage(players, top_percentage_players, comparison_percentage, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players, top_percentage_players, top_late_players)
+    return top_percentage_players, comparison_percentage
+
+
+
+# Write the top x people who achieved top y in stat most often.
+# Input:
+# players = list of Players
+# top_consistent_players = list of Player indices considered top consistent players
+# config = the configuration being used to determine the top consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = the file to write the output to
+# Output:
+# list of player indices that got a top consistency award
+def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, num_used_fights, stat, consistent_or_avg, output_file):
+    max_name_length = max([len(players[i].name) for i in top_consistent_players])
+    profession_strings, profession_length = get_professions_and_length(players, top_consistent_players, config)
+
+    if consistent_or_avg == StatType.CONSISTENT:
+        if stat == "dist":
+            print_string = "Top "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" consistency awards"
+        else:
+            print_string = "Top "+config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
+            myprint(output_file, print_string)
+            print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
+            myprint(output_file, print_string)
+    elif consistent_or_avg == StatType.AVERAGE:
+        if stat == "dist":
+            print_string = "Top average "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" awards"
+        else:
+            print_string = "Top average "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places)"
+            myprint(output_file, print_string)
+            print_string = "Attendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
+            myprint(output_file, print_string)
+    print_string = "-------------------------------------------------------------------------------"    
+    myprint(output_file, print_string)
+
+
+    # print table header
+    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+" Attendance " + " Times Top"
+    if stat != "dist":
+        print_string += f" {'Total':>9}"
+    if stat in config.buff_ids or stat == 'dmg_taken':
+        print_string += f"  {'Average':>7}"
+        
+    myprint(output_file, print_string)    
+
+    
+    place = 0
+    last_val = 0
+    # print table
+    for i in range(len(top_consistent_players)):
+        player = players[top_consistent_players[i]]
+        if player.consistency_stats[stat] != last_val:
+            place += 1
+        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "+f" {player.num_fights_present:>10} "+f" {round(player.consistency_stats[stat]):>9}"
+        if stat != "dist" and stat not in config.buff_ids and stat != 'dmg_taken':
+            print_string += f" {round(player.total_stats[stat]):>9}"
+        if stat == 'dmg_taken':
+            print_string += f" {player.total_stats[stat]:>9}"+f" {player.average_stats[stat]:>8}"
+        elif stat in config.buffs_stacking_intensity:
+            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>8}"
+        elif stat in config.buffs_stacking_duration:
+            print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
+
+        myprint(output_file, print_string)
+        last_val = player.consistency_stats[stat]
+    myprint(output_file, "\n")
+        
+                
+
+
+# Write the top x people who achieved top total stat.
+# Input:
+# players = list of Players
+# top_total_players = list of Player indices considered top total players
+# config = the configuration being used to determine topx consistent players
+# total_fight_duration = the total duration of all fights
+# stat = which stat are we considering
+# output_file = where to write to
+# Output:
+# list of top total player indices
+def write_sorted_total(players, top_total_players, config, total_fight_duration, stat, output_file):
+    max_name_length = max([len(players[i].name) for i in top_total_players])    
+    profession_strings, profession_length = get_professions_and_length(players, top_total_players, config)
+    profession_length = max(profession_length, 5)
+    
+    print_string = "Top overall "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
+    myprint(output_file, print_string)
+    print_string = "Attendance = total duration of fights attended out of "
+    if total_fight_duration["h"] > 0:
+        print_string += str(total_fight_duration["h"])+"h "
+    print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s."    
+    myprint(output_file, print_string)
+    print_string = "------------------------------------------------------------------------"
+    myprint(output_file, print_string)
+
+
+    # print table header
+    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>9}"
+    if stat in config.buff_ids:
+        print_string += f"  {'Average':>7}"
+    myprint(output_file, print_string)    
+
+    place = 0
+    last_val = -1
+    # print table
+    for i in range(len(top_total_players)):
+        player = players[top_total_players[i]]
+        if player.total_stats[stat] != last_val:
+            place += 1
+
+        fight_time_h = int(player.duration_fights_present/3600)
+        fight_time_m = int((player.duration_fights_present - fight_time_h*3600)/60)
+        fight_time_s = int(player.duration_fights_present - fight_time_h*3600 - fight_time_m*60)
+
+        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "
+
+        if fight_time_h > 0:
+            print_string += f" {fight_time_h:>2}h {fight_time_m:>2}m {fight_time_s:>2}s"
+        else:
+            print_string += f" {fight_time_m:>6}m {fight_time_s:>2}s"
+
+        if stat in config.buffs_stacking_duration:
+            print_string += f" {round(player.total_stats[stat]):>8}s"
+            print_string += f" {player.average_stats[stat]:>7}%"
+        elif stat in config.buffs_stacking_intensity:
+            print_string += f" {round(player.total_stats[stat]):>8}s"
+            print_string += f" {player.average_stats[stat]:>8}"
+        else:
+            print_string += f" {round(player.total_stats[stat]):>9}"
+        myprint(output_file, print_string)
+        last_val = player.total_stats[stat]
+    myprint(output_file, "\n")
+    
+   
+
+# Write the top x people who achieved top in stat with the highest percentage. This only considers fights where each player was present, i.e., a player who was in 4 fights and achieved a top spot in 2 of them gets 50%, as does a player who was only in 2 fights and achieved a top spot in 1 of them.
+# Input:
+# players = list of Players
+# top_players = list of Player indices considered top percentage players
+# config = the configuration being used to determine topx consistent players
+# num_used_fights = the number of fights that are being used in stat computation
+# stat = which stat are we considering
+# output_file = file to write to
+# late_or_swapping = which type of stat. can be StatType.PERCENTAGE, StatType.LATE_PERCENTAGE or StatType.SWAPPED_PERCENTAGE
+# top_consistent_players = list with indices of top consistent players
+# top_total_players = list with indices of top total players
+# top_percentage_players = list with indices of players with top percentage award
+# top_late_players = list with indices of players who got a late but great award
+# Output:
+# list of players that got a top percentage award (or late but great or jack of all trades)
+def write_sorted_top_percentage(players, top_players, comparison_percentage, config, num_used_fights, stat, output_file, late_or_swapping, top_consistent_players, top_total_players = list(), top_percentage_players = list(), top_late_players = list()):
+    # get names that get on the list and their professions
+    if len(top_players) <= 0:
+        return top_players
+
+    profession_strings, profession_length = get_professions_and_length(players, top_players, config)
+    max_name_length = max([len(players[i].name) for i in top_players])
+    profession_length = max(profession_length, 5)
+
+    # print table header
+    print_string = "Top "+config.stat_names[stat]+" percentage (Minimum percentage = "+f"{comparison_percentage*100:.0f}%)"
+    myprint(output_file, print_string)
+    print_string = "------------------------------------------------------------------------"     
+    myprint(output_file, print_string)                
+
+    # print table header
+    print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times Top':>9} " + f" {'Out of':>6}"
+    if stat != "dist":
+        print_string += f" {'Total':>8}"
+    myprint(output_file, print_string)    
+
+    # print stats for top players
+    place = 0
+    last_val = 0
+    # print table
+    for i in range(len(top_players)):
+        player = players[top_players[i]]
+        if player.portion_top_stats[stat] != last_val:
+            place += 1
+
+        percentage = int(player.portion_top_stats[stat]*100)
+        print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} " +f" {percentage:>10}% " +f" {round(player.consistency_stats[stat]):>9} "+f" {player.num_fights_present:>6} "
+
+        if stat != "dist":
+            print_string += f" {round(player.total_stats[stat]):>7}"
+        myprint(output_file, print_string)
+        last_val = player.portion_top_stats[stat]
+    myprint(output_file, "\n")
+
+
+
+# Write the top x people who achieved top total stat.
+# Input:
+# players = list of Players
+# top_players = list of indices in players that are considered as top
+# stat = which stat are we considering
+# xls_output_filename = where to write to
+def write_stats_xls(players, top_players, stat, xls_output_filename):
+    book = xlrd.open_workbook(xls_output_filename)
+    wb = copy(book)
+    sheet1 = wb.add_sheet(stat)
+
+    sheet1.write(0, 0, "Account")
+    sheet1.write(0, 1, "Name")
+    sheet1.write(0, 2, "Profession")
+    sheet1.write(0, 3, "Attendance (number of fights)")
+    sheet1.write(0, 4, "Attendance (duration fights)")
+    sheet1.write(0, 5, "Times Top")
+    sheet1.write(0, 6, "Percentage Top")
+    sheet1.write(0, 7, "Total "+stat)
+    if stat == 'deaths':
+        sheet1.write(0, 8, "Average "+stat+" per min")
+    else:
+        sheet1.write(0, 8, "Average "+stat+" per s")        
+
+    for i in range(len(top_players)):
+        player = players[top_players[i]]
+        sheet1.write(i+1, 0, player.account)
+        sheet1.write(i+1, 1, player.name)
+        sheet1.write(i+1, 2, player.profession)
+        sheet1.write(i+1, 3, player.num_fights_present)
+        sheet1.write(i+1, 4, player.duration_fights_present)
+        sheet1.write(i+1, 5, player.consistency_stats[stat])        
+        sheet1.write(i+1, 6, round(player.portion_top_stats[stat]*100))
+        sheet1.write(i+1, 7, round(player.total_stats[stat]))
+        sheet1.write(i+1, 8, player.average_stats[stat])
+
+    wb.save(xls_output_filename)
+
+    
+
+# Write xls fight overview
+# Input:
+# fights = list of Fights as returned by collect_stat_data
+# overall_squad_stats = overall stats of the whole squad; output of get_overall_squad_stats
+# overall_raid_stats = raid stats like start time, end time, total kills, etc.; output of get_overall_raid_stats
+# config = the config to use for stats computation
 # xls_output_filename = where to write to
 def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, xls_output_filename):
     book = xlrd.open_workbook(xls_output_filename)
@@ -1335,55 +1443,16 @@ def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, c
 
     wb.save(xls_output_filename)
 
-
-def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output):
-    stat_len = {}
-    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
-    for stat in overall_squad_stats:
-        stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
-        print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
-    #myprint(output, print_string)
-    print_string += "\n\n"
-    for i in range(len(fights)):
-        fight = fights[i]
-        skipped_str = "yes" if fight.skipped else "no"
-        date = fight.start_time.split()[0]
-        start_time = fight.start_time.split()[1]
-        end_time = fight.end_time.split()[1]        
-        print_string += f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
-        for stat in overall_squad_stats:
-            print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
-        print_string += "\n"
-        myprint(output, print_string)
-
-    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len)+7)
-    myprint(output, print_string)
-    print_string = f"{overall_raid_stats['num_used_fights']:>3}"+"  "+f"{overall_raid_stats['date']:>7}"+"  "+f"{overall_raid_stats['start_time']:>10}"+"  "+f"{overall_raid_stats['end_time']:>8}"+"  "+f"{overall_raid_stats['used_fights_duration']:>13}"+"  "+f"{overall_raid_stats['num_skipped_fights']:>7}" +"  "+f"{overall_raid_stats['mean_allies']:>11}"+"  "+f"{overall_raid_stats['mean_enemies']:>12}"+"  "+f"{overall_raid_stats['total_kills']:>5}"
-    for stat in overall_squad_stats:
-        print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
-    print_string += "\n\n"
-    return print_string
-
-
-def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output):
-    stat_len = {}
-    print_string = "  #  "+f"{'Date':<10}"+"  "+f"{'Start Time':>10}"+"  "+f"{'End Time':>8}"+"  Duration in s  Skipped  Num. Allies  Num. Enemies  Kills"
-    for stat in overall_squad_stats:
-        stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
-        print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
-    myprint(output, print_string)
-    for i in range(len(fights)):
-        fight = fights[i]
-        skipped_str = "yes" if fight.skipped else "no"
-        date = fight.start_time.split()[0]
-        start_time = fight.start_time.split()[1]
-        end_time = fight.end_time.split()[1]        
-        print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
-        for stat in overall_squad_stats:
-            print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
-        myprint(output, print_string)   
-
     
+
+# write all stats to a json file
+# Input:
+# overall_raid_stats = raid stats like start time, end time, total kills, etc.; output of get_overall_raid_stats
+# overall_squad_stats = overall stats of the whole squad; output of get_overall_squad_stats
+# fights = list of Fights
+# config = the config used for stats computation
+# output = file to write to
+
 def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, output_file):
     json_dict = {}
     json_dict["overall_raid_stats"] = {key: value for key, value in overall_raid_stats.items()}
