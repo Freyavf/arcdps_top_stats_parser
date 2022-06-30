@@ -1466,5 +1466,5 @@ def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_
     json_dict["top_late_players"] =  {key: value for key, value in top_late_players.items()}
     json_dict["top_jack_of_all_trades_players"] =  {key: value for key, value in top_jack_of_all_trades_players.items()}        
 
-    return json_dict
-
+    with open(output_file, 'w') as json_file:
+        json.dump(json_dict, json_file, indent=4)
