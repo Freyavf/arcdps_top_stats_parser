@@ -14,12 +14,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-stats_to_compute = ['dmg', 'rips', 'cleanses', 'heal', 'dist', 'stab', 'prot', 'aegis', 'might', 'fury', 'barrier', 'dmg_taken', 'deaths']
+stats_to_compute = ['dmg', 'rips', 'cleanses', 'heal', 'dist', 'stab', 'prot', 'aegis', 'might', 'fury', 'quick', 'alac', 'speed', 'barrier', 'dmg_taken', 'deaths']
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'prot': 1000, 'aegis': 1000, 'might': 1000, 'fury': 1000, 'cleanses': 1000, 'heal': 1000, 'barrier': 1000, 'dist': 1000, 'dmg_taken': 1000, 'deaths': 1000}
+num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'prot': 1000, 'aegis': 1000, 'might': 1000, 'fury': 1000, 'quick': 1000, 'alac': 1000, 'speed': 1000, 'cleanses': 1000, 'heal': 1000, 'barrier': 1000, 'dist': 1000, 'dmg_taken': 1000, 'deaths': 1000}
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 5, 'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'might': 3, 'fury': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'dmg_taken': 5, 'deaths': 1}
+num_players_considered_top = {'dmg': 5, 'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'dmg_taken': 5, 'deaths': 1}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
@@ -105,6 +105,9 @@ stat_names["prot"] = "Protection Output"
 stat_names["aegis"] = "Aegis Output"
 stat_names["might"] = "Might Output"
 stat_names["fury"] = "Fury Output"
+stat_names["alac"] = "Alacrity Output"
+stat_names["quick"] = "Quickness Output"
+stat_names["speed"] = "Superspeed Output"
 stat_names["cleanses"] = "Condition Cleanses"
 stat_names["heal"] = "Healing"
 stat_names["barrier"] = "Barrier"
