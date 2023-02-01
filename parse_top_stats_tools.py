@@ -75,7 +75,8 @@ class Player:
 class Fight:
     skipped: bool = False                           # a fight is skipped in the top stats computation if number of enemies or allies is too small, or if it is too short
     duration: int = 0                               # duration of the fight in seconds
-    total_stats: dict = field(default_factory=dict) # what's the over total value for the whole squad for each stat in this fight?
+    total_stats: dict = field(default_factory=dict) # what's the overall total value for the whole squad for each stat in this fight?
+    avg_stats: dict = field(default_factory=dict)   # what's the overall average value for the whole squad for each stat in this fight?
     enemies: int = 0                                # number of enemy players involved
     allies: int = 0                                 # number of squad players involved
     kills: int = 0                                  # number of kills
@@ -219,6 +220,7 @@ def get_stats_from_fight_json(fight_json, config, log):
     fight.start_time = fight_json['timeStartStd']
     fight.end_time = fight_json['timeEndStd']        
     fight.total_stats = {key: 0 for key in config.stats_to_compute}
+    fight.avg_stats = {key: 0 for key in config.stats_to_compute}    
         
     # skip fights that last less than min_fight_duration seconds
     if(duration < config.min_fight_duration):
@@ -823,6 +825,14 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         increase_top_x_reached(players, sortedStats[stat], config, stat)
         # round total_stats for this fight
         fight.total_stats[stat] = round(fight.total_stats[stat])
+        fight.avg_stats[stat] = fight.total_stats[stat]
+        if fight.avg_stats[stat] > 0:
+            fight.avg_stats[stat] = fight.avg_stats[stat] / len([p for p in players if p.stats_per_fight[fight_number][stat] > 0])
+        
+        if stat in config.buffs_stacking_duration:
+            fight.avg_stats[stat] *= 100
+        if stat in config.buff_ids or stat == "dist" or stat == "dmg_taken": # not strictly correct for dmg taken, but... eh
+            fight.avg_stats[stat] = round(fight.avg_stats[stat]/fight.duration, 2)
 
     fights.append(fight)
 
@@ -921,12 +931,19 @@ def get_overall_stats(players, used_fights, config):
 # Output:
 # Dictionary of total squad values over all fights for all stats to compute
 def get_overall_squad_stats(fights, config):
+    used_fights = [f for f in fights if not f.skipped]
     # overall stats over whole squad
     overall_squad_stats = {key: 0 for key in config.stats_to_compute}
-    for fight in fights:
-        if not fight.skipped:
-            for stat in config.stats_to_compute:
+    for fight in used_fights:
+        for stat in config.stats_to_compute:
+            if not stat in config.buff_ids and stat != "dist":
                 overall_squad_stats[stat] += fight.total_stats[stat]
+            else:
+                overall_squad_stats[stat] += fight.avg_stats[stat]
+    for stat in config.buff_ids:
+        overall_squad_stats[stat] = round(overall_squad_stats[stat] / len(used_fights), 2)
+    if "dist" in config.stats_to_compute:
+        overall_squad_stats["dist"] = round(overall_squad_stats["dist"] / len(used_fights), 2)
     return overall_squad_stats
 
 
@@ -1429,7 +1446,10 @@ def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, c
         sheet1.write(i+1, 8, fight.enemies)
         sheet1.write(i+1, 9, fight.kills)
         for j,stat in enumerate(config.stats_to_compute):
-            sheet1.write(i+1, 10+j, fight.total_stats[stat])
+            if stat not in config.buff_ids and stat != "dist":
+                sheet1.write(i+1, 10+j, fight.total_stats[stat])
+            else:
+                sheet1.write(i+1, 10+j, fight.avg_stats[stat])                
 
     sheet1.write(len(fights)+1, 0, "Sum/Avg. in used fights")
     sheet1.write(len(fights)+1, 1, overall_raid_stats['num_used_fights'])
