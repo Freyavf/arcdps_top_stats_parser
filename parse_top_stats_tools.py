@@ -51,7 +51,8 @@ class Player:
     attendance_percentage: float = 0.   # the percentage of fights the player was involved in out of all fights
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
     duration_active: int = 0            # the total duration a player was active (alive or down)
-    duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)    
+    duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
+    normalization_time_allies: int = 0  # the the sum of fight duration * (squad members -1) of all fights the player was involved in
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
     # fields for all stats defined in config
@@ -158,6 +159,7 @@ def fill_config(config_input):
     config.buff_abbrev["Stability"] = 'stab'
     config.buff_abbrev["Protection"] = 'prot'
     config.buff_abbrev["Aegis"] = 'aegis'
+    config.buff_abbrev["Regeneration"] = 'regen'
     config.buff_abbrev["Might"] = 'might'
     config.buff_abbrev["Fury"] = 'fury'
     config.buff_abbrev["Quickness"] = 'quick'
@@ -388,7 +390,43 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
                     break
         return barrier
 
+    if stat == 'heal_from_regen':
+        # check if healing was logged, save it
+        heal_from_regen = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return heal_from_regen
+        if 'extHealingStats' in player_json:
+            heal_from_regen = 0
+            if 'totalHealingDist' not in player_json['extHealingStats']:
+                return 0
+            for healing_json in player_json['extHealingStats']['totalHealingDist']:
+                breakthis = False # always 2 entries for each healing event, just use the first
+                for healing_json2 in healing_json:
+                    if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
+                        heal_from_regen += int(healing_json2['totalHealing'])
+                        breakthis = True
+                if breakthis:
+                    break
+        return heal_from_regen
 
+    if stat == 'hits_from_regen':
+        # check if healing was logged, save it
+        hits_from_regen = -1
+        if player_json['name'] not in players_running_healing_addon:
+            return hits_from_regen
+        if 'extHealingStats' in player_json:
+            hits_from_regen = 0
+            if 'totalHealingDist' not in player_json['extHealingStats']:
+                return 0
+            for healing_json in player_json['extHealingStats']['totalHealingDist']:
+                breakthis = False # always 2 entries for each healing event, just use the first
+                for healing_json2 in healing_json:
+                    if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
+                        hits_from_regen += int(healing_json2['hits'])
+                        breakthis = True
+                if breakthis:
+                    break
+        return hits_from_regen
 
 # find the first time a player took or dealt damage after initial_time
 # Input:
@@ -765,6 +803,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
             player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
+            #print(stat, player.stats_per_fight[fight_number][stat])
                     
             if stat == 'heal' and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
@@ -776,24 +815,31 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
                 if player.stats_per_fight[fight_number]['time_in_combat'] == 0:
                     player.stats_per_fight[fight_number]['time_in_combat'] = 1
                 player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['time_in_combat']
+            #elif stat == 'heal_from_regen':
+            #    player.stats_per_fight[fight_number]['hits_from_regen'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'hits_from_regen', config)
                     
             # add stats of this fight and player to total stats of this fight and player
             if player.stats_per_fight[fight_number][stat] > 0:
                 # buff are generation squad values, using total over time
                 if stat in config.buffs_stacking_duration:
-                    #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players / (players-1)
-                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
-                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration, 2)
+                    #value is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration*(fight.allies-1), 2)
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]/100.*fight.duration*(fight.allies-1), 2)
                 elif stat in config.buffs_stacking_intensity:
-                    #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players / (players-1)
-                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
-                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration, 2)
+                    #value is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players
+                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration*(fight.allies-1), 2)
+                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration*(fight.allies-1), 2)
                 elif stat == 'dist':
                     fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
                     player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
                 elif stat == 'dmg_taken':
                     fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
                     player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
+                #elif stat == 'heal_from_regen':
+                #    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                #    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
+                #    fight.total_stats['hits_from_regen'] += player.stats_per_fight[fight_number]['hits_from_regen']
+                #    player.total_stats['hits_from_regen'] += player.stats_per_fight[fight_number]['hits_from_regen']
                 else:
                     # all non-buff stats
                     fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
@@ -809,6 +855,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         player.duration_fights_present += fight.duration
         player.duration_active += player.stats_per_fight[fight_number]['time_active']
         player.duration_in_combat += player.stats_per_fight[fight_number]['time_in_combat']
+        player.normalization_time_allies += (fight.allies - 1) * fight.duration
         player.swapped_build |= build_swapped
 
     # create lists sorted according to stats
@@ -917,7 +964,15 @@ def get_overall_stats(players, used_fights, config):
             elif stat == 'deaths':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_fights_present/60), 2)
             elif stat in config.buffs_stacking_duration:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present*100, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies *100, 2)
+            elif stat in config.buffs_stacking_intensity:
+                player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies, 2)
+            elif stat == 'heal_from_regen':
+                if player.total_stats['hits_from_regen'] == 0:
+                    print(player.total_stats[stat])
+                    player.average_stats[stat] = 0
+                else:
+                    player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_fights_present, 2)
 
