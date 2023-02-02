@@ -8,8 +8,11 @@ Currently supported stats are:
 - stability output (generation squad)
 - protection output (generation squad)
 - aegis output (generation squad)
+- quickness output (generation squad)
 - might output (generation squad)
 - fury output (generation squad)
+- alacrity output (generation squad)
+- superspeed output (generation squad)
 - healing output
 - barrier output
 - average distance to tag
