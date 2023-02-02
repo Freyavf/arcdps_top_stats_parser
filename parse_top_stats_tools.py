@@ -52,7 +52,7 @@ class Player:
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
     duration_active: int = 0            # the total duration a player was active (alive or down)
     duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
-    normalization_time_allies: int = 0  # the the sum of fight duration * (squad members -1) of all fights the player was involved in
+    normalization_time_allies: int = 0  # the sum of fight duration * (squad members -1) of all fights the player was involved in
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
     # fields for all stats defined in config
@@ -74,15 +74,15 @@ class Player:
 # This class stores information about a fight
 @dataclass
 class Fight:
-    skipped: bool = False                           # a fight is skipped in the top stats computation if number of enemies or allies is too small, or if it is too short
-    duration: int = 0                               # duration of the fight in seconds
-    total_stats: dict = field(default_factory=dict) # what's the overall total value for the whole squad for each stat in this fight?
-    avg_stats: dict = field(default_factory=dict)   # what's the overall average value for the whole squad for each stat in this fight?
-    enemies: int = 0                                # number of enemy players involved
-    allies: int = 0                                 # number of squad players involved
-    kills: int = 0                                  # number of kills
-    start_time: str = ""                            # start time of the fight
-    squad_composition: dict = field(default_factory=dict)
+    skipped: bool = False                                 # a fight is skipped in the top stats computation if number of enemies or allies is too small, or if it is too short
+    duration: int = 0                                     # duration of the fight in seconds
+    total_stats: dict = field(default_factory=dict)       # what's the overall total value for the whole squad for each stat in this fight?
+    avg_stats: dict = field(default_factory=dict)         # what's the overall average value for the whole squad for each stat in this fight?
+    enemies: int = 0                                      # number of enemy players involved
+    allies: int = 0                                       # number of squad players involved
+    kills: int = 0                                        # number of kills
+    start_time: str = ""                                  # start time of the fight
+    squad_composition: dict = field(default_factory=dict) # squad composition of the fight (how many of which class)
     
 
     
@@ -194,7 +194,7 @@ def get_buff_ids_from_json(json_data, config):
 # config = the config to use for top stat computation
 # log = log file to write to
 def get_stats_from_fight_json(fight_json, config, log):
-    # get fight duration
+    # get fight duration in min and sec
     fight_duration_json = fight_json['duration']
     split_duration = fight_duration_json.split('m ', 1)
     mins = int(split_duration[0])
@@ -210,6 +210,7 @@ def get_stats_from_fight_json(fight_json, config, log):
     for enemy in fight_json['targets']:
         if 'enemyPlayer' in enemy and enemy['enemyPlayer'] == True:
             num_enemies += 1
+            # if combat replay data is there, add number of times this player died to total num kills
             if 'combatReplayData' in enemy:
                 num_kills += len(enemy['combatReplayData']['dead'])
                 
@@ -242,6 +243,7 @@ def get_stats_from_fight_json(fight_json, config, log):
         print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
         myprint(log, print_string)
 
+    # get players using healing addon, if the addon was used
     if 'usedExtensions' not in fight_json:
         players_running_healing_addon = []
     else:
@@ -274,27 +276,7 @@ def get_basic_player_data_from_json(player_json):
 # config: the config used for top stats computation
 def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
     if stat == 'time_in_combat':
-        if 'combatReplayData' not in player_json:
-            print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
-            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
-        replay = player_json['combatReplayData']
-        if 'dead' not in replay:
-            return get_stat_from_player_json(player_json, players_running_healing_addon, 'time_active', config)
-        
-        combat_time = 0
-        start_combat = get_combat_start_from_player_json(0, player_json)
-            
-        for death in replay['dead']:
-            time_of_death = death[0]
-            time_of_revive = death[1]
-            if start_combat != -1:
-                combat_time += (time_of_death - start_combat)
-            start_combat = get_combat_start_from_player_json(time_of_revive, player_json)
-        end_combat = len(player_json['damage1S'][0]*1000)
-        if start_combat != -1:
-            combat_time += end_combat - start_combat
-        combat_time /= 1000
-        return round(combat_time)
+        return round(sum_breakpoints(get_combat_time_breakpoints(player_json)) / 1000)
 
     if stat == 'group':
         if 'group' not in player_json:
@@ -359,74 +341,39 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
 
     if stat == 'heal':
         # check if healing was logged, save it
-        heal = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return heal
-        if 'extHealingStats' in player_json:
-            heal = 0
-            if 'outgoingHealingAllies' not in player_json['extHealingStats']:
-                return 0
-            for outgoing_healing_json in player_json['extHealingStats']['outgoingHealingAllies']:
-                # TODO why is this in the json twice?                
-                for outgoing_healing_json2 in outgoing_healing_json:
-                    if 'healing' in outgoing_healing_json2:
-                        heal += int(outgoing_healing_json2['healing'])
-                        break
-        return heal
+        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'outgoingHealing' in player_json['extHealingStats']:
+            #total_heal = sum([healing[0][-1] for healing in player_json['extHealingStats']['alliedHealing1S']])
+            #if total_heal != player_json['extHealingStats']['outgoingHealing'][0]['healing']:
+            #    print("ERROR: sum of outgoing healing over allies ", total_heal, " does not correspond to total outgoing healing ", player_json['extHealingStats']['outgoingHealing'][0]['healing'], " for player ", player_json['name'])
+            #    exit(1)
+            return player_json['extHealingStats']['outgoingHealing'][0]['healing']
+        return -1
 
     if stat == 'barrier':
         # check if barrier was logged, save it
-        barrier = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return barrier
-        if 'extBarrierStats' in player_json:
-            barrier = 0
-            if 'outgoingBarrierAllies' not in player_json['extBarrierStats']:
-                return 0
-            for outgoing_barrier_json in player_json['extBarrierStats']['outgoingBarrierAllies']:
-                # TODO why is this in the json twice?                
-                for outgoing_barrier_json2 in outgoing_barrier_json:
-                    barrier += outgoing_barrier_json2['barrier']
-                    break
-        return barrier
+        if player_json['name'] in players_running_healing_addon and 'extBarrierStats' in player_json and 'outgoingBarrier' in player_json['extBarrierStats']:
+            return player_json['extBarrierStats']['outgoingBarrier'][1]['barrier']
+        return -1
 
     if stat == 'heal_from_regen':
-        # check if healing was logged, save it
-        heal_from_regen = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return heal_from_regen
-        if 'extHealingStats' in player_json:
-            heal_from_regen = 0
-            if 'totalHealingDist' not in player_json['extHealingStats']:
-                return 0
-            for healing_json in player_json['extHealingStats']['totalHealingDist']:
-                breakthis = False # always 2 entries for each healing event, just use the first
-                for healing_json2 in healing_json:
-                    if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
-                        heal_from_regen += int(healing_json2['totalHealing'])
-                        breakthis = True
-                if breakthis:
-                    break
-        return heal_from_regen
+        # check if healing was logged, look for regen
+        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
+            healing_json = player_json['extHealingStats']['totalHealingDist'][0]
+            for healing_json2 in healing_json:
+                if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
+                    return healing_json2['totalHealing']
+        return -1    
 
     if stat == 'hits_from_regen':
-        # check if healing was logged, save it
-        hits_from_regen = -1
-        if player_json['name'] not in players_running_healing_addon:
-            return hits_from_regen
-        if 'extHealingStats' in player_json:
-            hits_from_regen = 0
-            if 'totalHealingDist' not in player_json['extHealingStats']:
-                return 0
-            for healing_json in player_json['extHealingStats']['totalHealingDist']:
-                breakthis = False # always 2 entries for each healing event, just use the first
-                for healing_json2 in healing_json:
-                    if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
-                        hits_from_regen += int(healing_json2['hits'])
-                        breakthis = True
-                if breakthis:
-                    break
-        return hits_from_regen
+        # check if healing was logged, look for regen
+        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
+            healing_json = player_json['extHealingStats']['totalHealingDist'][0]
+            for healing_json2 in healing_json:
+                if 'id' in healing_json2 and healing_json2['id'] == int(config.buff_ids['regen']):
+                    return int(healing_json2['hits'])
+        return -1
+
+
 
 # find the first time a player took or dealt damage after initial_time
 # Input:
@@ -436,9 +383,12 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
 # First time the player took or dealt damage after initial_time
 def get_combat_start_from_player_json(initial_time, player_json):
     start_combat = -1
-    # TODO check healthPercents exists
+    # if healthPercents is not available, assume the player was in combat right away
+    if 'healthPercents' not in player_json:
+        return initial_time
     last_health_percent = 100
     for change in player_json['healthPercents']:
+        # look for last timestamp before initial time
         if change[0] < initial_time:
             last_health_percent = change[1]
             continue
@@ -447,16 +397,66 @@ def get_combat_start_from_player_json(initial_time, player_json):
             start_combat = change[0]
             break
         last_health_percent = change[1]
-    for i in range(math.ceil(initial_time/1000), len(player_json['damage1S'][0])):
+        
+    # from initial time until end of the fight, check when player dealt (power) dmg the first time
+    # not using condi, because condis can still tick after a player died
+    for i in range(math.ceil(initial_time/1000), len(player_json['powerDamage1S'][0])):
         if i == 0:
             continue
-        if player_json['damage1S'][0][i] != player_json['damage1S'][0][i-1]:
+        if player_json['powerDamage1S'][0][i] != player_json['powerDamage1S'][0][i-1]:
             if start_combat == -1:
                 start_combat = i*1000
             else:
                 start_combat = min(start_combat, i*1000)
             break
     return start_combat
+
+
+    
+# find the combat breakpoints, i.e., start and end points of this player being in combat (interrupted by death)
+# Input:
+# player_json = the json data for this player in this fight
+# Output:
+# List of start and end timestamps of the player being in combat
+def get_combat_time_breakpoints(player_json):
+    start_combat = get_combat_start_from_player_json(0, player_json)
+    if 'combatReplayData' not in player_json:
+        print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+        # activeTimes = duration the player was not dead
+        return [start_combat, get_stat_from_player_json(player_json, None, 'time_active', None) * 1000]
+    replay = player_json['combatReplayData']
+    if 'dead' not in replay:
+        return [start_combat, get_stat_from_player_json(player_json, None, 'time_active', None) * 1000]
+
+    breakpoints = []
+    playerDeaths = dict(replay['dead'])
+    playerDowns = dict(replay['down'])
+    # need corresponding down event for each death event. down end = death start
+    for deathStart, deathEnd in playerDeaths.items():
+        for downStart, downEnd in playerDowns.items():
+            if deathStart == downEnd:
+                if start_combat != -1:
+                    breakpoints.append([start_combat, deathStart])
+                start_combat = get_combat_start_from_player_json(deathEnd + 1000, player_json)
+                break
+    end_combat = (len(player_json['damage1S'][0]))*1000
+    if start_combat != -1:
+        breakpoints.append([start_combat, end_combat])
+
+    return breakpoints
+
+
+
+# compute the time in combat from the breakpoints as determined in get_combat_time_breakpoints
+# Input:
+# breakpoints = list of [start combat, end combat] items
+# Output:
+# total time in combat
+def sum_breakpoints(breakpoints):
+    combat_time = 0
+    for [start, end] in breakpoints:
+        combat_time += end - start
+    return combat_time
 
 
 
@@ -483,6 +483,7 @@ def increase_top_x_reached(players, sortedList, config, stat):
                 if first_valid:
                     first_valid  = False
                 else:
+                    # player was top in this fight
                     players[sortedList[i][0]].consistency_stats[stat] += 1
                     valid_values += 1
             last_val = sortedList[i][1]
@@ -493,10 +494,13 @@ def increase_top_x_reached(players, sortedList, config, stat):
     elif stat == 'deaths':
         i = 0
         last_val = 0
+        # check the whole list or until the number of players considered to be "top" were found (including double places)
         while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val):
+            # player wasn't in this fight, ignore
             if sortedList[i][1] < 0:
                 i += 1
                 continue
+            # only 0 deaths counts as top for deaths
             if sortedList[i][1] == 0:
                 players[sortedList[i][0]].consistency_stats[stat] += 1
                 last_val = sortedList[i][1]
@@ -505,13 +509,15 @@ def increase_top_x_reached(players, sortedList, config, stat):
         return
     
     
-    # increase top stats reached for the first num_players_considered_top players
+    # increase top stats reached for the first num_players_considered_top players (including double places)
     i = 0
     last_val = 0
     while i < len(sortedList) and (valid_values < config.num_players_considered_top[stat] or sortedList[i][1] == last_val) and players[sortedList[i][0]].total_stats[stat] > 0:
+        # for dmg_taken, it's ok to have 0, for all other stats, you can only be in top if you contributed
         if sortedList[i][1] < 0 or (sortedList[i][1] == 0 and stat != 'dmg_taken'):
             i += 1
             continue
+        # player was top in this fight
         players[sortedList[i][0]].consistency_stats[stat] += 1
         last_val = sortedList[i][1]
         i += 1
@@ -874,11 +880,17 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         fight.total_stats[stat] = round(fight.total_stats[stat])
         fight.avg_stats[stat] = fight.total_stats[stat]
         if fight.avg_stats[stat] > 0:
-            fight.avg_stats[stat] = fight.avg_stats[stat] / len([p for p in players if p.stats_per_fight[fight_number][stat] > 0])
-        
+            fight.avg_stats[stat] = fight.avg_stats[stat] / len([p for p in players if p.stats_per_fight[fight_number][stat] >= 0])
+
+        # avg for buffs stacking duration:
+        # total / (allies - 1) / fight duration in % (i.e. * 100)
+        # avg for buffs stacking intensity:
+        # total / (allies - 1) / fight duration
         if stat in config.buffs_stacking_duration:
             fight.avg_stats[stat] *= 100
-        if stat in config.buff_ids or stat == "dist" or stat == "dmg_taken": # not strictly correct for dmg taken, but... eh
+        if stat in config.buff_ids:
+            fight.avg_stats[stat] /= (fight.allies - 1)
+        if stat in config.buff_ids or stat == "dist" or stat == "dmg_taken": # not strictly correct for dmg taken, since we use time in combat there, but... eh
             fight.avg_stats[stat] = round(fight.avg_stats[stat]/fight.duration, 2)
 
     fights.append(fight)
@@ -969,7 +981,6 @@ def get_overall_stats(players, used_fights, config):
                 player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies, 2)
             elif stat == 'heal_from_regen':
                 if player.total_stats['hits_from_regen'] == 0:
-                    print(player.total_stats[stat])
                     player.average_stats[stat] = 0
                 else:
                     player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
@@ -991,14 +1002,16 @@ def get_overall_squad_stats(fights, config):
     overall_squad_stats = {key: 0 for key in config.stats_to_compute}
     for fight in used_fights:
         for stat in config.stats_to_compute:
-            if not stat in config.buff_ids and stat != "dist":
-                overall_squad_stats[stat] += fight.total_stats[stat]
-            else:
-                overall_squad_stats[stat] += fight.avg_stats[stat]
+            overall_squad_stats[stat] += fight.total_stats[stat]
+            
+    normalizer_duration_allies = sum([f.duration * (f.allies - 1) * f.allies for f in used_fights])
+
     for stat in config.buff_ids:
-        overall_squad_stats[stat] = round(overall_squad_stats[stat] / len(used_fights), 2)
+        if stat in config.buffs_stacking_duration:
+            overall_squad_stats[stat] = overall_squad_stats[stat] * 100
+        overall_squad_stats[stat] = round(overall_squad_stats[stat] / normalizer_duration_allies, 2)
     if "dist" in config.stats_to_compute:
-        overall_squad_stats["dist"] = round(overall_squad_stats["dist"] / len(used_fights), 2)
+        overall_squad_stats["dist"] = round(overall_squad_stats["dist"] / (sum([f.duration * f.allies for f in fights])), 2)
     return overall_squad_stats
 
 
