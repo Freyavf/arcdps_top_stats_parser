@@ -287,11 +287,12 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         if 'activeTimes' not in player_json:
             return 0
         return round(int(player_json['activeTimes'][0])/1000)
-    
+
+    # includes dmg absorbed by barrier
     if stat == 'dmg_taken':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0] or 'damageBarrier' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
             return 0
-        return int(player_json['defenses'][0]['damageTaken']+player_json['defenses'][0]['damageBarrier'])
+        return int(player_json['defenses'][0]['damageTaken'])
 
     if stat == 'deaths':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
@@ -304,9 +305,9 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
     #    return int(player_json['statsAll'][0]['killed'])
 
     if stat == 'dmg':
-        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
+        if 'targetDamage1S' not in player_json:
             return 0
-        return int(player_json['dpsAll'][0]['damage'])            
+        return sum(target[0][-1] for target in player_json['targetDamage1S'])
 
     if stat == 'rips':
         if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
@@ -341,12 +342,8 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
 
     if stat == 'heal':
         # check if healing was logged, save it
-        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'outgoingHealing' in player_json['extHealingStats']:
-            #total_heal = sum([healing[0][-1] for healing in player_json['extHealingStats']['alliedHealing1S']])
-            #if total_heal != player_json['extHealingStats']['outgoingHealing'][0]['healing']:
-            #    print("ERROR: sum of outgoing healing over allies ", total_heal, " does not correspond to total outgoing healing ", player_json['extHealingStats']['outgoingHealing'][0]['healing'], " for player ", player_json['name'])
-            #    exit(1)
-            return player_json['extHealingStats']['outgoingHealing'][0]['healing']
+        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'alliedHealing1S' in player_json['extHealingStats']:
+            return sum([healing[0][-1] for healing in player_json['extHealingStats']['alliedHealing1S']])
         return -1
 
     if stat == 'barrier':
