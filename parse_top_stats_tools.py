@@ -39,8 +39,8 @@ class StatType(Enum):
     SWAPPED_PERCENTAGE = 5          # not there for all fights, swapped build at least once. Jack of all trades awards
     PERCENTAGE = 6                  # top consistency percentage = times top / fights present
 
-    
 
+    
 # This class stores information about a player. Note that a different profession will be treated as a new player / character.
 @dataclass
 class Player:
@@ -1167,7 +1167,15 @@ def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, confi
         print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
         for stat in overall_squad_stats:
             print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
-        myprint(output, print_string)   
+        myprint(output, print_string)
+
+    print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len)+7)
+    myprint(output, print_string)
+    print_string = f"{overall_raid_stats['num_used_fights']:>3}"+"  "+f"{overall_raid_stats['date']:>7}"+"  "+f"{overall_raid_stats['start_time']:>10}"+"  "+f"{overall_raid_stats['end_time']:>8}"+"  "+f"{overall_raid_stats['used_fights_duration']:>13}"+"  "+f"{overall_raid_stats['num_skipped_fights']:>7}" +"  "+f"{overall_raid_stats['mean_allies']:>11}"+"  "+f"{overall_raid_stats['mean_enemies']:>12}"+"  "+f"{overall_raid_stats['total_kills']:>5}"
+    for stat in overall_squad_stats:
+        print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
+    print_string += "\n\n"
+    myprint(output, print_string)
 
 
         
@@ -1441,7 +1449,6 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
     book = xlrd.open_workbook(xls_output_filename)
     wb = copy(book)
     sheet1 = wb.add_sheet(stat)
-
     sheet1.write(0, 0, "Account")
     sheet1.write(0, 1, "Name")
     sheet1.write(0, 2, "Profession")
@@ -1469,8 +1476,8 @@ def write_stats_xls(players, top_players, stat, xls_output_filename):
 
     wb.save(xls_output_filename)
 
-    
 
+    
 # Write xls fight overview
 # Input:
 # fights = list of Fights as returned by collect_stat_data
@@ -1530,6 +1537,8 @@ def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, c
         sheet1.write(len(fights)+1, 10+i, overall_squad_stats[stat])
 
     wb.save(xls_output_filename)
+
+
 
     
 
