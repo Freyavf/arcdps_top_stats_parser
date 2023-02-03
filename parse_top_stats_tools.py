@@ -1003,10 +1003,9 @@ def get_overall_squad_stats(fights, config):
             
     normalizer_duration_allies = sum([f.duration * (f.allies - 1) * f.allies for f in used_fights])
 
-    for stat in config.buff_ids:
-        if stat in config.buffs_stacking_duration:
-            overall_squad_stats[stat] = overall_squad_stats[stat] * 100
-        overall_squad_stats[stat] = round(overall_squad_stats[stat] / normalizer_duration_allies, 2)
+    if stat in config.buffs_stacking_duration:
+        overall_squad_stats[stat] = overall_squad_stats[stat] * 100
+    overall_squad_stats[stat] = round(overall_squad_stats[stat] / normalizer_duration_allies, 2)
     if "dist" in config.stats_to_compute:
         overall_squad_stats["dist"] = round(overall_squad_stats["dist"] / (sum([f.duration * f.allies for f in fights])), 2)
     return overall_squad_stats
