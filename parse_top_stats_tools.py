@@ -924,7 +924,7 @@ def collect_stat_data(args, config, log, anonymize=False):
     for filename in sorted_files:
         # skip files of incorrect filetype
         file_start, file_extension = os.path.splitext(filename)
-        if 'json' not in file_extension or "top_stats" in file_start:
+        if file_extension not in ['.json', '.gz'] or "top_stats" in file_start:
             continue
 
         print_string = "parsing "+filename
@@ -932,8 +932,12 @@ def collect_stat_data(args, config, log, anonymize=False):
         file_path = "".join((args.input_directory,"/",filename))
 
         # load file
-        json_datafile = open(file_path, encoding='utf-8')
-        json_data = json.load(json_datafile)
+        if file_extension == '.gz':
+            with gzip.open(file_path, mode="r") as f:
+                json_data = json.loads(f.read().decode('utf-8'))
+        else:
+            json_datafile = open(file_path, encoding='utf-8')
+            json_data = json.load(json_datafile)
 
         used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
 
