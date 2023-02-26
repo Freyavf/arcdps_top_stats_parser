@@ -49,6 +49,9 @@ min_fight_duration = 30
 # minimum number of enemies to consider a fight in the stats
 min_enemy_players = 10
 
+# choose which files to write as results and whether to write results to console. Options are 'console', 'txt', 'xls' and 'json'.
+files_to_write = ['console', 'txt', 'json', 'xls']
+
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
 profession_abbreviations["Guardian"] = "Guardian"

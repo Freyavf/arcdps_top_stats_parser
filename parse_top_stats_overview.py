@@ -49,12 +49,13 @@ if __name__ == '__main__':
     if args.log_file is None:
         args.log_file = args.input_directory+"/log_overview.txt"
 
-    output = open(args.output_filename, "w")
-    log = open(args.log_file, "w")
-
     parser_config = importlib.import_module("parser_configs."+args.config_file , package=None) 
-    
     config = fill_config(parser_config)
+
+    output = None
+    if 'txt' in config.files_to_write:
+        output = open(args.output_filename, "w")
+    log = open(args.log_file, "w")    
 
     print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
@@ -63,20 +64,27 @@ if __name__ == '__main__':
 
     players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
 
-    # create xls file if it doesn't exist
-    book = xlwt.Workbook(encoding="utf-8")
-    book.add_sheet("fights overview")
-    book.save(args.xls_output_filename)
+    if 'xls' in config.files_to_write:
+        # create xls file if it doesn't exist
+        book = xlwt.Workbook(encoding="utf-8")
+        book.add_sheet("fights overview")
+        book.save(args.xls_output_filename)
     
     print_string = "Welcome to the CARROT AWARDS!\n"
-    myprint(output, print_string)
+    myprint(output, print_string, config)
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
     overall_raid_stats = get_overall_raid_stats(fights)
-    total_fight_duration = print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, found_healing, found_barrier, config, output)
-    
-    write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, args.xls_output_filename)    
+    total_fight_duration = get_total_fight_duration_in_hms(overall_raid_stats['used_fights_duration'])
+    if 'console' in config.files_to_write or 'txt' in config.files_to_write:
+        print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, total_fight_duration, found_healing, found_barrier, config, output)
+
+    if 'console' in config.files_to_write or 'txt' in config.files_to_write:
+        print_fights_overview(fights, overall_squad_stats, overall_raid_stats, config, output)
+    if 'xls' in config.files_to_write:
+        write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, args.xls_output_filename)
+
     num_used_fights = overall_raid_stats['num_used_fights']
     
     # print top x players for all stats. If less then x
@@ -102,7 +110,7 @@ if __name__ == '__main__':
             top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
             top_percentage_stat_players[stat],comparison_val = get_top_percentage_players(players, config, stat, StatType.PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], list(), list())
         else:
-            myprint(output, config.stat_names[stat].upper()+" AWARDS\n")
+            myprint(output, config.stat_names[stat].upper()+" AWARDS\n", config)
             if stat == 'dist' or stat == 'dmg_taken':
                 top_consistent_stat_players[stat] = get_top_players(players, config, stat, StatType.CONSISTENT)
                 top_total_stat_players[stat] = get_top_players(players, config, stat, StatType.TOTAL)
@@ -115,27 +123,29 @@ if __name__ == '__main__':
         top_jack_of_all_trades_players[stat],top_jack_comparison_percentage[stat] = get_top_percentage_players(players, config, stat, StatType.SWAPPED_PERCENTAGE, num_used_fights, top_consistent_stat_players[stat], top_total_stat_players[stat], top_percentage_stat_players[stat], top_late_players[stat])
         top_average_stat_players[stat] = get_top_players(players, config, stat, StatType.AVERAGE)
 
-    write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
+    if 'json' in config.files_to_write:
+        write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, top_late_players, top_jack_of_all_trades_players, args.json_output_filename)
 
-    for stat in config.stats_to_compute:
-        if stat == 'dist' or stat == 'dmg_taken':
-            write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
-        elif stat == 'heal' and found_healing:
-            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
-        elif stat == 'barrier' and found_barrier:
-            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
-        elif stat == 'deaths':
-            write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename)
-        else:
-            write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+    if 'xls' in config.files_to_write:
+        for stat in config.stats_to_compute:
+            if stat == 'dist' or stat == 'dmg_taken':
+                write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
+            elif stat == 'heal' and found_healing:
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
+            elif stat == 'barrier' and found_barrier:
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+            elif stat == 'deaths':
+                write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename)
+            else:
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
 
     if any(len(top_late_players[stat]) > 0 for stat in config.stats_to_compute):
-        myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n')
+        myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n', config)
         for stat in config.stats_to_compute:
             write_sorted_top_percentage(players, top_late_players[stat], top_late_comparison_percentage[stat], config, num_used_fights, stat, output, StatType.LATE_PERCENTAGE, top_consistent_stat_players[stat], top_total_stat_players[stat])
 
     if any(len(top_jack_of_all_trades_players[stat]) > 0 for stat in config.stats_to_compute):
-        myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n')
+        myprint(output, 'JACK OF ALL TRADES (swapped build at least once)\n', config)
         for stat in config.stats_to_compute:
             write_sorted_top_percentage(players, top_jack_of_all_trades_players[stat], top_jack_comparison_percentage[stat], config, num_used_fights, stat, output, StatType.SWAPPED_PERCENTAGE, top_consistent_stat_players[stat], top_total_stat_players[stat], top_late_players[stat])
     
