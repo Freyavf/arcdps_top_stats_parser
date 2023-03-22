@@ -377,6 +377,27 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         return int(player_json['support'][0]['condiCleanse'])            
 
     if stat == 'dist':
+        if commander == None:
+            return 0
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData']:
+            return 0
+	player_dist_to_tag = player_json['statsAll'][0]['distToCom']
+        player_deaths = dict(id['combatReplayData']['dead'])
+	for death_begin, death_end in player_deaths.items():
+	    for down_begin, down_end in playerDowns.items():
+		if death_begin == down_end:
+		    if death_end:
+			player_dead_poll = int(death_end/150)
+			player_positions = player_json['combatReplayData']['positions']
+			for position,tagPosition in zip(playerPositions[:playerDeadPoll], tagPositions[:playerDeadPoll]):
+			    deltaX = position[0] - tagPosition[0]
+			    deltaY = position[1] - tagPosition[1]
+			    playerDistances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
+		playerDistToTag = (sum(playerDistances) / len(playerDistances))/inchToPixel
+	    Death_OnTag[deathOnTag_prof_name]["distToTag"].append(playerDistToTag)
+
+        
+        
         if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
             return 0
         return float(player_json['statsAll'][0]['distToCom'])
