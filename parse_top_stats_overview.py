@@ -128,16 +128,16 @@ if __name__ == '__main__':
 
     if 'xls' in config.files_to_write:
         for stat in config.stats_to_compute:
-            if stat == 'dist' or stat == 'dmg_taken':
-                write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename)
-            elif stat == 'heal' and found_healing:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)            
+            if stat == 'dist' or 'dmg_taken' in stat:
+                write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename, config)
+            elif 'heal' in stat and found_healing:
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)            
             elif stat == 'barrier' and found_barrier:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
             elif stat == 'deaths':
-                write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename)
+                write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename, config)
             else:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename)
+                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
 
     if any(len(top_late_players[stat]) > 0 for stat in config.stats_to_compute):
         myprint(output, 'SPECIAL "LATE BUT GREAT" MENTIONS\n', config)

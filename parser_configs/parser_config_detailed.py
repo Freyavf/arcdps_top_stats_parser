@@ -16,12 +16,28 @@
 
 # Note that if you want to know heal_from_regen, you also have to compute hits_from_regen
 
-stats_to_compute = ['dmg', 'rips', 'cleanses', 'heal', 'dist', 'stab', 'prot', 'aegis', 'regen', 'heal_from_regen', 'hits_from_regen', 'might', 'fury', 'quick', 'alac', 'speed', 'barrier', 'dmg_taken', 'deaths']
+stats_to_compute = ['dmg', 'dmg_total', 'dmg_players', 'dmg_other',
+                    'rips', 'cleanses', 'heal', 'heal_total',
+                    'heal_players', 'heal_other', 'dist', 'stab',
+                    'prot', 'aegis', 'regen', 'heal_from_regen',
+                    'hits_from_regen', 'might', 'fury', 'quick',
+                    'alac', 'speed', 'barrier', 'dmg_taken',
+                    'dmg_taken_total', 'dmg_taken_hp_lost',
+                    'dmg_taken_absorbed', 'deaths', 'stripped',
+                    'big_boomer', 'explosive_temper', 'explosive_entrance',
+                    'med_kit']
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 1000, 'rips': 1000, 'stab': 1000, 'prot': 1000, 'aegis': 1000, 'regen': 1000, 'heal_from_regen': 1000, 'hits_from_regen': 1000, 'might': 1000, 'fury': 1000, 'quick': 1000, 'alac': 1000, 'speed': 1000, 'cleanses': 1000, 'heal': 1000, 'barrier': 1000, 'dist': 1000, 'dmg_taken': 1000, 'deaths': 1000}
+# TODO if it's not in num_players_listed, use default
+num_players_listed_default = 1000
+num_players_listed = {}
+
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 5, 'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'regen': 3, 'heal_from_regen': 3, 'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'dmg_taken': 5, 'deaths': 1}
+num_players_considered_top_default = 5
+num_players_considered_top = {'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'regen': 3, 'heal_from_regen': 3,
+                              'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
+                              'heal': 3, 'barrier': 3, 'deaths': 1, 'big_boomer': 3, 'explosive_temper': 3, 'explosive_entrance': 3,
+                              'med_kit': 3}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
@@ -52,7 +68,8 @@ min_fight_duration = 30
 min_enemy_players = 10
 
 # choose which files to write as results and whether to write results to console. Options are 'console', 'txt', 'xls' and 'json'.
-files_to_write = ['console', 'txt', 'xls', 'json']
+#files_to_write = ['console', 'txt', 'xls', 'json']
+files_to_write = ['txt', 'xls', 'json']
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
@@ -104,6 +121,9 @@ profession_abbreviations["Harbinger"] = "Harbinger"
 # name each stat will be written as
 stat_names = {}
 stat_names["dmg"] = "Damage"
+stat_names["dmg_total"] = "Total Damage"
+stat_names["dmg_players"] = "Player Damage"
+stat_names["dmg_other"] = "Other Damage"
 stat_names["rips"] = "Boon Strips"
 stat_names["stab"] = "Stability Output"
 stat_names["prot"] = "Protection Output"
@@ -118,7 +138,18 @@ stat_names["quick"] = "Quickness Output"
 stat_names["speed"] = "Superspeed Output"
 stat_names["cleanses"] = "Condition Cleanses"
 stat_names["heal"] = "Healing"
+stat_names["heal_total"] = "Total Healing"
+stat_names["heal_players"] = "Player Healing"
+stat_names["heal_other"] = "Other Healing"
 stat_names["barrier"] = "Barrier"
 stat_names["dist"] = "Distance to Tag"
 stat_names["dmg_taken"] = "Damage Taken"
+stat_names["dmg_taken_total"] = "Total Damage Taken"
+stat_names["dmg_taken_hp_lost"] = "HP lost"
+stat_names["dmg_taken_absorbed"] = "Damage absorbed"
 stat_names["deaths"] = "Deaths"
+stat_names["stripped"] = "Incoming Strips"
+stat_names["big_boomer"] = "Big Boomer"
+stat_names["explosive_temper"] = "Explosive Temper"
+stat_names["explosive_entrance"] = "Explosive Entrance"
+stat_names["med_kit"] = "Med Kit"

@@ -14,12 +14,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-stats_to_compute = ['dmg', 'rips', 'stab', 'cleanses', 'heal', 'barrier', 'dist', 'deaths']
+stats_to_compute = ['dmg_total', 'rips', 'stab', 'cleanses', 'heal_total', 'barrier', 'dist', 'deaths']
 
 # How many players will be listed who achieved top stats most often for each stat?
-num_players_listed = {'dmg': 5, 'rips': 3, 'stab': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'deaths': 5}
+num_players_listed_default = 5
+num_players_listed = {'rips': 3, 'stab': 3, 'cleanses': 3, 'heal_total': 3, 'barrier': 3}
+
 # How many players are considered to be "top" in each fight for each stat?
-num_players_considered_top = {'dmg': 5, 'rips': 3, 'stab': 3, 'cleanses': 3, 'heal': 3, 'barrier': 3, 'dist': 5, 'deaths': 1}
+num_players_considered_top_default = 5
+num_players_considered_top = {'rips': 3, 'stab': 3, 'cleanses': 3, 'heal_total': 3, 'barrier': 3, 'deaths': 1}
 
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
@@ -101,11 +104,11 @@ profession_abbreviations["Harbinger"] = "Harbinger"
 
 # name each stat will be written as
 stat_names = {}
-stat_names["dmg"] = "Damage"
+stat_names["dmg_total"] = "Total Damage"
 stat_names["rips"] = "Boon Strips"
 stat_names["stab"] = "Stability Output"
 stat_names["cleanses"] = "Condition Cleanses"
-stat_names["heal"] = "Healing"
+stat_names["heal_total"] = "Healing"
 stat_names["barrier"] = "Barrier"
 stat_names["dist"] = "Distance to Tag"
 stat_names["deaths"] = "Deaths"
