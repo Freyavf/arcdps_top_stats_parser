@@ -207,6 +207,13 @@ def get_buff_ids_from_json(json_data, config):
         if buff['name'] in config.self_buff_abbrev:
             abbrev_name = config.self_buff_abbrev[buff['name']]
             config.self_buff_ids[abbrev_name] = buff_id[1:]
+    # check that all buff ids were found
+    found_all_ids = True
+    for buff, abbrev in config.self_buff_abbrev.items():
+        if abbrev not in config.self_buff_ids:
+            print("id for buff", buff, "could not be found. This is not necessarily an error, the buff might just not be present in this log.")
+            found_all_ids = False
+    return found_all_ids
 
 
 # get stats for this fight from fight_json
@@ -453,6 +460,9 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         return 0
 
 
+    if stat not in config.self_buff_abbrev.values() and stat not in config.squad_buff_abbrev.values():
+        print("stat ", stat, " ist currently not supported! Treating it as 0.")
+    return 0
 
 
 # find the first time a player took or dealt damage after initial_time
@@ -824,13 +834,12 @@ def get_top_percentage_players(players, config, stat, late_or_swapping, num_used
  
 
 
-def get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename):
+def get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename):
     # get fight stats
     fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
             
-    if first:
-        first = False
-        get_buff_ids_from_json(json_data, config)
+    if not found_all_buff_ids:
+        found_all_buff_ids = get_buff_ids_from_json(json_data, config)
                     
     # add new entry for this fight in all players
     for player in players:
@@ -842,7 +851,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
     if fight.skipped:
         fights.append(fight)
         log.write("skipped "+filename)            
-        return used_fights, first, found_healing, found_barrier
+        return used_fights, found_all_buff_ids, found_healing, found_barrier
         
     used_fights += 1
 
@@ -894,7 +903,6 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
             player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
-            #print(stat, player.stats_per_fight[fight_number][stat])
                     
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
@@ -906,9 +914,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
                 if player.stats_per_fight[fight_number]['time_in_combat'] == 0:
                     player.stats_per_fight[fight_number]['time_in_combat'] = 1
                 player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['time_in_combat']
-            #elif stat == 'heal_from_regen':
-            #    player.stats_per_fight[fight_number]['hits_from_regen'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'hits_from_regen', config)
-                    
+
             # add stats of this fight and player to total stats of this fight and player
             if player.stats_per_fight[fight_number][stat] > 0:
                 # buff are generation squad values, using total over time
@@ -926,11 +932,6 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
                 elif 'dmg_taken' in stat:
                     fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
                     player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
-                #elif stat == 'heal_from_regen':
-                #    fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
-                #    player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
-                #    fight.total_stats['hits_from_regen'] += player.stats_per_fight[fight_number]['hits_from_regen']
-                #    player.total_stats['hits_from_regen'] += player.stats_per_fight[fight_number]['hits_from_regen']
                 elif stat in config.self_buff_ids:
                     fight.total_stats[stat] += 1
                     player.total_stats[stat] += 1
@@ -983,7 +984,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
 
     fights.append(fight)
 
-    return used_fights, first, found_healing, found_barrier
+    return used_fights, found_all_buff_ids, found_healing, found_barrier
 
 
     
@@ -1007,7 +1008,7 @@ def collect_stat_data(args, config, log, anonymize=False):
 
     used_fights = 0
     fights = []
-    first = True
+    found_all_buff_ids = False
     
     # iterating over all fights in directory
     files = listdir(args.input_directory)
@@ -1030,7 +1031,7 @@ def collect_stat_data(args, config, log, anonymize=False):
             json_datafile = open(file_path, encoding='utf-8')
             json_data = json.load(json_datafile)
 
-        used_fights, first, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, first, found_healing, found_barrier, log, filename)
+        used_fights, found_all_buff_ids, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename)
 
     get_overall_stats(players, used_fights, config)
                 
