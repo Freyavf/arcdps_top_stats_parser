@@ -3,6 +3,8 @@
 Did you ever wonder how well you did compared to your squad mates, not only in a single fight, but over the whole raid? Do you want to know who to ask for help with a specific class? Or do you want to hand out an award to a guildie who did the most damage in all raids over a whole week? This project provides a tool for generating top stats from a set of arcdps logs, allowing you to easily identify top performing players in different stats.
 Currently supported stats are: 
 - all damage
+- damage dealt to target (in wvw: equivalent to damage dealt to players)
+- damage dealt to everything else (in wvw: siege, npcs, ...)
 - boon rips
 - cleanses
 - stability output (generation squad)
@@ -13,10 +15,16 @@ Currently supported stats are:
 - fury output (generation squad)
 - alacrity output (generation squad)
 - superspeed output (generation squad)
-- healing output
+- all healing output
+- healing dealt to target (in wvw: equivalent to healing on players)
+- healing dealt to everything else (in wvw: npcs, pets, ...)
+- healing from regen
 - barrier output
 - average distance to tag
-- damage taken
+- stripped boons (boons that were stripped from the player)
+- total damage taken
+- damage absorbed by barrier
+- hp lost (= total damage taken - damage absorbed by barrier)
 - deaths
 
 Healing and barrier output can only be analyzed when contained in the logs, i.e., the [healing addon for arcdps](https://github.com/Krappa322/arcdps_healing_stats/releases) is installed. They will only be analyzed for players who also have the addon installed, since data may be incomplete for others.
