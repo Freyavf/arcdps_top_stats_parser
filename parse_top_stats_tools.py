@@ -83,6 +83,9 @@ class Fight:
     kills: int = 0                                        # number of kills
     start_time: str = ""                                  # start time of the fight
     squad_composition: dict = field(default_factory=dict) # squad composition of the fight (how many of which class)
+    tag_positions_until_death: list = field(default_factory=list)
+    polling_rate: int = 150
+    inch_to_pixel: float = 0.009
     
 
     
@@ -282,14 +285,36 @@ def get_stats_from_fight_json(fight_json, config, log):
 
     # get players using healing addon, if the addon was used
     if 'usedExtensions' not in fight_json:
-        players_running_healing_addon = []
+        fight.players_running_healing_addon = []
     else:
         extensions = fight_json['usedExtensions']
         for extension in extensions:
             if extension['name'] == "Healing Stats":
-                players_running_healing_addon = extension['runningExtension']
+                fight.players_running_healing_addon = extension['runningExtension']
         
-    return fight, players_running_healing_addon
+    # TODO don't write polling rate, inch_to_pixel, tag_positions_until_death
+    fight.polling_rate = fight_json['combatReplayMetaData']['pollingRate']
+    fight.inch_to_pixel = fight_json['combatReplayMetaData']['inchToPixel']
+
+    # get commander positions
+    tag_positions = {}
+    commander_found = False
+    i = 0
+    for player in fight_json['players']:
+        if player['hasCommanderTag']:
+            if commander_found:
+                # found a second player with commander tag -> distance to tag ambiguous, don't use it
+                tag_positions = {}
+                break
+            commander_found = True
+            tag_positions = player['combatReplayData']['positions']
+            if player['combatReplayData']['dead']:
+                death_time = int(player['combatReplayData']['dead'][0][0] / fight.polling_rate)
+                tag_positions = tag_positions[:death_time]
+                commander_found = True
+    fight.tag_positions_until_death = tag_positions
+
+    return fight
 
 
 
@@ -308,10 +333,10 @@ def get_basic_player_data_from_json(player_json):
 # get value of stat from player_json
 # Input:
 # player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
-# players_running_healing_addon: names of all characters running the healing addon
+# fight: information about the fight
 # stat: the stat being considered
 # config: the config used for top stats computation
-def get_stat_from_player_json(player_json, players_running_healing_addon, stat, config):
+def get_stat_from_player_json(player_json, fight, stat, config):
     if stat == 'time_in_combat':
         return round(sum_breakpoints(get_combat_time_breakpoints(player_json)) / 1000)
 
@@ -337,8 +362,8 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         return int(player_json['defenses'][0]['damageBarrier'])
 
     if stat == 'dmg_taken_hp_lost':
-        total_dmg_taken = get_stat_from_player_json(player_json, players_running_healing_addon, 'dmg_taken_total', config)
-        dmg_absorbed = get_stat_from_player_json(player_json, players_running_healing_addon, 'dmg_taken_absorbed', config)
+        total_dmg_taken = get_stat_from_player_json(player_json, fight, 'dmg_taken_total', config)
+        dmg_absorbed = get_stat_from_player_json(player_json, fight, 'dmg_taken_absorbed', config)
         return total_dmg_taken - dmg_absorbed
 
     if stat == 'deaths':
@@ -362,8 +387,8 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         return sum(target[0][-1] for target in player_json['targetDamage1S'])
 
     if stat == 'dmg_other':
-        total_dmg = get_stat_from_player_json(player_json, players_running_healing_addon, 'dmg_total', config)
-        players_dmg = get_stat_from_player_json(player_json, players_running_healing_addon, 'dmg_players', config)
+        total_dmg = get_stat_from_player_json(player_json, fight, 'dmg_total', config)
+        players_dmg = get_stat_from_player_json(player_json, fight, 'dmg_players', config)
         return total_dmg - players_dmg
 
     if stat == 'strips':
@@ -377,30 +402,30 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
         return int(player_json['support'][0]['condiCleanse'])            
 
     if stat == 'dist':
-        if commander == None:
+        if fight.tag_positions_until_death == list():
             return 0
-        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData']:
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
             return 0
-	player_dist_to_tag = player_json['statsAll'][0]['distToCom']
-        player_deaths = dict(id['combatReplayData']['dead'])
-	for death_begin, death_end in player_deaths.items():
-	    for down_begin, down_end in playerDowns.items():
-		if death_begin == down_end:
-		    if death_end:
-			player_dead_poll = int(death_end/150)
-			player_positions = player_json['combatReplayData']['positions']
-			for position,tagPosition in zip(playerPositions[:playerDeadPoll], tagPositions[:playerDeadPoll]):
-			    deltaX = position[0] - tagPosition[0]
-			    deltaY = position[1] - tagPosition[1]
-			    playerDistances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
-		playerDistToTag = (sum(playerDistances) / len(playerDistances))/inchToPixel
-	    Death_OnTag[deathOnTag_prof_name]["distToTag"].append(playerDistToTag)
+        player_dist_to_tag = player_json['statsAll'][0]['distToCom']
+        player_deaths = dict(player_json['combatReplayData']['dead'])
+        player_downs = dict(player_json['combatReplayData']['down'])
+        first_death_time = len(fight.tag_positions_until_death)
+        player_positions = player_json['combatReplayData']['positions']
+        player_distances = list()
+        for death_begin, death_end in player_deaths.items():
+            for down_begin, down_end in player_downs.items():
+                if death_begin == down_end:
+		    # TODO do we want death begin or down begin?
+                    first_death_time = min(int(death_begin / fight.polling_rate), first_death_time)
 
-        
-        
-        if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
-            return 0
-        return float(player_json['statsAll'][0]['distToCom'])
+        if first_death_time < len(player_positions):
+            for position,tag_position in zip(player_positions[:first_death_time], fight.tag_positions_until_death[:first_death_time]):
+                deltaX = position[0] - tag_position[0]
+                deltaY = position[1] - tag_position[1]
+                player_distances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
+            player_dist_to_tag = (sum(player_distances) / len(player_distances)) / fight.inch_to_pixel
+
+        return float(player_dist_to_tag)
 
     if stat == 'stripped':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'boonStrips' not in player_json['defenses'][0]:
@@ -409,33 +434,33 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
 
     if stat == 'heal' or stat == 'heal_total':
         # check if healing was logged, save it
-        if player_json['name'] not in players_running_healing_addon or 'extHealingStats' not in player_json or 'outgoingHealing' not in player_json['extHealingStats']:
+        if player_json['name'] not in fight.players_running_healing_addon or 'extHealingStats' not in player_json or 'outgoingHealing' not in player_json['extHealingStats']:
             return -1
         return player_json['extHealingStats']['outgoingHealing'][0]['healing']
 
     if stat == 'heal_players':
         # check if healing was logged, save it
-        if player_json['name'] not in players_running_healing_addon or 'extHealingStats' not in player_json or 'alliedHealing1S' not in player_json['extHealingStats']:
+        if player_json['name'] not in fight.players_running_healing_addon or 'extHealingStats' not in player_json or 'alliedHealing1S' not in player_json['extHealingStats']:
             return -1
         return sum([healing[0][-1] for healing in player_json['extHealingStats']['alliedHealing1S']])
     
     if stat == 'heal_other':
         # check if healing was logged, save it
-        total_heal = get_stat_from_player_json(player_json, players_running_healing_addon, 'heal_total', config)
-        player_heal = get_stat_from_player_json(player_json, players_running_healing_addon, 'heal_players', config)
+        total_heal = get_stat_from_player_json(player_json, fight, 'heal_total', config)
+        player_heal = get_stat_from_player_json(player_json, fight, 'heal_players', config)
         if total_heal == -1 or player_heal == -1:
             return -1
         return total_heal - player_heal
 
     if stat == 'barrier':
         # check if barrier was logged, save it
-        if player_json['name'] in players_running_healing_addon and 'extBarrierStats' in player_json and 'outgoingBarrier' in player_json['extBarrierStats']:
+        if player_json['name'] in fight.players_running_healing_addon and 'extBarrierStats' in player_json and 'outgoingBarrier' in player_json['extBarrierStats']:
             return player_json['extBarrierStats']['outgoingBarrier'][1]['barrier']
         return -1
 
     if stat == 'heal_from_regen':
         # check if healing was logged, look for regen
-        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
+        if player_json['name'] in fight.players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
             healing_json = player_json['extHealingStats']['totalHealingDist'][0]
             for healing_json2 in healing_json:
                 if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
@@ -444,7 +469,7 @@ def get_stat_from_player_json(player_json, players_running_healing_addon, stat, 
 
     if stat == 'hits_from_regen':
         # check if healing was logged, look for regen
-        if player_json['name'] in players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
+        if player_json['name'] in fight.players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
             healing_json = player_json['extHealingStats']['totalHealingDist'][0]
             for healing_json2 in healing_json:
                 if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
@@ -858,7 +883,7 @@ def get_top_percentage_players(players, config, stat, late_or_swapping, num_used
 
 def get_stats_from_json_data(json_data, players, player_index, account_index, used_fights, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename):
     # get fight stats
-    fight, players_running_healing_addon = get_stats_from_fight_json(json_data, config, log)
+    fight = get_stats_from_fight_json(json_data, config, log)
             
     if not found_all_buff_ids:
         found_all_buff_ids = get_buff_ids_from_json(json_data, config)
@@ -917,14 +942,14 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
 
         player = players[player_index[name_and_prof]]
 
-        player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_active', config)
-        player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'time_in_combat', config)
-        player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, players_running_healing_addon, 'group', config)
+        player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, fight, 'time_active', config)
+        player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, fight, 'time_in_combat', config)
+        player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, fight, 'group', config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
             
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
-            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, players_running_healing_addon, stat, config)
+            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, fight, stat, config)
                     
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
