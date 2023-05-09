@@ -114,7 +114,8 @@ if __name__ == '__main__':
             myprint(output, config.stat_names[stat].upper()+" AWARDS\n", config)
             
             if stat == 'dist':
-                write_sorted_top_percentage(players, top_percentage_stat_players[stat], percentage_comparison_val[stat], config, num_used_fights, stat, output)
+                #write_sorted_top_percentage(players, top_percentage_stat_players[stat], percentage_comparison_val[stat], config, num_used_fights, stat, output)
+                write_sorted_top_consistent_or_avg(players, top_average_stat_players[stat], config, num_used_fights, stat, StatType.AVERAGE, output)
             elif stat == 'dmg_taken':
                 write_sorted_top_consistent_or_avg(players, top_average_stat_players[stat], config, num_used_fights, stat, StatType.AVERAGE, output)
             else:
@@ -129,7 +130,7 @@ if __name__ == '__main__':
     if 'xls' in config.files_to_write:
         for stat in config.stats_to_compute:
             if stat == 'dist':
-                write_stats_xls(players, top_percentage_stat_players[stat], stat, args.xls_output_filename, config)
+                write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif 'dmg_taken' in stat:
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif 'heal' in stat and stat != 'heal_from_regen' and found_healing:
