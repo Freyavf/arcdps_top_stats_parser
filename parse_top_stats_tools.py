@@ -52,6 +52,7 @@ class Player:
     duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
     duration_active: int = 0            # the total duration a player was active (alive or down)
     duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
+    duration_on_tag: int = 0            # the total duration a player was not running back
     normalization_time_allies: int = 0  # the sum of fight duration * (squad members -1) of all fights the player was involved in
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
@@ -170,6 +171,7 @@ def fill_config(config_input):
     config.stats_to_compute = config_input.stats_to_compute
     config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
     config.empty_stats['time_active'] = -1
+    config.empty_stats['time_to_first_death'] = -1
     config.empty_stats['time_in_combat'] = -1
     config.empty_stats['present_in_fight'] = False
 
@@ -403,9 +405,9 @@ def get_stat_from_player_json(player_json, fight, stat, config):
 
     if stat == 'dist':
         if fight.tag_positions_until_death == list():
-            return 0
+            return -1
         if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
-            return 0
+            return -1
         player_dist_to_tag = player_json['statsAll'][0]['distToCom']
         player_deaths = dict(player_json['combatReplayData']['dead'])
         player_downs = dict(player_json['combatReplayData']['down'])
@@ -415,8 +417,7 @@ def get_stat_from_player_json(player_json, fight, stat, config):
         for death_begin, death_end in player_deaths.items():
             for down_begin, down_end in player_downs.items():
                 if death_begin == down_end:
-		    # TODO do we want death begin or down begin?
-                    first_death_time = min(int(death_begin / fight.polling_rate), first_death_time)
+                    first_death_time = min(int(down_begin / fight.polling_rate), first_death_time)
 
         if first_death_time < len(player_positions):
             for position,tag_position in zip(player_positions[:first_death_time], fight.tag_positions_until_death[:first_death_time]):
@@ -425,7 +426,10 @@ def get_stat_from_player_json(player_json, fight, stat, config):
                 player_distances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
             player_dist_to_tag = (sum(player_distances) / len(player_distances)) / fight.inch_to_pixel
 
-        return float(player_dist_to_tag)
+        if player_dist_to_tag > 2000:
+            player_dist_to_tag = -1
+            first_death_time = 0
+        return float(player_dist_to_tag), float(first_death_time)
 
     if stat == 'stripped':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'boonStrips' not in player_json['defenses'][0]:
@@ -617,7 +621,6 @@ def increase_top_x_reached(players, sortedList, config, stat, fight_number):
             if not players[sortedList[i][0]].stats_per_fight[fight_number]['present_in_fight']:
                 i += 1
                 continue
-            # TODO might be outdated, time to remove?
             # sometimes dist is -1, filter these out
             if sortedList[i][1] >= 0:
                 # first valid dist is the comm, don't consider
@@ -943,13 +946,18 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         player = players[player_index[name_and_prof]]
 
         player.stats_per_fight[fight_number]['time_active'] = get_stat_from_player_json(player_data, fight, 'time_active', config)
+        #player.stats_per_fight[fight_number]['time_to_first_death'] = get_stat_from_player_json(player_data, fight, 'time_to_first_death', config)
         player.stats_per_fight[fight_number]['time_in_combat'] = get_stat_from_player_json(player_data, fight, 'time_in_combat', config)
         player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, fight, 'group', config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
             
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
-            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, fight, stat, config)
+            if stat == 'dist':
+                player.stats_per_fight[fight_number][stat], player.stats_per_fight[fight_number]['time_to_first_death'] = get_stat_from_player_json(player_data, fight, stat, config)
+                player.duration_on_tag += player.stats_per_fight[fight_number]['time_to_first_death']
+            else:
+                player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, fight, stat, config)
                     
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
@@ -974,8 +982,9 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
                     fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration*(fight.allies-1), 2)
                     player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration*(fight.allies-1), 2)
                 elif stat == 'dist':
-                    fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
-                    player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*fight.duration)
+                    if player.stats_per_fight[fight_number][stat] >= 0:
+                        fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_to_first_death'])
+                        player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_to_first_death'])
                 elif 'dmg_taken' in stat:
                     fight.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
                     player.total_stats[stat] += round(player.stats_per_fight[fight_number][stat]*player.stats_per_fight[fight_number]['time_in_combat'])
@@ -1015,7 +1024,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
         # round total_stats for this fight
         fight.total_stats[stat] = round(fight.total_stats[stat])
         fight.avg_stats[stat] = fight.total_stats[stat]
-        if fight.avg_stats[stat] > 0:
+        if fight.avg_stats[stat] > 0 and stat != 'dist':
             fight.avg_stats[stat] = fight.avg_stats[stat] / len([p for p in players if p.stats_per_fight[fight_number][stat] >= 0])
 
         # avg for buffs stacking duration:
@@ -1026,8 +1035,12 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, us
             fight.avg_stats[stat] *= 100
         if stat in config.squad_buff_ids:
             fight.avg_stats[stat] /= (fight.allies - 1)
-        if stat in config.squad_buff_ids or stat == "dist" or "dmg_taken" in stat: # not strictly correct for dmg taken, since we use time in combat there, but... eh
+        if stat in config.squad_buff_ids or "dmg_taken" in stat: # not strictly correct for dmg taken, since we use time in combat there, but... eh
             fight.avg_stats[stat] = round(fight.avg_stats[stat]/fight.duration, 2)
+            
+        if stat == "dist":
+            fight.avg_stats[stat] = round(fight.avg_stats[stat]/(sum(p.stats_per_fight[fight_number]['time_to_first_death'] for p in players)), 2)
+            
 
     fights.append(fight)
 
@@ -1109,7 +1122,9 @@ def get_overall_stats(players, used_fights, config):
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
             player.total_stats[stat] = round(player.total_stats[stat], 2)
             # DON'T SWITCH DMG_TAKEN AND DMG OR HEAL_FROM_REGEN AND HEAL
-            if 'dmg_taken' in stat:
+            if stat == 'dist':
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_on_tag)
+            elif 'dmg_taken' in stat:
                 #player.average_stats[stat] = round(player.total_stats[stat]/player.duration_active)
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_in_combat)
             elif stat == 'heal_from_regen':
