@@ -26,6 +26,7 @@ import importlib
 import xlwt
 
 from parse_top_stats_tools import *
+from io_helper import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in json format and generates top stats.')
