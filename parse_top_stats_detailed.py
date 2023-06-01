@@ -51,19 +51,19 @@ if __name__ == '__main__':
     if args.log_file is None:
         args.log_file = args.input_directory+"/log_detailed.txt"
 
+    log = open(args.log_file, "w")
+
     parser_config = importlib.import_module("parser_configs."+args.config_file , package=None) 
-    config = fill_config(parser_config)
+    config = fill_config(parser_config, log)
 
     output = None
     if 'txt' in config.files_to_write:
         output = open(args.output_filename, "w")
-    log = open(args.log_file, "w")
-
 
     print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
     print(print_string)
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
-    myprint(log, print_string)
+    myprint(log, print_string, "info")
 
     players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
         book.save(args.xls_output_filename)
     
     print_string = "Welcome to the CARROT AWARDS!\n"
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
 
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     if 'console' in config.files_to_write or 'txt' in config.files_to_write:
         for stat in config.stats_to_compute:
-            myprint(output, config.stat_names[stat].upper()+" AWARDS\n", config)
+            myprint(output, config.stat_names[stat].upper()+" AWARDS\n", "info", config)
             
             if stat == 'dist':
                 #write_sorted_top_percentage(players, top_percentage_stat_players[stat], percentage_comparison_val[stat], config, num_used_fights, stat, output)

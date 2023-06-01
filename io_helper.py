@@ -35,12 +35,20 @@ def get_total_fight_duration_in_hms(fight_duration_in_s):
     return total_fight_duration
 
 
+
 # prints output_string to the console and the output_file, with a linebreak at the end
-def myprint(output_file, output_string, config = None):
+def myprint(output_file, output_string, log_level, config = None):
+    if config != None:
+        if log_level == "warning" and config.log_level == "info":
+            return
+        if log_level == "debug" and config.log_level != "debug":
+            return
+        
     if config == None or "console" in config.files_to_write:
         print(output_string)
     if config == None or "txt" in config.files_to_write:
         output_file.write(output_string+"\n")
+
 
 
 # print the overall squad stats and some overall raid stats
@@ -54,7 +62,7 @@ def myprint(output_file, output_string, config = None):
 # output = file to write to
 def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, total_fight_duration, found_healing, found_barrier, config, output):
     print_string = "The following stats are computed over "+str(overall_raid_stats['num_used_fights'])+" out of "+str(len(fights))+" fights.\n"
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
     
     # print total squad stats
     print_string = "Squad overall"
@@ -108,7 +116,7 @@ def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, tot
     print_string += "There were between "+str(overall_raid_stats['min_allies'])+" and "+str(overall_raid_stats['max_allies'])+" allied players involved (average "+str(round(overall_raid_stats['mean_allies'], 1))+" players).\n"
     print_string += "The squad faced between "+str(overall_raid_stats['min_enemies'])+" and "+str(overall_raid_stats['max_enemies'])+" enemy players (average "+str(round(overall_raid_stats['mean_enemies'], 1))+" players).\n"    
         
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
     return total_fight_duration
 
 
@@ -126,7 +134,7 @@ def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, confi
     for stat in overall_squad_stats:
         stat_len[stat] = max(len(config.stat_names[stat]), len(str(overall_squad_stats[stat])))
         print_string += "  "+f"{config.stat_names[stat]:>{stat_len[stat]}}"
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
     for i in range(len(fights)):
         fight = fights[i]
         skipped_str = "yes" if fight.skipped else "no"
@@ -136,15 +144,15 @@ def print_fights_overview(fights, overall_squad_stats, overall_raid_stats, confi
         print_string = f"{i+1:>3}"+"  "+f"{date:<10}"+"  "+f"{start_time:>10}"+"  "+f"{end_time:>8}"+"  "+f"{fight.duration:>13}"+"  "+f"{skipped_str:>7}"+"  "+f"{fight.allies:>11}"+"  "+f"{fight.enemies:>12}"+"  "+f"{fight.kills:>5}"
         for stat in overall_squad_stats:
             print_string += "  "+f"{round(fight.total_stats[stat]):>{stat_len[stat]}}"
-        myprint(output, print_string, config)
+        myprint(output, print_string, "info", config)
 
     print_string = "-" * (3+2+10+2+10+2+8+2+13+2+7+2+11+2+12+sum([stat_len[stat] for stat in overall_squad_stats])+2*len(stat_len)+7)
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
     print_string = f"{overall_raid_stats['num_used_fights']:>3}"+"  "+f"{overall_raid_stats['date']:>7}"+"  "+f"{overall_raid_stats['start_time']:>10}"+"  "+f"{overall_raid_stats['end_time']:>8}"+"  "+f"{overall_raid_stats['used_fights_duration']:>13}"+"  "+f"{overall_raid_stats['num_skipped_fights']:>7}" +"  "+f"{overall_raid_stats['mean_allies']:>11}"+"  "+f"{overall_raid_stats['mean_enemies']:>12}"+"  "+f"{overall_raid_stats['total_kills']:>5}"
     for stat in overall_squad_stats:
         print_string += "  "+f"{round(overall_squad_stats[stat]):>{stat_len[stat]}}"
     print_string += "\n\n"
-    myprint(output, print_string, config)
+    myprint(output, print_string, "info", config)
 
 
         
@@ -238,19 +246,19 @@ def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, 
             print_string = "Top "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" consistency awards"
         else:
             print_string = "Top "+config.stat_names[stat]+" consistency awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_consistent*100.))+"% of most consistent)"
-            myprint(output_file, print_string, config)
+            myprint(output_file, print_string, "info", config)
             print_string = "Most times placed in the top "+str(config.num_players_considered_top[stat])+". \nAttendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
-            myprint(output_file, print_string, config)
+            myprint(output_file, print_string, "info", config)
     elif consistent_or_avg == StatType.AVERAGE:
         if stat == "dist":
             print_string = "Top average "+str(config.num_players_considered_top[stat])+" "+config.stat_names[stat]+" awards"
         else:
             print_string = "Top average "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places)"
-            myprint(output_file, print_string, config)
+            myprint(output_file, print_string, "info", config)
             print_string = "Attendance = number of fights a player was present out of "+str(num_used_fights)+" total fights."
-            myprint(output_file, print_string, config)
+            myprint(output_file, print_string, "info", config)
     print_string = "-------------------------------------------------------------------------------"    
-    myprint(output_file, print_string, config)
+    myprint(output_file, print_string, "info", config)
 
 
     # print table header
@@ -260,7 +268,7 @@ def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, 
     if stat in config.squad_buff_ids or 'dmg_taken' in stat:
         print_string += f"  {'Average':>7}"
         
-    myprint(output_file, print_string, config)    
+    myprint(output_file, print_string, "info", config)    
 
     
     place = 0
@@ -280,11 +288,10 @@ def write_sorted_top_consistent_or_avg(players, top_consistent_players, config, 
         elif stat in config.buffs_stacking_duration:
             print_string += f" {player.total_stats[stat]:>8}s"+f" {player.average_stats[stat]:>7}%"            
 
-        myprint(output_file, print_string, config)
+        myprint(output_file, print_string, "info", config)
         last_val = player.consistency_stats[stat]
-    myprint(output_file, "\n", config)
+    myprint(output_file, "\n", "info", config)
         
-                
 
 
 # Write the top x people who achieved top total stat.
@@ -303,21 +310,21 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
     profession_length = max(profession_length, 5)
     
     print_string = "Top overall "+config.stat_names[stat]+" awards (Max. "+str(config.num_players_listed[stat])+" places, min. "+str(round(config.portion_of_top_for_total*100.))+"% of 1st place)"
-    myprint(output_file, print_string, config)
+    myprint(output_file, print_string, "info", config)
     print_string = "Attendance = total duration of fights attended out of "
     if total_fight_duration["h"] > 0:
         print_string += str(total_fight_duration["h"])+"h "
     print_string += str(total_fight_duration["m"])+"m "+str(total_fight_duration["s"])+"s."    
-    myprint(output_file, print_string, config)
+    myprint(output_file, print_string, "info", config)
     print_string = "------------------------------------------------------------------------"
-    myprint(output_file, print_string, config)
+    myprint(output_file, print_string, "info", config)
 
 
     # print table header
     print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f" {'Attendance':>11}"+f" {'Total':>9}"
     if stat in config.squad_buff_ids:
         print_string += f"  {'Average':>7}"
-    myprint(output_file, print_string, config)    
+    myprint(output_file, print_string, "info", config)    
 
     place = 0
     last_val = -1
@@ -327,9 +334,9 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
         if player.total_stats[stat] != last_val:
             place += 1
 
-        fight_time_h = int(player.duration_fights_present/3600)
-        fight_time_m = int((player.duration_fights_present - fight_time_h*3600)/60)
-        fight_time_s = int(player.duration_fights_present - fight_time_h*3600 - fight_time_m*60)
+        fight_time_h = int(player.duration_present['total']/3600)
+        fight_time_m = int((player.duration_present['total'] - fight_time_h*3600)/60)
+        fight_time_s = int(player.duration_present['total'] - fight_time_h*3600 - fight_time_m*60)
 
         print_string = f"{place:>2}"+f". {player.name:<{max_name_length}} "+f" {profession_strings[i]:<{profession_length}} "
 
@@ -346,9 +353,9 @@ def write_sorted_total(players, top_total_players, config, total_fight_duration,
             print_string += f" {player.average_stats[stat]:>8}"
         else:
             print_string += f" {round(player.total_stats[stat]):>9}"
-        myprint(output_file, print_string, config)
+        myprint(output_file, print_string, "info", config)
         last_val = player.total_stats[stat]
-    myprint(output_file, "\n", config)
+    myprint(output_file, "\n", "info", config)
     
    
 
@@ -378,15 +385,15 @@ def write_sorted_top_percentage(players, top_players, comparison_percentage, con
 
     # print table header
     print_string = "Top "+config.stat_names[stat]+" percentage (Minimum percentage = "+f"{comparison_percentage*100:.0f}%)"
-    myprint(output_file, print_string, config)
+    myprint(output_file, print_string, "info", config)
     print_string = "------------------------------------------------------------------------"     
-    myprint(output_file, print_string, config)                
+    myprint(output_file, print_string, "info", config)                
 
     # print table header
     print_string = f"    {'Name':<{max_name_length}}" + f"  {'Class':<{profession_length}} "+f"  Percentage "+f" {'Times Top':>9} " + f" {'Out of':>6}"
     if stat != "dist":
         print_string += f" {'Total':>8}"
-    myprint(output_file, print_string, config)    
+    myprint(output_file, print_string, "info", config)    
 
     # print stats for top players
     place = 0
@@ -402,10 +409,9 @@ def write_sorted_top_percentage(players, top_players, comparison_percentage, con
 
         if stat != "dist":
             print_string += f" {round(player.total_stats[stat]):>7}"
-        myprint(output_file, print_string, config)
+        myprint(output_file, print_string, "info", config)
         last_val = player.portion_top_stats[stat]
-    myprint(output_file, "\n", config)
-
+    myprint(output_file, "\n", "info", config)
 
 
 # Write the top x people who achieved top total stat.
@@ -422,7 +428,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     sheet1.write(0, 1, "Name")
     sheet1.write(0, 2, "Profession")
     sheet1.write(0, 3, "Attendance (number of fights)")
-    sheet1.write(0, 4, "Attendance (duration fights)")
+    sheet1.write(0, 4, "Attendance (duration present)")
     sheet1.write(0, 5, "Times Top")
     sheet1.write(0, 6, "Percentage Top")
     sheet1.write(0, 7, "Total "+stat)
@@ -437,7 +443,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
         sheet1.write(i+1, 1, player.name)
         sheet1.write(i+1, 2, player.profession)
         sheet1.write(i+1, 3, player.num_fights_present)
-        sheet1.write(i+1, 4, player.duration_fights_present)
+        sheet1.write(i+1, 4, player.duration_present[config.duration_for_averages[stat]])
         sheet1.write(i+1, 5, player.consistency_stats[stat])        
         sheet1.write(i+1, 6, round(player.portion_top_stats[stat]*100))
         sheet1.write(i+1, 7, round(player.total_stats[stat]))
@@ -509,8 +515,6 @@ def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, c
     wb.save(xls_output_filename)
 
 
-
-    
 
 # write all stats to a json file
 # Input:

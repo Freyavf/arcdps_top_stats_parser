@@ -16,6 +16,12 @@
 
 # Note that if you want to know heal_from_regen, you also have to compute hits_from_regen
 
+# possible log levels: "info", "warning", "debug"
+# "info" gives information about the current status of the program
+# "warning" gives additional information about things that could have gone wrong, but don't necessarily mean the program can't deal with the data (e.g., some players might not be running the healing addon)
+# "debug" gives more detailed information about the state of the program and is usually only needed for debugging
+log_level = "info" 
+
 stats_to_compute = ['dmg', 'dmg_total', 'dmg_players', 'dmg_other',
                     'strips', 'cleanses', 'heal', 'heal_total',
                     'heal_players', 'heal_other', 'dist', 'stab',
@@ -28,7 +34,6 @@ stats_to_compute = ['dmg', 'dmg_total', 'dmg_players', 'dmg_other',
                     'med_kit']
 
 # How many players will be listed who achieved top stats most often for each stat?
-# TODO if it's not in num_players_listed, use default
 num_players_listed_default = 1000
 num_players_listed = {}
 
@@ -39,6 +44,9 @@ num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 're
                               'heal': 3, 'barrier': 3, 'deaths': 1, 'big_boomer': 3, 'explosive_temper': 3, 'explosive_entrance': 3,
                               'med_kit': 3}
 
+
+duration_for_averages_default = 'in_combat'
+duration_for_averages = {'dist': 'not_running_back', 'dmg': 'total'}
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
