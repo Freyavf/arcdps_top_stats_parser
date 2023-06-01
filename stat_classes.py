@@ -12,7 +12,7 @@ class StatType(Enum):
     PERCENTAGE = 6                  # top consistency percentage = times top / fights present
 
 
-    
+
 # This class stores information about a player. Note that a different profession will be treated as a new player / character.
 @dataclass
 class Player:
@@ -20,12 +20,20 @@ class Player:
     name: str                           # character name
     profession: str                     # profession name
     num_fights_present: int = 0         # the number of fight the player was involved in 
-    attendance_percentage: float = 0.   # the percentage of fights the player was involved in out of all fights
-    duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
-    duration_active: int = 0            # the total duration a player was active (alive or down)
-    duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
-    duration_on_tag: int = 0            # the total duration a player was not running back
-    normalization_time_allies: int = 0  # the sum of fight duration * (squad members -1) of all fights the player was involved in
+    attendance_percentage: float = 0.   # the percentage of fight duration the player was involved in out of all fights # TODO
+    # the duration of all fights the player was involved in; including
+    # - 'total' (total duration of the fights a player was involved in),
+    # - 'active' (total duration a player was active (alive or down)),
+    # - 'in_combat' (total duration a player was in combat (from each start of taking/dealing dmg until death, also multiple times in one fight))
+    # - 'not_running_back' (time from beginning of each fight until down of either player or tag leading to death; 0 if player was running back at the beginning of the fight)
+    duration_present: dict = field(default_factory=dict) 
+    #duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
+    #duration_active: int = 0            # the total duration a player was active (alive or down)
+    #duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
+    #duration_not_running_back: int = 0            # the total duration a player was not running back
+    # the sum of duration present * (squad members -1) of all fights the player was involved in;
+    # analogue to duration_present (see above)
+    normalization_time_allies: dict = field(default_factory=dict)  
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
 
     # fields for all stats defined in config
@@ -37,6 +45,8 @@ class Player:
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
+        self.duration_present = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
+        self.normalization_time_allies = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.total_stats = {key: 0 for key in config.stats_to_compute}
         self.average_stats = {key: 0 for key in config.stats_to_compute}        
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
@@ -56,9 +66,9 @@ class Fight:
     kills: int = 0                                        # number of kills
     start_time: str = ""                                  # start time of the fight
     squad_composition: dict = field(default_factory=dict) # squad composition of the fight (how many of which class)
-    tag_positions_until_death: list = field(default_factory=list)
-    polling_rate: int = 150
-    inch_to_pixel: float = 0.009
+    tag_positions_until_death: list = field(default_factory=list) # position of the commander until he died (empty if no com was found or more than one com was found)
+    polling_rate: int = 150                                       # polling rate of position data as read from json (could get overwritten)
+    inch_to_pixel: float = 0.009                                  # inch to pixel conversion value; different for some maps -> might get overwritten
     
 
     
@@ -86,8 +96,9 @@ class Config:
     stat_names: dict = field(default_factory=dict)                  # the names under which the stats appear in the output
     profession_abbreviations: dict = field(default_factory=dict)    # the names under which each profession appears in the output
 
-    empty_stats: dict = field(default_factory=dict)                 # all stat values = -1 for initialization
+    empty_stats: dict = field(default_factory=dict)                 # stat values to initialize player stats per fight
     stats_to_compute: list = field(default_factory=list)            # all stats that should be computed
+    duration_for_averages: dict = field(default_factory=dict)       # which duration type should be used to compute the avg for each stat? (one of 'total', 'active', 'in_combat', 'not_running_back')
 
     squad_buff_ids: dict = field(default_factory=dict)              # dict of squad buff name to buff id as read from buffMap
     self_buff_ids: dict = field(default_factory=dict)               # dict of self buff name to buff id as read from buffMap
@@ -95,11 +106,14 @@ class Config:
     buffs_stacking_intensity: list = field(default_factory=list)    # list of squad_buff names stacking intensity
     squad_buff_abbrev: dict = field(default_factory=dict)           # abbreviations of squad buff names
     self_buff_abbrev: dict = field(default_factory=dict)            # abbreviations of self buff names
+
+    errors: list = field(default_factory=list)
+    log_level: str = "info"
     
 
     
 # fills a Config with the given input    
-def fill_config(config_input):
+def fill_config(config_input, log):
     config = Config()
     config.num_players_listed = config_input.num_players_listed
     for stat in config_input.stats_to_compute:
@@ -110,6 +124,11 @@ def fill_config(config_input):
     for stat in config_input.stats_to_compute:
         if stat not in config.num_players_considered_top:
             config.num_players_considered_top[stat] = config_input.num_players_considered_top_default
+
+    config.duration_for_averages = {key: value for key,value in config_input.duration_for_averages.items()}
+    for stat in config_input.stats_to_compute:
+        if stat not in config.duration_for_averages:
+            config.duration_for_averages[stat] = config_input.duration_for_averages_default
 
     config.min_attendance_portion_for_percentage = config_input.attendance_percentage_for_percentage/100.
     config.min_attendance_portion_for_late = config_input.attendance_percentage_for_late/100.    
@@ -133,12 +152,9 @@ def fill_config(config_input):
 
     config.stats_to_compute = config_input.stats_to_compute
     config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
-    config.empty_stats['time_active'] = -1
-    config.empty_stats['time_to_first_death'] = -1
-    config.empty_stats['time_in_combat'] = -1
+    config.empty_stats['duration_present'] = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
     config.empty_stats['present_in_fight'] = False
 
-    # TODO move to config?
     config.squad_buff_abbrev["Stability"] = 'stab'
     config.squad_buff_abbrev["Protection"] = 'prot'
     config.squad_buff_abbrev["Aegis"] = 'aegis'
@@ -152,5 +168,11 @@ def fill_config(config_input):
     config.self_buff_abbrev["Explosive Temper"] = 'explosive_temper'
     config.self_buff_abbrev["Big Boomer"] = 'big_boomer'
     config.self_buff_abbrev["Med Kit"] = 'med_kit'
+
+    if config_input.log_level == "debug" or config_input.log_level == "warning" or config_input.log_level == "info":
+        config.log_level = config_input.log_level
+    else:
+        print("log level "+config_input.log_level+" is not available. Using \"info\" instead.")
+        config.log_level = "info"
     
     return config

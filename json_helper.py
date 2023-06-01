@@ -2,15 +2,14 @@
 import math
 
 from stat_classes import Fight, Config
-
-debug = False # enable / disable debug output
+from io_helper import myprint
 
 # get ids of buffs in the log from the buff map
 # Input:
 # player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
 # config: config to use in top stats computation
 # changes config.buffs_stacking_intensity and config.buffs_stacking_duration inplace
-def get_buff_ids_from_json(json_data, config):
+def get_buff_ids_from_json(json_data, config, log):
     buffs = json_data['buffMap']
     for buff_id, buff in buffs.items():
         if buff['name'] in config.squad_buff_abbrev:
@@ -27,7 +26,7 @@ def get_buff_ids_from_json(json_data, config):
     found_all_ids = True
     for buff, abbrev in config.self_buff_abbrev.items():
         if abbrev not in config.self_buff_ids:
-            print("id for buff", buff, "could not be found. This is not necessarily an error, the buff might just not be present in this log.")
+            myprint("id for buff", buff, "could not be found. This is not necessarily an error, the buff might just not be present in this log.", log, config)
             found_all_ids = False
     return found_all_ids
 
@@ -52,8 +51,7 @@ def get_stats_from_fight_json(fight_json, config, log):
     split_duration = split_duration[1].split('s', 1)
     if len(split_duration) > 1:
         secs = int(split_duration[0])
-    if debug:
-        print("duration: ", hours, "h ", mins, "m ", secs, "s")
+    myprint(log, "duration: "+str(hours)+"h "+str(mins)+"m "+str(secs)+"s", "debug", config)
     duration = hours*3600 + mins*60 + secs
 
     num_allies = len(fight_json['players'])
@@ -81,19 +79,19 @@ def get_stats_from_fight_json(fight_json, config, log):
     if(duration < config.min_fight_duration):
         fight.skipped = True
         print_string = "\nFight only took "+str(hours)+"h "+str(mins)+"m "+str(secs)+"s. Skipping fight."
-        myprint(log, print_string)
+        myprint(log, print_string, "info")
         
     # skip fights with less than min_allied_players allies
     if num_allies < config.min_allied_players:
         fight.skipped = True
         print_string = "\nOnly "+str(num_allies)+" allied players involved. Skipping fight."
-        myprint(log, print_string)
+        myprint(log, print_string, "info")
 
     # skip fights with less than min_enemy_players enemies
     if num_enemies < config.min_enemy_players:
         fight.skipped = True
         print_string = "\nOnly "+str(num_enemies)+" enemies involved. Skipping fight."
-        myprint(log, print_string)
+        myprint(log, print_string, "info")
 
     # get players using healing addon, if the addon was used
     if 'usedExtensions' not in fight_json:
@@ -104,7 +102,7 @@ def get_stats_from_fight_json(fight_json, config, log):
             if extension['name'] == "Healing Stats":
                 fight.players_running_healing_addon = extension['runningExtension']
         
-    # TODO don't write polling rate, inch_to_pixel, tag_positions_until_death
+    # TODO don't write polling rate, inch_to_pixel, tag_positions_until_death?
     fight.polling_rate = fight_json['combatReplayMetaData']['pollingRate']
     fight.inch_to_pixel = fight_json['combatReplayMetaData']['inchToPixel']
 
@@ -142,158 +140,280 @@ def get_basic_player_data_from_json(player_json):
 
 
 
-# get value of stat from player_json
+# get the first time the player went down, leading to death or the tag went down, leading to death (whichever was first)
 # Input:
 # player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
 # fight: information about the fight
-# stat: the stat being considered
-# config: the config used for top stats computation
-def get_stat_from_player_json(player_json, fight, stat, config):
-    if stat == 'time_in_combat':
-        return round(sum_breakpoints(get_combat_time_breakpoints(player_json)) / 1000)
+def get_first_down_time(player_json, fight):
+    # time when com went down
+    first_down_time = len(fight.tag_positions_until_death) * fight.polling_rate / 1000
 
-    if stat == 'group':
-        if 'group' not in player_json:
-            return 0
-        return int(player_json['group'])
+    player_deaths = dict(player_json['combatReplayData']['dead'])
+    player_downs = dict(player_json['combatReplayData']['down'])
+
+    # find the first player downstate event that lead to death
+    for death_begin, death_end in player_deaths.items():
+        for down_begin, down_end in player_downs.items():
+            if death_begin == down_end:
+                # down times are logged in ms -> divide by 1000
+                first_down_time = min(down_begin / 1000, first_down_time)
+                return first_down_time
+    return first_down_time
+
+
+
+# get average distance to tag given the player and tag positions
+def get_distance_to_tag(player_positions, tag_positions, inch_to_pixel):
+    player_distances = list()
+    for position,tag_position in zip(player_positions, tag_positions):
+        deltaX = position[0] - tag_position[0]
+        deltaY = position[1] - tag_position[1]
+        player_distances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
+    return (sum(player_distances) / len(player_distances)) / inch_to_pixel
     
+
+# TODO treat -1
+# get value of stat from player_json
+# return -1 if stat is not available or cannot be computed; or player was not present in the fight according to the duration_present relevant for the respective stat
+# Input:
+# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+# stat: the stat being considered
+# fight: information about the fight
+# player_duration_present: the player.duration_present dict for this player, needed for some stat computations
+# config: the config used for top stats computation
+def get_stat_from_player_json(player_json, stat, fight, player_duration_present, config):
+    #######################
+    ### Fight durations ###
+    #######################
     if stat == 'time_active':
         if 'activeTimes' not in player_json:
-            return 0
+            config.errors.append("Could not find activeTimes in json to determine time_active.")
+            return -1
         return round(int(player_json['activeTimes'][0])/1000)
 
+    if stat == 'time_in_combat':
+        return round(sum_breakpoints(get_combat_time_breakpoints(player_json)) / 1000)
+    
+    if stat == 'time_not_running_back':
+        if fight.tag_positions_until_death == list():
+            config.errors.append("Could not find tag positions to determine time_not_running_back.")
+            return -1
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
+            config.errors.append("json is missing combatReplayData or entries for dead, down, or distToCom to determine time_not_running_back.")
+            return -1
+        player_dist_to_tag = player_json['statsAll'][0]['distToCom']
+        player_positions = player_json['combatReplayData']['positions']
+        player_distances = list()
+        first_down_time = get_first_down_time(player_json, fight)
+        
+        # check the avg distance to tag until a player died to see if they were running back
+        # if nobody was running back, just use the avg distance as computed by arcdps / EI
+        if first_down_time < len(player_positions) * fight.polling_rate / 1000:
+            first_down_position_index = int(first_down_time * 1000 / fight.polling_rate)
+            player_dist_to_tag = get_distance_to_tag(player_positions[:first_down_position_index], fight.tag_positions_until_death[:first_down_position_index], fight.inch_to_pixel)
+
+        # an average distance of more than 2000 until player or tag died likely means that the player was running back from the beginning
+        if player_dist_to_tag > 2000:
+            #print(f"distance of {player_json['name']} is {player_dist_to_tag}")
+            first_down_time = 0
+
+        # positions are recorded with polling rate in ms -> to get the time, need to multiply by that and divide by 1000
+        return first_down_time
+
+    #############
+    ### group ###
+    #############
+    if stat == 'group':
+        if 'group' not in player_json:
+            config.errors.append("Could not find group in json.")
+            return -1
+        return int(player_json['group'])
+
+    ########################################################
+    ### check that fight duration is valid for this stat ###
+    ########################################################
+    if config.duration_for_averages[stat] not in player_duration_present or player_duration_present[config.duration_for_averages[stat]] <= 0:
+        config.errors.append("Player was not in this fight according to duration_present relevant for stat"+stat+", or duration_present was not computed yet.")
+        return -1
+    
+    ################
+    ### cleanses ###
+    ################
+    if stat == 'cleanses':
+        if 'support' not in player_json or len(player_json['support']) != 1 or 'condiCleanse' not in player_json['support'][0]:
+            config.errors.append("Could not find support or an entry for condiCleanse in json.")
+            return -1
+        return int(player_json['support'][0]['condiCleanse'])            
+
+    ##############
+    ### deaths ###
+    ##############
+    if stat == 'deaths':
+        # TODO split by death on tag / off tag
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for deadCount in json.")
+            return -1
+        return int(player_json['defenses'][0]['deadCount'])
+
+
+    ################
+    ### distance ###
+    ################          
+    if stat == 'dist':
+        if fight.tag_positions_until_death == list():
+            config.errors.append("Could not find tag positions to determine distance to tag.")
+            return -1
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
+            config.errors.append("json is missing  combat replay data or entries for dead, down, or distToCom to determine distance to tag.")
+            return -1
+        # TODO this is hardcoded to not_running_back. make it possible to use active, total or in_combat too?
+        player_dist_to_tag = player_json['statsAll'][0]['distToCom']
+        first_down_time = player_duration_present['not_running_back']
+        player_positions = player_json['combatReplayData']['positions']
+
+        # if player or tag died before the fight ended, compute average distance until the first down time that lead to death
+        num_valid_positions = int(first_down_time * 1000 / fight.polling_rate)
+        player_dist_to_tag = get_distance_to_tag(player_positions[:num_valid_positions], fight.tag_positions_until_death[:num_valid_positions], fight.inch_to_pixel)
+
+        return float(player_dist_to_tag)
+
+    #################
+    ### Dmg Taken ###
+    #################
     # includes dmg absorbed by barrier
     if stat == 'dmg_taken' or stat == 'dmg_taken_total':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
-            return 0
+            config.errors.append("Could not find defenses or an entry for damageTaken in json to determine dmg_taken(_total).")
+            return -1
         return int(player_json['defenses'][0]['damageTaken'])
 
     if stat == 'dmg_taken_absorbed':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageBarrier' not in player_json['defenses'][0]:
-            return 0
+            config.errors.append("Could not find defenses or an entry for damageBarrier in json to determine dmg_taken_absorbed.")
+            return -1
         return int(player_json['defenses'][0]['damageBarrier'])
 
     if stat == 'dmg_taken_hp_lost':
-        total_dmg_taken = get_stat_from_player_json(player_json, fight, 'dmg_taken_total', config)
-        dmg_absorbed = get_stat_from_player_json(player_json, fight, 'dmg_taken_absorbed', config)
+        total_dmg_taken = get_stat_from_player_json(player_json, 'dmg_taken_total', fight, player_duration_present, config)
+        dmg_absorbed = get_stat_from_player_json(player_json, 'dmg_taken_absorbed', fight, player_duration_present, config)
+        if total_dmg_taken < 0 or dmg_absorbed < 0:
+            return -1
         return total_dmg_taken - dmg_absorbed
 
-    if stat == 'deaths':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
-            return 0
-        return int(player_json['defenses'][0]['deadCount'])
-
-    #if stat == 'kills':
-    #    if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'killed' not in player_json['statsAll'][0]:
-    #        return 0        
-    #    return int(player_json['statsAll'][0]['killed'])
-
+    #################
+    ### Dmg Dealt ###
+    #################
     if stat == 'dmg_total' or stat == 'dmg':
         if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
-            return 0
+            config.errors.append("Could not find dpsAll or an entry for damage in json to determine dmg(_total).")
+            return -1
         return int(player_json['dpsAll'][0]['damage'])  
 
     if stat == 'dmg_players':
         if 'targetDamage1S' not in player_json:
-            return 0
+            config.errors.append("Could not find targetDamage1S in json to determine dmg_players.")
+            return -1
         return sum(target[0][-1] for target in player_json['targetDamage1S'])
 
     if stat == 'dmg_other':
-        total_dmg = get_stat_from_player_json(player_json, fight, 'dmg_total', config)
-        players_dmg = get_stat_from_player_json(player_json, fight, 'dmg_players', config)
+        total_dmg = get_stat_from_player_json(player_json, 'dmg_total', fight, player_duration_present, config)
+        players_dmg = get_stat_from_player_json(player_json, 'dmg_players', fight, player_duration_present, config)
+        if total_dmg < 0 or players_dmg < 0:
+            return -1
         return total_dmg - players_dmg
 
+    ##################################
+    ### Incoming / Outgoing strips ###
+    ##################################
     if stat == 'rips':
         if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
-            return 0
+            config.errors.append("Could not find support or an entry for boonStrips in json to determine rips.")
+            return -1
         return int(player_json['support'][0]['boonStrips'])
     
-    if stat == 'cleanses':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'condiCleanse' not in player_json['support'][0]:
-            return 0
-        return int(player_json['support'][0]['condiCleanse'])            
-
-    if stat == 'dist':
-        if fight.tag_positions_until_death == list():
-            return -1
-        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
-            return -1
-        player_dist_to_tag = player_json['statsAll'][0]['distToCom']
-        player_deaths = dict(player_json['combatReplayData']['dead'])
-        player_downs = dict(player_json['combatReplayData']['down'])
-        first_death_time = len(fight.tag_positions_until_death)
-        player_positions = player_json['combatReplayData']['positions']
-        player_distances = list()
-        for death_begin, death_end in player_deaths.items():
-            for down_begin, down_end in player_downs.items():
-                if death_begin == down_end:
-                    first_death_time = min(int(down_begin / fight.polling_rate), first_death_time)
-
-        if first_death_time < len(player_positions):
-            for position,tag_position in zip(player_positions[:first_death_time], fight.tag_positions_until_death[:first_death_time]):
-                deltaX = position[0] - tag_position[0]
-                deltaY = position[1] - tag_position[1]
-                player_distances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
-            player_dist_to_tag = (sum(player_distances) / len(player_distances)) / fight.inch_to_pixel
-
-        if player_dist_to_tag > 2000:
-            player_dist_to_tag = -1
-            first_death_time = 0
-        return float(player_dist_to_tag), float(first_death_time)
-
     if stat == 'stripped':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'boonStrips' not in player_json['defenses'][0]:
-            return 0
+            config.errors.append("Could not find defenses or an entry for boonStrips in json to determine stripped.")
+            return -1
         return int(player_json['defenses'][0]['boonStrips'])
 
+    ######################
+    ### Heal & Barrier ###
+    ######################
+            
     if stat == 'heal' or stat == 'heal_total':
         # check if healing was logged, save it
-        if player_json['name'] not in fight.players_running_healing_addon or 'extHealingStats' not in player_json or 'outgoingHealing' not in player_json['extHealingStats']:
+        if player_json['name'] not in fight.players_running_healing_addon:
+            return -1
+        if 'extHealingStats' not in player_json or 'outgoingHealing' not in player_json['extHealingStats']:
+            config.errors.append("Could not find extHealingStats or an entry for outgoingHealing in json to determine heal(_total).")
             return -1
         return player_json['extHealingStats']['outgoingHealing'][0]['healing']
 
     if stat == 'heal_players':
         # check if healing was logged, save it
-        if player_json['name'] not in fight.players_running_healing_addon or 'extHealingStats' not in player_json or 'alliedHealing1S' not in player_json['extHealingStats']:
+        if player_json['name'] not in fight.players_running_healing_addon:
+            return -1
+        if 'extHealingStats' not in player_json or 'alliedHealing1S' not in player_json['extHealingStats']:
+            config.errors.append("Could not find extHealingStats or an entry for alliedHealing1S in json to determine heal_players.")
             return -1
         return sum([healing[0][-1] for healing in player_json['extHealingStats']['alliedHealing1S']])
     
     if stat == 'heal_other':
         # check if healing was logged, save it
-        total_heal = get_stat_from_player_json(player_json, fight, 'heal_total', config)
-        player_heal = get_stat_from_player_json(player_json, fight, 'heal_players', config)
-        if total_heal == -1 or player_heal == -1:
+        total_heal = get_stat_from_player_json(player_json, 'heal_total', fight, player_duration_present, config)
+        player_heal = get_stat_from_player_json(player_json, 'heal_players', fight, player_duration_present, config)
+        if total_heal < 0 or player_heal < 0:
             return -1
         return total_heal - player_heal
 
     if stat == 'barrier':
         # check if barrier was logged, save it
-        if player_json['name'] in fight.players_running_healing_addon and 'extBarrierStats' in player_json and 'outgoingBarrier' in player_json['extBarrierStats']:
-            return player_json['extBarrierStats']['outgoingBarrier'][1]['barrier']
-        return -1
-
+        if player_json['name'] not in fight.players_running_healing_addon:
+            return -1
+        if 'extBarrierStats' not in player_json or 'outgoingBarrier' not in player_json['extBarrierStats']:
+            config.errors.append("Could not find extBarrierStats or an entry for outgoingBarrier in json to determine barrier.")
+            return -1
+        return player_json['extBarrierStats']['outgoingBarrier'][1]['barrier']
+        
+    # TODO fix output for heal from regen
     if stat == 'heal_from_regen':
         # check if healing was logged, look for regen
-        if player_json['name'] in fight.players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
-            healing_json = player_json['extHealingStats']['totalHealingDist'][0]
-            for healing_json2 in healing_json:
-                if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
-                    return healing_json2['totalHealing']
+        if player_json['name'] not in fight.players_running_healing_addon:
+            return -1
+        if 'extHealingStats' not in player_json or 'totalHealingDist' not in player_json['extHealingStats']:
+            config.errors.append("Could not find extHealingStats or an entry for totalHealingDist in json to determine heal_from_regen.")
+            return -1
+        healing_json = player_json['extHealingStats']['totalHealingDist'][0]
+        for healing_json2 in healing_json:
+            if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
+                return healing_json2['totalHealing']
+        config.errors.append("Could not find regen in json to determine heal_from_regen.")
         return -1    
 
     if stat == 'hits_from_regen':
         # check if healing was logged, look for regen
-        if player_json['name'] in fight.players_running_healing_addon and 'extHealingStats' in player_json and 'totalHealingDist' in player_json['extHealingStats']:
-            healing_json = player_json['extHealingStats']['totalHealingDist'][0]
-            for healing_json2 in healing_json:
-                if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
-                    return int(healing_json2['hits'])
+        if player_json['name'] not in fight.players_running_healing_addon:
+            return -1
+        if 'extHealingStats' not in player_json or 'totalHealingDist' not in player_json['extHealingStats']:
+            config.errors.append("Could not find extHealingStats or an entry for totalHealingDist in json to determine hits_from_regen.")
+            return -1
+        healing_json = player_json['extHealingStats']['totalHealingDist'][0]
+        for healing_json2 in healing_json:
+            if 'id' in healing_json2 and healing_json2['id'] == int(config.squad_buff_ids['regen']):
+                return int(healing_json2['hits'])
+        config.errors.append("Could not find regen in json to determine hits_from_regen.")
         return -1
 
+
+
+    #############
     ### Buffs ###
+    #############
     if stat in config.squad_buff_ids:
         if 'squadBuffs' not in player_json:
-            return 0.
+            config.errors.append("Could not find squadBuffs in json to determine "+stat+".")
+            return -1
         # get buffs in squad generation -> need to loop over all buffs
         for buff in player_json['squadBuffs']:
             if 'id' not in buff:
@@ -302,13 +422,18 @@ def get_stat_from_player_json(player_json, fight, stat, config):
             buffId = buff['id']
             if buffId == int(config.squad_buff_ids[stat]):
                 if 'buffData' not in buff or len(buff['buffData']) == 0 or 'generation' not in buff['buffData'][0]:
-                    return 0.
+                    config.errors.append("Could not find entry for buffData or generation in json to determine "+stat+".")
+                    return -1
                 return float(buff['buffData'][0]['generation'])
+
+        config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
         return 0.
 
+    # for self buffs, only check if they were there (1) or not (0)
     if stat in config.self_buff_ids:
         if 'selfBuffs' not in player_json:
-            return 0
+            config.errors.append("Could not find selfBuffs in json to determine "+stat+".")
+            return -1
         for buff in player_json['selfBuffs']:
             if 'id' not in buff:
                 continue 
@@ -316,13 +441,15 @@ def get_stat_from_player_json(player_json, fight, stat, config):
             buffId = buff['id']
             if buffId == int(config.self_buff_ids[stat]):
                 if 'buffData' not in buff or len(buff['buffData']) == 0 or 'generation' not in buff['buffData'][0]:
-                    return 0
+                    config.errors.append("Could not find entry for buffData or generation in json to determine "+stat+".")
+                    return -1
                 return 1
+        config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
         return 0
 
 
     if stat not in config.self_buff_abbrev.values() and stat not in config.squad_buff_abbrev.values():
-        print("stat ", stat, " ist currently not supported! Treating it as 0.")
+        config.errors.append("Stat ", stat, " is currently not supported! Treating it as 0.")
     return 0
 
 
@@ -374,10 +501,10 @@ def get_combat_time_breakpoints(player_json):
     if 'combatReplayData' not in player_json:
         print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
         # activeTimes = duration the player was not dead
-        return [start_combat, get_stat_from_player_json(player_json, None, 'time_active', None) * 1000]
+        return [start_combat, get_stat_from_player_json(player_json, 'time_active', None, None, None) * 1000]
     replay = player_json['combatReplayData']
     if 'dead' not in replay:
-        return [start_combat, get_stat_from_player_json(player_json, None, 'time_active', None) * 1000]
+        return [start_combat, get_stat_from_player_json(player_json, 'time_active', None, None, None) * 1000]
 
     breakpoints = []
     playerDeaths = dict(replay['dead'])
