@@ -19,7 +19,7 @@
 stats_to_compute = ['dmg', 'dmg_total', 'dmg_players', 'dmg_other',
                     'rips', 'cleanses', 'heal', 'heal_total',
                     'heal_players', 'heal_other', 'dist', 'stab',
-                    'prot', 'aegis', 'regen', 'heal_from_regen',
+                    'prot', 'aegis', 'resist', 'regen', 'heal_from_regen',
                     'hits_from_regen', 'might', 'fury', 'quick',
                     'alac', 'speed', 'barrier', 'dmg_taken',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
@@ -34,7 +34,7 @@ num_players_listed = {}
 
 # How many players are considered to be "top" in each fight for each stat?
 num_players_considered_top_default = 5
-num_players_considered_top = {'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'regen': 3, 'heal_from_regen': 3,
+num_players_considered_top = {'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'resist': 3, 'regen': 3, 'heal_from_regen': 3,
                               'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
                               'heal': 3, 'barrier': 3, 'deaths': 1, 'big_boomer': 3, 'explosive_temper': 3, 'explosive_entrance': 3,
                               'med_kit': 3}
@@ -128,6 +128,7 @@ stat_names["rips"] = "Boon Strips"
 stat_names["stab"] = "Stability Output"
 stat_names["prot"] = "Protection Output"
 stat_names["aegis"] = "Aegis Output"
+stat_names["resist"] = "Resistance Output"
 stat_names["regen"] = "Regeneration Output"
 stat_names["heal_from_regen"] = "Healing from Regeneration"
 stat_names["hits_from_regen"] = "Hits with Regeneration"
