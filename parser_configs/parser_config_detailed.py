@@ -39,7 +39,7 @@ num_players_listed = {}
 
 # How many players are considered to be "top" in each fight for each stat?
 num_players_considered_top_default = 5
-num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'resist': 3, 'regen': 3, 'heal_from_regen': 3,
+num_players_considered_top = {'rips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'resist': 3, 'regen': 3, 'heal_from_regen': 3,
                               'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
                               'heal': 3, 'barrier': 3, 'deaths': 1, 'big_boomer': 3, 'explosive_temper': 3, 'explosive_entrance': 3,
                               'med_kit': 3}

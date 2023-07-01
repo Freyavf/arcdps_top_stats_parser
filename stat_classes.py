@@ -158,6 +158,7 @@ def fill_config(config_input, log):
     config.squad_buff_abbrev["Stability"] = 'stab'
     config.squad_buff_abbrev["Protection"] = 'prot'
     config.squad_buff_abbrev["Aegis"] = 'aegis'
+    config.squad_buff_abbrev["Resistance"] = 'resist'
     config.squad_buff_abbrev["Regeneration"] = 'regen'
     config.squad_buff_abbrev["Might"] = 'might'
     config.squad_buff_abbrev["Fury"] = 'fury'
