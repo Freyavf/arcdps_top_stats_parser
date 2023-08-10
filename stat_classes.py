@@ -115,17 +115,26 @@ class Config:
 # fills a Config with the given input    
 def fill_config(config_input, log):
     config = Config()
-    config.num_players_listed = config_input.num_players_listed
+    if hasattr(config_input, "num_players_listed"):
+        config.num_players_listed = config_input.num_players_listed
+    else:
+        config.num_players_listed = dict()
     for stat in config_input.stats_to_compute:
         if stat not in config.num_players_listed:
             config.num_players_listed[stat] = config_input.num_players_listed_default
-            
-    config.num_players_considered_top = config_input.num_players_considered_top
+
+    if hasattr(config_input, "num_players_considered_top"):
+        config.num_players_considered_top = config_input.num_players_considered_top
+    else:
+        config.num_players_considered_top = dict()
     for stat in config_input.stats_to_compute:
         if stat not in config.num_players_considered_top:
             config.num_players_considered_top[stat] = config_input.num_players_considered_top_default
 
-    config.duration_for_averages = {key: value for key,value in config_input.duration_for_averages.items()}
+    if hasattr(config_input, "duration_for_averages"):
+        config.duration_for_averages = config_input.duration_for_averages
+    else:
+        config.duration_for_averages = dict()
     for stat in config_input.stats_to_compute:
         if stat not in config.duration_for_averages:
             config.duration_for_averages[stat] = config_input.duration_for_averages_default

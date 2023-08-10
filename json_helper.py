@@ -268,13 +268,15 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         # TODO this is hardcoded to not_running_back. make it possible to use active, total or in_combat too?
         player_dist_to_tag = player_json['statsAll'][0]['distToCom']
-        first_down_time = player_duration_present['not_running_back']
-        player_positions = player_json['combatReplayData']['positions']
+        if config.duration_for_averages[stat] == 'not_running_back':
+            first_down_time = player_duration_present['not_running_back']
+            player_positions = player_json['combatReplayData']['positions']
 
-        # if player or tag died before the fight ended, compute average distance until the first down time that lead to death
-        num_valid_positions = int(first_down_time * 1000 / fight.polling_rate)
-        player_dist_to_tag = get_distance_to_tag(player_positions[:num_valid_positions], fight.tag_positions_until_death[:num_valid_positions], fight.inch_to_pixel)
-
+            # if player or tag died before the fight ended, compute average distance until the first down time that lead to death
+            num_valid_positions = int(first_down_time * 1000 / fight.polling_rate)
+            player_dist_to_tag = get_distance_to_tag(player_positions[:num_valid_positions], fight.tag_positions_until_death[:num_valid_positions], fight.inch_to_pixel)
+        elif config.duration_for_averages[stat] == 'in_combat':
+            config.errors.append("average distance over time in combat is not implemented yet. Using overall average distance instead.")
         return float(player_dist_to_tag)
 
     #################
@@ -325,9 +327,9 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ##################################
     ### Incoming / Outgoing strips ###
     ##################################
-    if stat == 'rips':
+    if stat == 'strips':
         if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
-            config.errors.append("Could not find support or an entry for boonStrips in json to determine rips.")
+            config.errors.append("Could not find support or an entry for boonStrips in json to determine strips.")
             return -1
         return int(player_json['support'][0]['boonStrips'])
     
