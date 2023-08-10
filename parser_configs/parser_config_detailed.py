@@ -22,12 +22,12 @@
 # "debug" gives more detailed information about the state of the program and is usually only needed for debugging
 log_level = "info" 
 
-stats_to_compute = ['dmg', 'dmg_total', 'dmg_players', 'dmg_other',
-                    'strips', 'cleanses', 'heal', 'heal_total',
+stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
+                    'strips', 'cleanses', 'heal_total',
                     'heal_players', 'heal_other', 'dist', 'stab',
                     'prot', 'aegis', 'resist', 'regen', 'heal_from_regen',
                     'hits_from_regen', 'might', 'fury', 'quick',
-                    'alac', 'speed', 'barrier', 'dmg_taken',
+                    'alac', 'speed', 'barrier',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
                     'dmg_taken_absorbed', 'deaths', 'stripped',
                     'big_boomer', 'explosive_temper', 'explosive_entrance',
@@ -47,14 +47,10 @@ num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 're
 
 # duration_for_averages_default = 'in_combat'
 duration_for_averages_default = 'total'
-duration_for_averages = {'dist': 'not_running_back', 'dmg': 'total'}
+duration_for_averages = {'dist': 'not_running_back', 'dmg_total': 'total'}
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
-# For what portion of all fights does a player need to be there to be considered for "late but great" awards?
-attendance_percentage_for_late = 50
-# For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards? 
-attendance_percentage_for_buildswap = 30
 # For what portion of all fights does a player need to be there to be considered for "top average" awards? 
 attendance_percentage_for_average = 33
 
@@ -64,10 +60,6 @@ percentage_of_top_for_consistent = 0
 percentage_of_top_for_total = 0
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for percentage awards?
 percentage_of_top_for_percentage = 0
-# What portion of the percentage the top consistent player reached top does someone need to reach to be considered for late but great awards?
-percentage_of_top_for_late = 100
-# What portion of the percentage the top consistent player reached top does someone need to reach to be considered for jack of all trades awards?
-percentage_of_top_for_buildswap = 100
 
 # minimum number of allied players to consider a fight in the stats
 min_allied_players = 10
@@ -77,8 +69,8 @@ min_fight_duration = 30
 min_enemy_players = 10
 
 # choose which files to write as results and whether to write results to console. Options are 'console', 'txt', 'xls' and 'json'.
-#files_to_write = ['console', 'txt', 'xls', 'json']
-files_to_write = ['txt', 'xls', 'json']
+files_to_write = ['console', 'txt', 'xls', 'json']
+#files_to_write = ['txt', 'xls', 'json']
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
@@ -129,7 +121,6 @@ profession_abbreviations["Harbinger"] = "Harbinger"
 
 # name each stat will be written as
 stat_names = {}
-stat_names["dmg"] = "Damage"
 stat_names["dmg_total"] = "Total Damage"
 stat_names["dmg_players"] = "Player Damage"
 stat_names["dmg_other"] = "Other Damage"
@@ -147,13 +138,11 @@ stat_names["alac"] = "Alacrity Output"
 stat_names["quick"] = "Quickness Output"
 stat_names["speed"] = "Superspeed Output"
 stat_names["cleanses"] = "Condition Cleanses"
-stat_names["heal"] = "Healing"
 stat_names["heal_total"] = "Total Healing"
 stat_names["heal_players"] = "Player Healing"
 stat_names["heal_other"] = "Other Healing"
 stat_names["barrier"] = "Barrier"
 stat_names["dist"] = "Distance to Tag"
-stat_names["dmg_taken"] = "Damage Taken"
 stat_names["dmg_taken_total"] = "Total Damage Taken"
 stat_names["dmg_taken_hp_lost"] = "HP lost"
 stat_names["dmg_taken_absorbed"] = "Damage absorbed"

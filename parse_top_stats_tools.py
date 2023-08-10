@@ -231,7 +231,6 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
 # players = list of Players
 # config = the configuration being used to determine top players
 # stat = which stat are we considering
-# late_or_swapping = which type of stat. can be StatType.PERCENTAGE, StatType.LATE_PERCENTAGE or StatType.SWAPPED_PERCENTAGE
 # num_used_fights = number of fights considered for computing top stats
 # top_consistent_players (optional) = list of top consistent player indices
 # top_total_players (optional) = list of top total player indices
@@ -239,25 +238,13 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
 # top_late_players (optional) = list of player indices with late but great awards
 # Output:
 # list of player indices getting a percentage award, value with which the percentage stat was compared
-def get_top_percentage_players(players, config, stat, late_or_swapping, num_used_fights, top_consistent_players = list(), top_total_players = list(), top_percentage_players = list(), top_late_players = list()):    
+def get_top_percentage_players(players, config, stat, num_used_fights, top_consistent_players = list(), top_total_players = list()):
     sorted_index = sort_players_by_percentage(players, stat)
     top_percentage = players[sorted_index[0][0]].portion_top_stats[stat]
 
     # get correct comparison value for top percentage and minimum attendance
-    comparison_value = 0
-    min_attendance = 0
-    if late_or_swapping == StatType.LATE_PERCENTAGE:
-        comparison_value = top_percentage * config.portion_of_top_for_late
-        min_attendance = config.min_attendance_portion_for_late * num_used_fights
-    elif late_or_swapping == StatType.SWAPPED_PERCENTAGE:
-        comparison_value = top_percentage * config.portion_of_top_for_buildswap
-        min_attendance = config.min_attendance_portion_for_buildswap * num_used_fights
-    elif late_or_swapping == StatType.PERCENTAGE:
-        comparison_value = top_percentage * config.portion_of_top_for_percentage
-        min_attendance = config.min_attendance_portion_for_percentage * num_used_fights
-    else:
-        print("ERROR: Called get_top_percentage_players for stats that are not percentage, late_percentage or swapped_percentage")
-        return
+    comparison_value = top_percentage * config.portion_of_top_for_percentage
+    min_attendance = config.min_attendance_portion_for_percentage * num_used_fights
 
     top_players = list()
 
@@ -265,15 +252,6 @@ def get_top_percentage_players(players, config, stat, late_or_swapping, num_used
     for (ind, percent) in sorted_index:
         # player wasn't there for enough fights
         if players[ind].num_fights_present < min_attendance:
-            continue
-        # player was there for all fights -> not late or swapping
-        if late_or_swapping != StatType.PERCENTAGE and players[ind].num_fights_present == num_used_fights:
-            continue
-        # player got a different award already -> not late or swapping
-        if late_or_swapping != StatType.PERCENTAGE and (ind in top_consistent_players or ind in top_total_players or ind in top_percentage_players or ind in top_late_players):
-            continue
-        # stat type swapping, but player didn't swap build
-        if late_or_swapping == StatType.SWAPPED_PERCENTAGE and not players[ind].swapped_build:
             continue
         # index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
         if len(top_players) >= config.num_players_listed[stat] and percent != last_value:
@@ -631,24 +609,25 @@ def get_overall_squad_stats(fights, config):
     # TODO check that sum([player.normalization_time_allies[duration_type] for player in players]) = total_normalization_time_allies
 
 
-    # TODO fix averages; comp all averages
+    # TODO fix averages to use duration_used_for_avgs
     used_fights = [f for f in fights if not f.skipped]
     # overall stats over whole squad
-    overall_squad_stats = {key: 0 for key in config.stats_to_compute}
+    overall_squad_stats = {'total': {key: 0 for key in config.stats_to_compute}, 'avg': {key: 0 for key in config.stats_to_compute}}
+    
     for fight in used_fights:
         for stat in config.stats_to_compute:
-            overall_squad_stats[stat] += fight.total_stats[stat]
+            overall_squad_stats['total'][stat] += fight.total_stats[stat]
 
-    # use avg instead of total for buffs
+    # compute avg values
     normalizer_duration_allies = sum([f.duration * (f.allies - 1) * f.allies for f in used_fights])
     for stat in config.stats_to_compute:
         if stat not in config.squad_buff_ids:
-            continue
-        if stat in config.buffs_stacking_duration:
-            overall_squad_stats[stat] = overall_squad_stats[stat] * 100
-        overall_squad_stats[stat] = round(overall_squad_stats[stat] / normalizer_duration_allies, 2)
-    if "dist" in config.stats_to_compute:
-        overall_squad_stats['dist'] = round(overall_squad_stats['dist'] / (sum([f.duration * f.allies for f in fights])), 2)
+            overall_squad_stats['avg'][stat] = round(overall_squad_stats['total'][stat] / (sum([f.duration * f.allies for f in fights])), 2)
+        if stat in config.squad_buff_ids:
+            overall_squad_stats['avg'][stat] = overall_squad_stats['total'][stat]
+            if stat in config.buffs_stacking_duration:
+                overall_squad_stats['avg'][stat] *= 100
+            overall_squad_stats['avg'][stat] = round(overall_squad_stats['avg'][stat] / normalizer_duration_allies, 2)
     return overall_squad_stats
 
 

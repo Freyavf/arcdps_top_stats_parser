@@ -13,6 +13,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+log_level = "info" 
 
 stats_to_compute = ['dmg_total', 'strips', 'stab', 'cleanses', 'heal_total', 'barrier', 'dist', 'deaths']
 
@@ -24,13 +25,10 @@ num_players_listed = {'strips': 3, 'stab': 3, 'cleanses': 3, 'heal_total': 3, 'b
 num_players_considered_top_default = 5
 num_players_considered_top = {'strips': 3, 'stab': 3, 'cleanses': 3, 'heal_total': 3, 'barrier': 3, 'deaths': 1}
 
+duration_for_averages_default = 'total'
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
-# For what portion of all fights does a player need to be there to be considered for "late but great" awards?
-attendance_percentage_for_late = 50
-# For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards? 
-attendance_percentage_for_buildswap = 30
 # For what portion of all fights does a player need to be there to be considered for "top average" awards? 
 attendance_percentage_for_average = 50
 
@@ -40,10 +38,6 @@ percentage_of_top_for_consistent = 50
 percentage_of_top_for_total = 50
 # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for percentage awards?
 percentage_of_top_for_percentage = 50
-# What portion of the percentage the top consistent player reached top does someone need to reach to be considered for late but great awards?
-percentage_of_top_for_late = 100
-# What portion of the percentage the top consistent player reached top does someone need to reach to be considered for jack of all trades awards?
-percentage_of_top_for_buildswap = 100
 
 # minimum number of allied players to consider a fight in the stats
 min_allied_players = 10
@@ -52,8 +46,8 @@ min_fight_duration = 30
 # minimum number of enemies to consider a fight in the stats
 min_enemy_players = 10
 
-# choose which files to write as results and whether to write results to console. Options are 'console', 'txt', 'xls' and 'json'.
-files_to_write = ['console', 'txt', 'json', 'xls']
+# choose which files to write as results. Options are 'xls' and 'json'.
+files_to_write = ['json', 'xls']
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
