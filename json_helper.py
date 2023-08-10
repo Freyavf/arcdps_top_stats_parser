@@ -376,7 +376,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         if 'extBarrierStats' not in player_json or 'outgoingBarrier' not in player_json['extBarrierStats']:
             config.errors.append("Could not find extBarrierStats or an entry for outgoingBarrier in json to determine barrier.")
             return -1
-        return player_json['extBarrierStats']['outgoingBarrier'][1]['barrier']
+        return player_json['extBarrierStats']['outgoingBarrier'][0]['barrier']
         
     # TODO fix output for heal from regen
     if stat == 'heal_from_regen':
