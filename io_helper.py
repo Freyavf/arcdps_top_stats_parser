@@ -83,8 +83,8 @@ def print_total_squad_stats(fights, overall_squad_stats, overall_raid_stats, tot
             
         if stat == 'dmg_total':
             print_string += "did "+str(round(overall_squad_stats['dmg_total']))+" total damage"
-        elif stat == 'rips':
-            print_string += "ripped "+str(round(overall_squad_stats['rips']))+" boons"
+        elif stat == 'strips':
+            print_string += "ripped "+str(round(overall_squad_stats['strips']))+" boons"
         elif stat == 'cleanses':
             print_string += "cleansed "+str(round(overall_squad_stats['cleanses']))+" conditions"
         elif stat in config.squad_buff_ids:
@@ -429,7 +429,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     sheet1.write(0, 2, "Profession")
     sheet1.write(0, 3, "Attendance (number of fights)")
     sheet1.write(0, 4, "Attendance (duration present)")
-    sheet1.write(0, 5, "Times Top")
+    sheet1.write(0, 5, "Times Top "+str(config.num_players_considered_top[stat]))
     sheet1.write(0, 6, "Percentage Top")
     sheet1.write(0, 7, "Total "+stat)
     if stat == 'deaths':
