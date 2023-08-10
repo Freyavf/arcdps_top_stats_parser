@@ -283,7 +283,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### Dmg Taken ###
     #################
     # includes dmg absorbed by barrier
-    if stat == 'dmg_taken' or stat == 'dmg_taken_total':
+    if stat == 'dmg_taken_total':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for damageTaken in json to determine dmg_taken(_total).")
             return -1
@@ -305,9 +305,9 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     #################
     ### Dmg Dealt ###
     #################
-    if stat == 'dmg_total' or stat == 'dmg':
+    if stat == 'dmg_total':
         if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
-            config.errors.append("Could not find dpsAll or an entry for damage in json to determine dmg(_total).")
+            config.errors.append("Could not find dpsAll or an entry for damage in json to determine dmg_total.")
             return -1
         return int(player_json['dpsAll'][0]['damage'])  
 
@@ -343,12 +343,12 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### Heal & Barrier ###
     ######################
             
-    if stat == 'heal' or stat == 'heal_total':
+    if stat == 'heal_total':
         # check if healing was logged, save it
         if player_json['name'] not in fight.players_running_healing_addon:
             return -1
         if 'extHealingStats' not in player_json or 'outgoingHealing' not in player_json['extHealingStats']:
-            config.errors.append("Could not find extHealingStats or an entry for outgoingHealing in json to determine heal(_total).")
+            config.errors.append("Could not find extHealingStats or an entry for outgoingHealing in json to determine heal_total.")
             return -1
         return player_json['extHealingStats']['outgoingHealing'][0]['healing']
 

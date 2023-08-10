@@ -7,8 +7,6 @@ class StatType(Enum):
     TOTAL = 1                       # top total stat value over all fights
     CONSISTENT = 2                  # top consistency value over all fights = achieved top in most fights
     AVERAGE = 3                     # top average value over all fights
-    LATE_PERCENTAGE = 4             # not there for all fights, but great consistency in the fights present. late but great awards
-    SWAPPED_PERCENTAGE = 5          # not there for all fights, swapped build at least once. Jack of all trades awards
     PERCENTAGE = 6                  # top consistency percentage = times top / fights present
 
 
@@ -75,15 +73,11 @@ class Config:
     num_players_considered_top: dict = field(default_factory=dict)  # How many players are considered to be "top" in each fight for each stat?
     
     min_attendance_portion_for_percentage: float = 0.  # For what portion of all fights does a player need to be there to be considered for "percentage" awards?
-    min_attendance_portion_for_late: float = 0.        # For what portion of all fights does a player need to be there to be considered for "late but great" awards?     
-    min_attendance_portion_for_buildswap: float = 0.   # For what portion of all fights does a player need to be there to be considered for "jack of all trades" awards?
     min_attendance_percentage_for_average: float = 0.  # For what percentage of all fights does a player need to be there to be considered for "jack of all trades" awards?     
 
     portion_of_top_for_total: float = 0.         # What portion of the top total player stat does someone need to reach to be considered for total awards?
     portion_of_top_for_consistent: float = 0.    # What portion of the total stat of the top consistent player does someone need to reach to be considered for consistency awards?
     portion_of_top_for_percentage: float = 0.    # What portion of the consistency stat of the top consistent player does someone need to reach to be considered for percentage awards?    
-    portion_of_top_for_late: float = 0.          # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for late but great awards?
-    portion_of_top_for_buildswap: float = 0.     # What portion of the percentage the top consistent player reached top does someone need to reach to be considered for jack of all trades awards?
 
     min_allied_players: int = 0   # minimum number of allied players to consider a fight in the stats
     min_fight_duration: int = 0   # minimum duration of a fight to be considered in the stats
@@ -136,15 +130,11 @@ def fill_config(config_input, log):
             config.duration_for_averages[stat] = config_input.duration_for_averages_default
 
     config.min_attendance_portion_for_percentage = config_input.attendance_percentage_for_percentage/100.
-    config.min_attendance_portion_for_late = config_input.attendance_percentage_for_late/100.    
-    config.min_attendance_portion_for_buildswap = config_input.attendance_percentage_for_buildswap/100.
     config.min_attendance_percentage_for_average = config_input.attendance_percentage_for_average
 
     config.portion_of_top_for_consistent = config_input.percentage_of_top_for_consistent/100.
     config.portion_of_top_for_total = config_input.percentage_of_top_for_total/100.
     config.portion_of_top_for_percentage = config_input.percentage_of_top_for_percentage/100.
-    config.portion_of_top_for_late = config_input.percentage_of_top_for_late/100.    
-    config.portion_of_top_for_buildswap = config_input.percentage_of_top_for_buildswap/100.
 
     config.min_allied_players = config_input.min_allied_players
     config.min_fight_duration = config_input.min_fight_duration
