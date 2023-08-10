@@ -27,10 +27,6 @@ class Player:
     # - 'in_combat' (total duration a player was in combat (from each start of taking/dealing dmg until death, also multiple times in one fight))
     # - 'not_running_back' (time from beginning of each fight until down of either player or tag leading to death; 0 if player was running back at the beginning of the fight)
     duration_present: dict = field(default_factory=dict) 
-    #duration_fights_present: int = 0    # the total duration of all fights the player was involved in, in s
-    #duration_active: int = 0            # the total duration a player was active (alive or down)
-    #duration_in_combat: int = 0         # the total duration a player was in combat (taking/dealing dmg)
-    #duration_not_running_back: int = 0            # the total duration a player was not running back
     # the sum of duration present * (squad members -1) of all fights the player was involved in;
     # analogue to duration_present (see above)
     normalization_time_allies: dict = field(default_factory=dict)  
