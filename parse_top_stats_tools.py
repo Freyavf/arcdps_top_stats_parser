@@ -363,9 +363,8 @@ def compute_avg_values(players, fights, config):
 
     for player in players:
         # compute percentage top stats and attendance percentage for each player
-        # TODO get used_fights
         used_fights = len([fight for fight in fights if fight.skipped == False])
-        player.attendance_percentage = round(player.num_fights_present / used_fights*100)
+        player.attendance_percentage = round(player.num_fights_present / used_fights * 100)
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
@@ -466,6 +465,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         error_index = len(config.errors)
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
+            # TODO add total stats per fight and avg stats per fight; add option to decide whether "top" should be determined by total or avg ?
             player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, fight, player.stats_per_fight[fight_number]['duration_present'], config)
                     
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
@@ -476,9 +476,13 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
                 player.stats_per_fight[fight_number][stat] = round(player.stats_per_fight[fight_number][stat])
             elif 'dmg_taken' in stat:
                 # TODO fix with using proper duration for avg; check the rest of the comp is right
-                if player.stats_per_fight[fight_number]['duration_present']['in_combat'] == 0:
-                    player.stats_per_fight[fight_number]['duration_present']['in_combat'] = 1
-                player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['duration_present']['in_combat']
+                # if player wasn't present, dmg taken doesn't count
+                #TODO for anything where total-players or total-absorbed is something else, use same duration type?
+                if player.stats_per_fight[fight_number]['duration_present'][config.duration_for_averages[stat]] == 0:
+                    player.stats_per_fight[fight_number][stat] = -1
+                else:
+                    # dmg taken per fight should be sorted by avg, what else?
+                    player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['duration_present'][config.duration_for_averages[stat]]
 
         player.swapped_build |= build_swapped
 

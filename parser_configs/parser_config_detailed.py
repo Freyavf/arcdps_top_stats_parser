@@ -47,7 +47,7 @@ num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 're
 
 # duration_for_averages_default = 'in_combat'
 duration_for_averages_default = 'total'
-duration_for_averages = {'dist': 'not_running_back', 'dmg_total': 'total'}
+duration_for_averages = {'dist': 'not_running_back'}
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
