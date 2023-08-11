@@ -65,7 +65,10 @@ if __name__ == '__main__':
     print_string = "Considering fights with at least "+str(config.min_allied_players)+" allied players and at least "+str(config.min_enemy_players)+" enemies that took longer than "+str(config.min_fight_duration)+" s."
     myprint(log, print_string, "info")
 
-    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)    
+    players, fights, found_healing, found_barrier = collect_stat_data(args, config, log, args.anonymize)
+    if (not fights) or all(fight.skipped for fight in fights):
+        myprint(log, "Aborting!", "info")
+        exit(1)
 
     if "xls" in config.files_to_write:
         # create xls file if it doesn't exist
