@@ -30,7 +30,7 @@ Currently supported stats are:
 
 Healing and barrier output can only be analyzed when contained in the logs, i.e., the [healing addon for arcdps](https://github.com/Krappa322/arcdps_healing_stats/releases) is installed. They will only be analyzed for players who also have the addon installed, since data may be incomplete for others.
 
-The script ```parse_top_stats_detailed.py`` shows the performance of all players contributing to each desired stat considering total values, average values, consistency and percentage of top stats reached for all desired stats.
+The script ```parse_top_stats_detailed.py``` shows the performance of all players contributing to each desired stat considering total values, average values, consistency and percentage of top stats reached for all desired stats.
 
 Output is given as .xls and .json file for further processing. 
 Here are some example output files: ![example output](/example_output/). They are explained in detail on the ![wiki](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Output-Files).
