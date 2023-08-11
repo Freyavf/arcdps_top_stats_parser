@@ -363,9 +363,12 @@ def compute_avg_values(players, fights, config):
         for duration_type in config.empty_stats['duration_present']:
             # sum_players (player_duration_present * (allies - 1))
             total_normalization_time_allies_per_fight[fight_number][duration_type] = total_normalization_time_per_fight[fight_number][duration_type] * (fights[fight_number].allies - 1)
-                                                             
+
     for stat in config.stats_to_compute:
-        for fight in fights:
+        for fight_number in range(len(fights)):
+            if fights[fight_number].skipped:
+                continue
+            fight = fights[fight_number]
             # round total_stats for this fight
             fight.total_stats[stat] = round(fight.total_stats[stat])
 
@@ -389,6 +392,9 @@ def compute_avg_values(players, fights, config):
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
             player.total_stats[stat] = round(player.total_stats[stat], 2)
+            if player.total_stats[stat] == 0:
+                player.average_stats[stat] = 0
+                continue
             
             # DON'T SWITCH DMG_TAKEN AND DMG OR HEAL_FROM_REGEN AND HEAL
             if stat == 'heal_from_regen':
@@ -399,6 +405,7 @@ def compute_avg_values(players, fights, config):
             elif stat == 'deaths':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[config.duration_for_averages[stat]] / 60), 2)
             elif stat in config.self_buff_ids:
+                # self buffs are only mentioned as "present" or "not present"
                 player.average_stats[stat] = round(player.total_stats[stat]/player.num_fights_present, 2)
             elif stat in config.buffs_stacking_duration:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies[config.duration_for_averages[stat]] * 100, 2)
@@ -580,7 +587,7 @@ def collect_stat_data(args, config, log, anonymize=False):
         found_all_buff_ids, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename)
 
     if (not fights) or all(fight.skipped for fight in fights):
-        # list of fights is empty -> no valid fights were found
+        # list of fights is empty or all were skipped -> no valid fights were found
         myprint(log, "\n No valid fights were found in "+args.input_directory, "info")
         return None, None, None, None
 
