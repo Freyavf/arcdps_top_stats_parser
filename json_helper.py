@@ -26,7 +26,7 @@ def get_buff_ids_from_json(json_data, config, log):
     found_all_ids = True
     for buff, abbrev in config.self_buff_abbrev.items():
         if abbrev not in config.self_buff_ids:
-            myprint("id for buff", buff, "could not be found. This is not necessarily an error, the buff might just not be present in this log.", log, config)
+            myprint(log, "id for buff "+buff+" could not be found. This is not necessarily an error, the buff might just not be present in this log.", "info", config)
             found_all_ids = False
     return found_all_ids
 
