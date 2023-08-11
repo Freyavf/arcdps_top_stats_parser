@@ -579,6 +579,11 @@ def collect_stat_data(args, config, log, anonymize=False):
 
         found_all_buff_ids, found_healing, found_barrier = get_stats_from_json_data(json_data, players, player_index, account_index, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename)
 
+    if (not fights) or all(fight.skipped for fight in fights):
+        # list of fights is empty -> no valid fights were found
+        myprint(log, "\n No valid fights were found in "+args.input_directory, "info")
+        return None, None, None, None
+
     get_overall_stats(players, fights, config)
                 
     myprint(log, "\n", "info", config)
