@@ -463,32 +463,39 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
 # First time the player took or dealt damage after initial_time
 def get_combat_start_from_player_json(initial_time, player_json):
     start_combat = -1
-    # if healthPercents is not available, assume the player was in combat right away
-    if 'healthPercents' not in player_json:
-        return initial_time
-    last_health_percent = 100
-    for change in player_json['healthPercents']:
-        # look for last timestamp before initial time
-        if change[0] < initial_time:
+    if ('healthPercents' not in player_json or len(player_json['healthPercents']) == 0) and ('powerDamage1S' not in player_json or len(player_json['powerDamage1S']) == 0):
+        return start_combat
+    
+    if 'healthPercents' in player_json:
+        last_health_percent = 100
+        for change in player_json['healthPercents']:
+            # look for last timestamp before initial time
+            if change[0] < initial_time:
+                last_health_percent = change[1]
+                continue
+            if change[1] - last_health_percent < 0:
+                # got dmg
+                start_combat = change[0]
+                break
             last_health_percent = change[1]
-            continue
-        if change[1] - last_health_percent < 0:
-            # got dmg
-            start_combat = change[0]
-            break
-        last_health_percent = change[1]
         
     # from initial time until end of the fight, check when player dealt (power) dmg the first time
     # not using condi, because condis can still tick after a player died
-    for i in range(math.ceil(initial_time/1000), len(player_json['powerDamage1S'][0])):
-        if i == 0:
-            continue
-        if player_json['powerDamage1S'][0][i] != player_json['powerDamage1S'][0][i-1]:
-            if start_combat == -1:
-                start_combat = i*1000
-            else:
-                start_combat = min(start_combat, i*1000)
-            break
+    if 'powerDamage1S' in player_json and len(player_json['powerDamage1S']) > 0:
+        for i in range(math.ceil(initial_time/1000), len(player_json['powerDamage1S'][0])):
+            if i == 0:
+                continue
+            if player_json['powerDamage1S'][0][i] != player_json['powerDamage1S'][0][i-1]:
+                if start_combat == -1:
+                    # if start_combat is -1 so far, the player didn't take damage until now -> this is the start of combat
+                    start_combat = i*1000
+                else:
+                    # otherwise he took dmg, check which was first
+                    start_combat = min(start_combat, i*1000)
+                break
+
+    if start_combat == -1:
+        start_combat = initial_time
     return start_combat
 
 
