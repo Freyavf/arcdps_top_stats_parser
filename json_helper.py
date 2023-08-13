@@ -463,7 +463,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
 # First time the player took or dealt damage after initial_time
 def get_combat_start_from_player_json(initial_time, player_json):
     start_combat = -1
-    if ('healthPercents' not in player_json or len(player_json['healthPercents']) == 0) and ('powerDamage1S' not in player_json or len(player_json['powerDamage1S']) == 0):
+    if ('healthPercents' not in player_json or len(player_json['healthPercents']) == 0) and ('powerDamage1S' not in player_json or len(player_json['powerDamage1S']) == 0 or len(player_json['powerDamage1S'][0]) == 0):
         return start_combat
     
     if 'healthPercents' in player_json:
@@ -494,6 +494,7 @@ def get_combat_start_from_player_json(initial_time, player_json):
                     start_combat = min(start_combat, i*1000)
                 break
 
+    # if the healthPercents and powerDamage1S entries exist and are not empty, but no combat start was found, assume that the player was in combat from the beginning of the time window
     if start_combat == -1:
         start_combat = initial_time
     return start_combat
