@@ -107,14 +107,14 @@ def get_stats_from_fight_json(fight_json, config, log):
     fight.inch_to_pixel = fight_json['combatReplayMetaData']['inchToPixel']
 
     # get commander positions
-    tag_positions = {}
+    tag_positions = list()
     commander_found = False
     i = 0
     for player in fight_json['players']:
         if player['hasCommanderTag']:
             if commander_found:
                 # found a second player with commander tag -> distance to tag ambiguous, don't use it
-                tag_positions = {}
+                tag_positions = list()
                 break
             commander_found = True
             tag_positions = player['combatReplayData']['positions']
