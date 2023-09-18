@@ -118,7 +118,8 @@ def get_stats_from_fight_json(fight_json, config, log):
                 break
             commander_found = True
             tag_positions = player['combatReplayData']['positions']
-            if player['combatReplayData']['dead']:
+            tag_down_time, tag_death_time = get_first_down_and_death_time(player)
+            if tag_death_time > 0:
                 death_time = int(player['combatReplayData']['dead'][0][0] / fight.polling_rate)
                 tag_positions = tag_positions[:death_time]
                 commander_found = True
@@ -140,14 +141,13 @@ def get_basic_player_data_from_json(player_json):
 
 
 
-# get the first time the player went down, leading to death or the tag went down, leading to death (whichever was first)
+# get the first time the player went down, leading to death and the corresponding time of death, or -1, -1 if they never died
 # Input:
 # player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
-# fight: information about the fight
-def get_first_down_time(player_json, fight):
-    # time when com went down
-    first_down_time = len(fight.tag_positions_until_death) * fight.polling_rate / 1000
-
+def get_first_down_and_death_time(player_json):
+    first_down_time = -1
+    first_death_time = -1
+    
     player_deaths = dict(player_json['combatReplayData']['dead'])
     player_downs = dict(player_json['combatReplayData']['down'])
 
@@ -156,9 +156,10 @@ def get_first_down_time(player_json, fight):
         for down_begin, down_end in player_downs.items():
             if death_begin == down_end:
                 # down times are logged in ms -> divide by 1000
-                first_down_time = min(down_begin / 1000, first_down_time)
-                return first_down_time
-    return first_down_time
+                first_down_time = down_begin / 1000
+                first_death_time = death_begin / 1000
+                return first_down_time, first_death_time
+    return first_down_time, first_death_time
 
 
 
@@ -204,7 +205,10 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         player_dist_to_tag = player_json['statsAll'][0]['distToCom']
         player_positions = player_json['combatReplayData']['positions']
         player_distances = list()
-        first_down_time = get_first_down_time(player_json, fight)
+        first_down_time, first_death_time = get_first_down_and_death_time(player_json)
+        # if player didn't go down and die, use time when com died
+        if first_down_time < 0:
+            first_down_time = len(fight.tag_positions_until_death) * fight.polling_rate / 1000
         
         # check the avg distance to tag until a player died to see if they were running back
         # if nobody was running back, just use the avg distance as computed by arcdps / EI
