@@ -206,9 +206,11 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         player_positions = player_json['combatReplayData']['positions']
         player_distances = list()
         first_down_time, first_death_time = get_first_down_and_death_time(player_json)
+        first_tag_down_time = len(fight.tag_positions_until_death) * fight.polling_rate / 1000
+        
         # if player didn't go down and die, use time when com died
-        if first_down_time < 0:
-            first_down_time = len(fight.tag_positions_until_death) * fight.polling_rate / 1000
+        if first_down_time < 0 or first_down_time < first_tag_down_time:
+            first_down_time = first_tag_down_time
         
         # check the avg distance to tag until a player died to see if they were running back
         # if nobody was running back, just use the avg distance as computed by arcdps / EI
