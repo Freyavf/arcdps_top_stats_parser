@@ -379,7 +379,7 @@ def compute_avg_values(players, fights, config):
                     player.average_stats[stat] = 0
                 else:
                     player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
-            elif stat == 'deaths':
+            elif stat == 'deaths' or stat == 'kills' or stat == 'downs':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[config.duration_for_averages[stat]] / 60), 2)
             elif stat in config.self_buff_ids:
                 # self buffs are only mentioned as "present" or "not present"
