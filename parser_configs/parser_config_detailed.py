@@ -20,9 +20,10 @@
 # "info" gives information about the current status of the program
 # "warning" gives additional information about things that could have gone wrong, but don't necessarily mean the program can't deal with the data (e.g., some players might not be running the healing addon)
 # "debug" gives more detailed information about the state of the program and is usually only needed for debugging
-log_level = "info" 
+log_level = "warning" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
+                    'kills', 'downs', 'down_contrib',
                     'strips', 'cleanses', 'heal_total',
                     'heal_players', 'heal_other', 'dist', 'stab',
                     'prot', 'aegis', 'resist', 'regen', 'heal_from_regen',
@@ -41,8 +42,7 @@ num_players_listed_default = 1000
 num_players_considered_top_default = 5
 num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'resist': 3, 'regen': 3, 'heal_from_regen': 3,
                               'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
-                              'heal': 3, 'barrier': 3, 'deaths': 1, 'big_boomer': 3, 'explosive_temper': 3, 'explosive_entrance': 3,
-                              'med_kit': 3}
+                              'heal': 3, 'barrier': 3, 'deaths': 1}
 
 
 # duration_for_averages_default = 'in_combat'
@@ -69,8 +69,7 @@ min_fight_duration = 30
 min_enemy_players = 10
 
 # choose which files to write as results and whether to write results to console. Options are 'console', 'txt', 'xls' and 'json'.
-files_to_write = ['console', 'txt', 'xls', 'json']
-#files_to_write = ['txt', 'xls', 'json']
+files_to_write = ['xls', 'json']
 
 # names as which each specialization will show up in the stats
 profession_abbreviations = {}
@@ -124,6 +123,9 @@ stat_names = {}
 stat_names["dmg_total"] = "Total Damage"
 stat_names["dmg_players"] = "Player Damage"
 stat_names["dmg_other"] = "Other Damage"
+stat_names["kills"] = "Kills"
+stat_names["downs"] = "Downs"
+stat_names["down_contrib"] = "Down Contribution"
 stat_names["strips"] = "Boon Strips"
 stat_names["stab"] = "Stability Output"
 stat_names["prot"] = "Protection Output"

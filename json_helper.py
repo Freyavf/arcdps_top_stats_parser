@@ -330,6 +330,28 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return total_dmg - players_dmg
 
+    ##############################
+    ### Kill/Down contribution ###
+    ##############################
+    if stat == 'kills':
+        if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'killed' not in player_json['statsAll'][0]:
+            config.errors.append("Could not find statsAll or killed in json to determine number of kills.")
+            return -1
+        return int(player_json['statsAll'][0]['killed'])
+
+    if stat == 'downs':
+        if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'downed' not in player_json['statsAll'][0]:
+            config.errors.append("Could not find statsAll or downed in json to determine number of downed.")
+            return -1
+        return int(player_json['statsAll'][0]['downed'])
+
+    if stat == 'down_contrib':
+        if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'downContribution' not in player_json['statsAll'][0]:
+            config.errors.append("Could not find statsAll or downed in json to determine down contribution.")
+            return -1
+        return int(player_json['statsAll'][0]['downContribution'])
+    
+
     ##################################
     ### Incoming / Outgoing strips ###
     ##################################
