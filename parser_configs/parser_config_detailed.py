@@ -91,7 +91,7 @@ duration_for_averages = {'dist': 'not_running_back'}
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
 # For what portion of all fights does a player need to be there to be considered for "top average" awards? 
-attendance_percentage_for_average = 33
+attendance_percentage_for_average = 25
 
 # What portion of the top total player stat does someone need to reach to be considered for total awards?
 percentage_of_top_for_consistent = 0

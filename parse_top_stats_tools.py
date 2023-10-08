@@ -479,8 +479,6 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         player.stats_per_fight[fight_number]['duration_present']['not_running_back'] = get_stat_from_player_json(player_data, 'time_not_running_back', fight, None, config)
         player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, 'group', fight, player.stats_per_fight[fight_number]['duration_present'], config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
-        if player.account == "Amaralith.3819":
-            print("here"+str(fight_number))
 
         error_index = len(config.errors)
         # get all stats that are supposed to be computed from the player data

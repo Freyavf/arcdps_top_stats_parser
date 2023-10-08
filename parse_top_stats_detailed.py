@@ -70,14 +70,6 @@ if __name__ == '__main__':
         myprint(log, "Aborting!", "info")
         exit(1)
 
-    #if "xls" in config.files_to_write:
-    #    wb = openpyxl.Workbook()
-    #    wb.save(args.xls_output_filename)
-    #    # create xls file if it doesn't exist
-    #    book = xlwt.Workbook(encoding="utf-8")
-    #    book.add_sheet("fights overview")
-    #    book.save(args.xls_output_filename)
-    
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
     overall_raid_stats = get_overall_raid_stats(fights)
@@ -116,14 +108,10 @@ if __name__ == '__main__':
             elif 'dmg_taken' in stat:
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif 'heal' in stat and stat != 'heal_from_regen' and found_healing:
-                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)            
             elif stat == 'barrier' and found_barrier:
-                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif stat == 'deaths':
-                #write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename, config)
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             else:
-                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
