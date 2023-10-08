@@ -23,7 +23,7 @@ from os import listdir
 import sys
 from enum import Enum
 import importlib
-import xlwt
+import openpyxl
 
 from parse_top_stats_tools import *
 from io_helper import *
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         print("Directory ",args.input_directory," is not a directory or does not exist!")
         sys.exit()
     if args.xls_output_filename is None:
-        args.xls_output_filename = args.input_directory+"/top_stats_detailed.xls"
+        args.xls_output_filename = args.input_directory+"/top_stats_detailed.xlsx"
     if args.json_output_filename is None:
         args.json_output_filename = args.input_directory+"/top_stats_detailed.json"                
     if args.log_file is None:
@@ -70,11 +70,13 @@ if __name__ == '__main__':
         myprint(log, "Aborting!", "info")
         exit(1)
 
-    if "xls" in config.files_to_write:
-        # create xls file if it doesn't exist
-        book = xlwt.Workbook(encoding="utf-8")
-        book.add_sheet("fights overview")
-        book.save(args.xls_output_filename)
+    #if "xls" in config.files_to_write:
+    #    wb = openpyxl.Workbook()
+    #    wb.save(args.xls_output_filename)
+    #    # create xls file if it doesn't exist
+    #    book = xlwt.Workbook(encoding="utf-8")
+    #    book.add_sheet("fights overview")
+    #    book.save(args.xls_output_filename)
     
     # print overall stats
     overall_squad_stats = get_overall_squad_stats(fights, config)
@@ -114,10 +116,14 @@ if __name__ == '__main__':
             elif 'dmg_taken' in stat:
                 write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif 'heal' in stat and stat != 'heal_from_regen' and found_healing:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)            
+                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
+                write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)            
             elif stat == 'barrier' and found_barrier:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
+                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
+                write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             elif stat == 'deaths':
-                write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename, config)
+                #write_stats_xls(players, top_consistent_stat_players[stat], stat, args.xls_output_filename, config)
+                write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)
             else:
-                write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
+                #write_stats_xls(players, top_total_stat_players[stat], stat, args.xls_output_filename, config)
+                write_stats_xls(players, top_average_stat_players[stat], stat, args.xls_output_filename, config)

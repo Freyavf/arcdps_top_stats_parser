@@ -23,6 +23,7 @@
 log_level = "warning" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
+                    'spike_dmg',
                     'kills', 'downs', 'down_contrib',
                     'strips', 'cleanses', 'heal_total',
                     'heal_players', 'heal_other', 'dist', 'stab',
@@ -44,6 +45,44 @@ num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 're
                               'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
                               'heal': 3, 'barrier': 3, 'deaths': 1}
 
+
+relevant_classes_for_stat = {
+    'dmg_total': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'dmg_players': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'dmg_other': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'spike_dmg': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'kills': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'downs': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'down_contrib': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'strips': ["Chronomancer", "Virtuoso", "Reaper", "Scourge"],
+    'cleanses': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'heal_total': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'heal_players': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'heal_other': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'dist': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'stab': ["Firebrand", "Vindicator"],
+    'prot': ["Firebrand", "Scrapper", "Druid", "Tempest"],
+    'aegis': ["Firebrand"],
+    'resist': ["Firebrand"],
+    'regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'heal_from_regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'hits_from_regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
+    'might': ["Firebrand", "Scrapper", "Tempest",  "Weaver", "Catalyst"],
+    'fury': [],
+    'quick': ["Firebrand", "Chronomancer", "Virtuoso"],
+    'alac': ["Chronomancer", "Virtuoso", "Scourge"],
+    'speed': ["Scrapper", "Druid", "Tempest",  "Weaver", "Catalyst"],
+    'barrier': ["Scourge"],
+    'dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'dmg_taken_hp_lost': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'dmg_taken_absorbed': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'deaths': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'stripped': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
+    'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
+    'explosive_entrance': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
+    'med_kit': ["Engineer", "Scrapper", "Holosmith", "Mechanist"]
+}
 
 # duration_for_averages_default = 'in_combat'
 duration_for_averages_default = 'total'
@@ -123,6 +162,7 @@ stat_names = {}
 stat_names["dmg_total"] = "Total Damage"
 stat_names["dmg_players"] = "Player Damage"
 stat_names["dmg_other"] = "Other Damage"
+stat_names["spike_dmg"] = "Spike Damage"
 stat_names["kills"] = "Kills"
 stat_names["downs"] = "Downs"
 stat_names["down_contrib"] = "Down Contribution"
@@ -157,38 +197,38 @@ stat_names["med_kit"] = "Med Kit"
 
 # name each stat will be written as in the .xls file
 stat_descriptions = {}
-stat_descriptions["dmg_total"] = "Total Damage dealt to everything"
-stat_descriptions["dmg_players"] = "Damage dealt to enemy players"
-stat_descriptions["dmg_other"] = "Damage dealt to siege, gates, npcs, pets,..."
-stat_descriptions["kills"] = "Number of killing hits"
-stat_descriptions["downs"] = "Number of downing hits"
-stat_descriptions["down_contrib"] = "Damage done to downstates"
+stat_descriptions["dmg_total"] = "Total Damage"
+stat_descriptions["dmg_players"] = "Player Damage"
+stat_descriptions["dmg_other"] = "Other Damage"
+stat_descriptions["spike_dmg"] = "Spike Damage"
+stat_descriptions["kills"] = "Kills"
+stat_descriptions["downs"] = "Downs"
+stat_descriptions["down_contrib"] = "Down Contribution"
 stat_descriptions["strips"] = "Boon Strips"
-stat_descriptions["stab"] = "Stability Output (Squad Generation, excluding self)"
-stat_descriptions["prot"] = "Protection Output (Squad Generation, excluding self)"
-stat_descriptions["aegis"] = "Aegis Output (Squad Generation, excluding self)"
-stat_descriptions["resist"] = "Resistance Output (Squad Generation, excluding self)"
+stat_descriptions["stab"] = "Stability Output"
+stat_descriptions["prot"] = "Protection Output"
+stat_descriptions["aegis"] = "Aegis Output"
+stat_descriptions["resist"] = "Resistance Output"
 stat_descriptions["regen"] = "Regeneration Output"
 stat_descriptions["heal_from_regen"] = "Healing from Regeneration"
-stat_descriptions["hits_from_regen"] = "Regeneration ticks"
-stat_descriptions["might"] = "Might Output (Squad Generation, excluding self)"
-stat_descriptions["fury"] = "Fury Output (Squad Generation, excluding self)"
-stat_descriptions["alac"] = "Alacrity Output (Squad Generation, excluding self)"
-stat_descriptions["quick"] = "Quickness Output (Squad Generation, excluding self)"
-stat_descriptions["speed"] = "Superspeed Output (Squad Generation, excluding self)"
+stat_descriptions["hits_from_regen"] = "Hits with Regeneration"
+stat_descriptions["might"] = "Might Output"
+stat_descriptions["fury"] = "Fury Output"
+stat_descriptions["alac"] = "Alacrity Output"
+stat_descriptions["quick"] = "Quickness Output"
+stat_descriptions["speed"] = "Superspeed Output"
 stat_descriptions["cleanses"] = "Condition Cleanses"
-stat_descriptions["heal_total"] = "Total Healing (only shown if player has the healing addon installed)"
-stat_descriptions["heal_players"] = "Healing on players (only shown if player has the healing addon installed)"
-stat_descriptions["heal_other"] = "Healing on pets, npcs, ... (only shown if player has the healing addon installed)"
-stat_descriptions["barrier"] = "Barrier(only shown if player has the healing addon installed)"
+stat_descriptions["heal_total"] = "Total Healing"
+stat_descriptions["heal_players"] = "Player Healing"
+stat_descriptions["heal_other"] = "Other Healing"
+stat_descriptions["barrier"] = "Barrier"
 stat_descriptions["dist"] = "Distance to Tag"
-stat_descriptions["dmg_taken_total"] = "Total Damage Taken (includes damage absorbed by barrier)"
+stat_descriptions["dmg_taken_total"] = "Total Damage Taken"
 stat_descriptions["dmg_taken_hp_lost"] = "HP lost"
-stat_descriptions["dmg_taken_absorbed"] = "Damage absorbed by barrier"
+stat_descriptions["dmg_taken_absorbed"] = "Damage absorbed"
 stat_descriptions["deaths"] = "Deaths"
 stat_descriptions["stripped"] = "Incoming Strips"
 stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"
 stat_descriptions["explosive_entrance"] = "Explosive Entrance"
 stat_descriptions["med_kit"] = "Med Kit"
-

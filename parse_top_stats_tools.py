@@ -283,9 +283,6 @@ def compute_total_values(players, fights, config):
                 # compute overall duration present (for all types) and the normalization factor of duration * allies
                 for duration_type in player.duration_present:
                     player.duration_present[duration_type] += player_stats['duration_present'][duration_type]
-                    #if "Bakuhatsu" in player.name and duration_type == "in_combat":
-                    #    print(f"adding {player_stats['duration_present'][duration_type]}")
-                    #    print(player.duration_present[duration_type])
                     player.normalization_time_allies[duration_type] += (fight.allies - 1) * player.stats_per_fight[fight_number]['duration_present'][duration_type]
 
                 # compute total values per player and per fight
@@ -313,6 +310,9 @@ def compute_total_values(players, fights, config):
                             # only count whether or not buff was present
                             fight.total_stats[stat] += player_stats[stat]
                             player.total_stats[stat] += player_stats[stat]
+                        elif stat == 'spike_dmg':
+                            fight.total_stats[stat] = max(fight.total_stats[stat], player_stats[stat])
+                            player.total_stats[stat] = max(player.total_stats[stat], player_stats[stat])
                         else:
                             # all other stats
                             fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
@@ -349,8 +349,12 @@ def compute_avg_values(players, fights, config):
             fight = fights[fight_number]
             # round total_stats for this fight
             fight.total_stats[stat] = round(fight.total_stats[stat])
+            fight.avg_stats[stat] = fight.total_stats[stat]
 
-            if stat in config.squad_buff_ids:
+            # TODO double check fight avg stats
+            if stat == 'spike_dmg':
+                fight.avg_stats[stat] = sum(player.stats_per_fight[fight_number][stat] for player in players)/len(players)
+            elif stat in config.squad_buff_ids:
                 # all buff averages are per time and allied player
                 fight.avg_stats[stat] /= total_normalization_time_allies_per_fight[fight_number][config.duration_for_averages[stat]]
             else:
@@ -374,7 +378,21 @@ def compute_avg_values(players, fights, config):
                 continue
             
             # DON'T SWITCH DMG_TAKEN AND DMG OR HEAL_FROM_REGEN AND HEAL
-            if stat == 'heal_from_regen':
+            if stat == 'spike_dmg':
+                # find the fights that weren't skipped in which the player was present
+                fights_used_for_player = [fight for fight_number,fight in enumerate(fights) if fight.skipped == False and player.stats_per_fight[fight_number]['present_in_fight']]
+                if not fights_used_for_player:
+                    player.average_stats[stat] = 0
+                else:
+                    player.average_stats[stat] = 0
+                    # sum over all fights that weren't skipped and in which the player was present
+                    for fight_number,fight in enumerate(fights):
+                        if fight.skipped == False and player.stats_per_fight[fight_number]['present_in_fight']:
+                            player.average_stats[stat] += player.stats_per_fight[fight_number][stat]
+                    # average over all fights in which he was present
+                    player.average_stats[stat] /= len(fights_used_for_player)
+
+            elif stat == 'heal_from_regen':
                 if player.total_stats['hits_from_regen'] == 0:
                     player.average_stats[stat] = 0
                 else:
@@ -461,6 +479,8 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         player.stats_per_fight[fight_number]['duration_present']['not_running_back'] = get_stat_from_player_json(player_data, 'time_not_running_back', fight, None, config)
         player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, 'group', fight, player.stats_per_fight[fight_number]['duration_present'], config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
+        if player.account == "Amaralith.3819":
+            print("here"+str(fight_number))
 
         error_index = len(config.errors)
         # get all stats that are supposed to be computed from the player data
@@ -620,11 +640,24 @@ def get_overall_squad_stats(fights, config):
     
     for fight in used_fights:
         for stat in config.stats_to_compute:
-            overall_squad_stats['total'][stat] += fight.total_stats[stat]
+            # using max for spike dmg
+            if stat == 'spike_dmg':
+                overall_squad_stats['total'][stat] = max(overall_squad_stats['total'][stat], fight.total_stats[stat])
+            else:
+                overall_squad_stats['total'][stat] += fight.total_stats[stat]
 
     # compute avg values
     normalizer_duration_allies = sum([f.duration * (f.allies - 1) * f.allies for f in used_fights])
     for stat in config.stats_to_compute:
+        if stat == 'spike_dmg':
+            # TODO fix
+            spike_dmg = 0
+            overall_allies = 0
+            for fight in used_fights:
+                spike_dmg += fight.avg_stats[stat] * fight.allies
+                overall_allies += fight.allies
+            spike_dmg = spike_dmg / (overall_allies * len(used_fights))
+            overall_squad_stats['avg'][stat] = round(spike_dmg, 2)
         if stat not in config.squad_buff_ids:
             overall_squad_stats['avg'][stat] = round(overall_squad_stats['total'][stat] / (sum([f.duration * f.allies for f in fights])), 2)
         if stat in config.squad_buff_ids:
