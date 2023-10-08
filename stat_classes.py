@@ -84,6 +84,7 @@ class Config:
     min_enemy_players: int = 0    # minimum number of enemies to consider a fight in the stats
 
     stat_names: dict = field(default_factory=dict)                  # the names under which the stats appear in the output
+    stat_descriptions: dict = field(default_factory=dict)           # the descriptions for the stats in the output
     profession_abbreviations: dict = field(default_factory=dict)    # the names under which each profession appears in the output
 
     empty_stats: dict = field(default_factory=dict)                 # stat values to initialize player stats per fight
@@ -143,6 +144,7 @@ def fill_config(config_input, log):
     config.files_to_write = config_input.files_to_write
     
     config.stat_names = config_input.stat_names
+    config.stat_descriptions = config_input.stat_descriptions
     config.profession_abbreviations = config_input.profession_abbreviations
 
     config.stats_to_compute = config_input.stats_to_compute

@@ -5,6 +5,7 @@ import xlrd
 from xlutils.copy import copy
 import jsons
 import json
+import pandas as pd
 
 # get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
 # Input:
@@ -59,34 +60,43 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     book = xlrd.open_workbook(xls_output_filename)
     wb = copy(book)
     sheet1 = wb.add_sheet(config.stat_names[stat])
-    sheet1.write(0, 0, "Account")
-    sheet1.write(0, 1, "Name")
-    sheet1.write(0, 2, "Profession")
-    sheet1.write(0, 3, "Attendance (number of fights)")
-    sheet1.write(0, 4, "Attendance (duration present)")
-    sheet1.write(0, 5, "Times Top "+str(config.num_players_considered_top[stat]))
-    sheet1.write(0, 6, "Percentage Top"+str(config.num_players_considered_top[stat]))
-    sheet1.write(0, 7, "Total "+stat)
+#    writer = pd.ExcelWriter(xls_output_filename, engine='openpyxl', mode='a')
+#    book = writer.book
+#    df1 = pd.DataFrame()
+#    df1.to_excel(writer, sheet_name = config.stat_names[stat])
+#    sheet1 = writer.sheets[config.stat_names[stat]]
+#    sheet1.write(0, 0, config.stat_descriptions[stat], book.add_format({'bold': True}))
+    sheet1.write(0, 0, config.stat_descriptions[stat])
+    sheet1.write(2, 0, "Account")
+    sheet1.write(2, 1, "Name")
+    sheet1.write(2, 2, "Profession")
+    sheet1.write(2, 3, "Attendance (number of fights)")
+    sheet1.write(2, 4, "Attendance (duration present)")
+    sheet1.write(2, 5, "Times Top "+str(config.num_players_considered_top[stat]))
+    sheet1.write(2, 6, "Percentage Top"+str(config.num_players_considered_top[stat]))
+    sheet1.write(2, 7, "Total "+stat)
     if stat == 'deaths' or stat == 'kills' or stat == 'downs':
-        sheet1.write(0, 8, "Average "+stat+" per min "+config.duration_for_averages[stat])
+        sheet1.write(2, 8, "Average "+stat+" per min "+config.duration_for_averages[stat])
     elif stat not in config.self_buff_ids:
-        sheet1.write(0, 8, "Average "+stat+" per s "+config.duration_for_averages[stat])
+        sheet1.write(2, 8, "Average "+stat+" per s "+config.duration_for_averages[stat])
 
     for i in range(len(top_players)):
         player = players[top_players[i]]
-        sheet1.write(i+1, 0, player.account)
-        sheet1.write(i+1, 1, player.name)
-        sheet1.write(i+1, 2, player.profession)
-        sheet1.write(i+1, 3, player.num_fights_present)
-        sheet1.write(i+1, 4, player.duration_present[config.duration_for_averages[stat]])
-        sheet1.write(i+1, 5, player.consistency_stats[stat])        
-        sheet1.write(i+1, 6, round(player.portion_top_stats[stat]*100))
-        sheet1.write(i+1, 7, round(player.total_stats[stat]))
+        sheet1.write(i+3, 0, player.account)
+        sheet1.write(i+3, 1, player.name)
+        sheet1.write(i+3, 2, player.profession)
+        sheet1.write(i+3, 3, player.num_fights_present)
+        sheet1.write(i+3, 4, player.duration_present[config.duration_for_averages[stat]])
+        sheet1.write(i+3, 5, player.consistency_stats[stat])        
+        sheet1.write(i+3, 6, round(player.portion_top_stats[stat]*100))
+        sheet1.write(i+3, 7, round(player.total_stats[stat]))
         if stat not in config.self_buff_ids:
-            sheet1.write(i+1, 8, player.average_stats[stat])
+            sheet1.write(i+3, 8, player.average_stats[stat])
 
     wb.save(xls_output_filename)
+    #writer.close()
 
+    
 
     
 # Write xls fight overview
