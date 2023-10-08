@@ -170,7 +170,10 @@ def get_distance_to_tag(player_positions, tag_positions, inch_to_pixel):
         deltaX = position[0] - tag_position[0]
         deltaY = position[1] - tag_position[1]
         player_distances.append(math.sqrt(deltaX * deltaX + deltaY * deltaY))
-    return (sum(player_distances) / len(player_distances)) / inch_to_pixel
+    if len(player_distances) > 0:
+        return (sum(player_distances) / len(player_distances)) / inch_to_pixel
+    else:
+        return -1
     
 
 # TODO treat -1
