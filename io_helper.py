@@ -6,6 +6,17 @@ from xlutils.copy import copy
 import jsons
 import json
 import pandas as pd
+from openpyxl.styles import colors
+from openpyxl.styles import Font, Color
+from openpyxl.worksheet.filters import (
+    FilterColumn,
+    CustomFilter,
+    CustomFilters,
+    DateGroupItem,
+    Filters,
+    )
+from openpyxl.utils import get_column_letter
+
 
 # get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
 # Input:
@@ -57,46 +68,60 @@ def myprint(output_file, output_string, log_level, config = None):
 # stat = which stat are we considering
 # xls_output_filename = where to write to
 def write_stats_xls(players, top_players, stat, xls_output_filename, config):
-    book = xlrd.open_workbook(xls_output_filename)
-    wb = copy(book)
-    sheet1 = wb.add_sheet(config.stat_names[stat])
-#    writer = pd.ExcelWriter(xls_output_filename, engine='openpyxl', mode='a')
-#    book = writer.book
-#    df1 = pd.DataFrame()
-#    df1.to_excel(writer, sheet_name = config.stat_names[stat])
-#    sheet1 = writer.sheets[config.stat_names[stat]]
-#    sheet1.write(0, 0, config.stat_descriptions[stat], book.add_format({'bold': True}))
-    sheet1.write(0, 0, config.stat_descriptions[stat])
-    sheet1.write(2, 0, "Account")
-    sheet1.write(2, 1, "Name")
-    sheet1.write(2, 2, "Profession")
-    sheet1.write(2, 3, "Attendance (number of fights)")
-    sheet1.write(2, 4, "Attendance (duration present)")
-    sheet1.write(2, 5, "Times Top "+str(config.num_players_considered_top[stat]))
-    sheet1.write(2, 6, "Percentage Top"+str(config.num_players_considered_top[stat]))
-    sheet1.write(2, 7, "Total "+stat)
+    writer = pd.ExcelWriter(xls_output_filename, engine = "openpyxl", mode = 'a')
+
+    sorting_column = ""
     if stat == 'deaths' or stat == 'kills' or stat == 'downs':
-        sheet1.write(2, 8, "Average "+stat+" per min "+config.duration_for_averages[stat])
+        sorting_column = "Average "+stat+" per min "+config.duration_for_averages[stat]
+    elif stat == 'spike_dmg':
+        sorting_column = "Average "+stat
     elif stat not in config.self_buff_ids:
-        sheet1.write(2, 8, "Average "+stat+" per s "+config.duration_for_averages[stat])
+        sorting_column = "Average "+stat+" per s "+config.duration_for_averages[stat]
+    else: 
+        sorting_column = "Total "+stat
 
-    for i in range(len(top_players)):
-        player = players[top_players[i]]
-        sheet1.write(i+3, 0, player.account)
-        sheet1.write(i+3, 1, player.name)
-        sheet1.write(i+3, 2, player.profession)
-        sheet1.write(i+3, 3, player.num_fights_present)
-        sheet1.write(i+3, 4, player.duration_present[config.duration_for_averages[stat]])
-        sheet1.write(i+3, 5, player.consistency_stats[stat])        
-        sheet1.write(i+3, 6, round(player.portion_top_stats[stat]*100))
-        sheet1.write(i+3, 7, round(player.total_stats[stat]))
-        if stat not in config.self_buff_ids:
-            sheet1.write(i+3, 8, player.average_stats[stat])
+    sort_ascending = False
+    if stat == 'deaths' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
+        sort_ascending = True    
+        
+    df = create_panda_dataframe(players, top_players, stat, sorting_column, sort_ascending, config)
+    df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 2, index = False)
+    book = writer.book
+    sheet = book[config.stat_names[stat]]
+    bold = Font(bold=True)
+    bold_red = Font(bold=True, color='FF0000')
+    bold_green = Font(bold=True, color='006400')
+    sheet['A1'] = config.stat_descriptions[stat]
+    sheet['A1'].font = bold
 
-    wb.save(xls_output_filename)
-    #writer.close()
+    # make relevant classes bold
+    (max_row, max_col) = df.shape
+    top_value_per_profession = {profession: -1 for profession in config.relevant_classes[stat]}
+    i = 0
+    for _, row in df.iterrows():
+        prof = row["Profession"]
+        if prof in config.relevant_classes[stat]:
+            if top_value_per_profession[prof] < 0:
+                if stat != 'dist' or row[sorting_column] > 0:
+                    top_value_per_profession[prof] = row[sorting_column]
+                for j in range(1,10):
+                    sheet.cell(i+4, j).font = bold_green
+            elif sort_ascending and row[sorting_column] > 2 * top_value_per_profession[prof]:
+                for j in range(1,10):
+                    sheet.cell(i+4, j).font = bold_red 
+            elif (not sort_ascending) and row[sorting_column] < 0.5 * top_value_per_profession[prof]:
+                for j in range(1,10):
+                    sheet.cell(i+4, j).font = bold_red 
+            else:
+                for j in range(1,10):
+                    sheet.cell(i+4, j).font = bold
+        i = i + 1
 
-    
+    filters = sheet.auto_filter
+    filters.ref = "A3:" + get_column_letter(sheet.max_column) + str(sheet.max_row)
+
+    book.save(xls_output_filename)
+
 
     
 # Write xls fight overview
@@ -107,57 +132,13 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 # config = the config to use for stats computation
 # xls_output_filename = where to write to
 def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, config, xls_output_filename):
-    book = xlrd.open_workbook(xls_output_filename)
-    wb = copy(book)
-    if len(book.sheet_names()) == 0 or book.sheet_names()[0] != 'fights overview':
-        print("Sheet 'fights overview' is not the first sheet in"+xls_output_filename+". Skippping fights overview.")
-        return
-    sheet1 = wb.get_sheet(0)
+    writer = pd.ExcelWriter(xls_output_filename, engine = "openpyxl")
 
-    sheet1.write(0, 1, "#")
-    sheet1.write(0, 2, "Date")
-    sheet1.write(0, 3, "Start Time")
-    sheet1.write(0, 4, "End Time")
-    sheet1.write(0, 5, "Duration in s")
-    sheet1.write(0, 6, "Skipped")
-    sheet1.write(0, 7, "Num. Allies")
-    sheet1.write(0, 8, "Num. Enemies")
-    sheet1.write(0, 9, "Kills")
-    
-    for i,stat in enumerate(config.stats_to_compute):
-        sheet1.write(0, 10+i, config.stat_names[stat])
-
-    for i,fight in enumerate(fights):
-        skipped_str = "yes" if fight.skipped else "no"
-        sheet1.write(i+1, 1, i+1)
-        sheet1.write(i+1, 2, fight.start_time.split()[0])
-        sheet1.write(i+1, 3, fight.start_time.split()[1])
-        sheet1.write(i+1, 4, fight.end_time.split()[1])
-        sheet1.write(i+1, 5, fight.duration)
-        sheet1.write(i+1, 6, skipped_str)
-        sheet1.write(i+1, 7, fight.allies)
-        sheet1.write(i+1, 8, fight.enemies)
-        sheet1.write(i+1, 9, fight.kills)
-        for j,stat in enumerate(config.stats_to_compute):
-            if stat not in config.squad_buff_ids and stat != "dist":
-                sheet1.write(i+1, 10+j, fight.total_stats[stat])
-            else:
-                sheet1.write(i+1, 10+j, fight.avg_stats[stat])                
-
-    sheet1.write(len(fights)+1, 0, "Sum/Avg. in used fights")
-    sheet1.write(len(fights)+1, 1, overall_raid_stats['num_used_fights'])
-    sheet1.write(len(fights)+1, 2, overall_raid_stats['date'])
-    sheet1.write(len(fights)+1, 3, overall_raid_stats['start_time'])
-    sheet1.write(len(fights)+1, 4, overall_raid_stats['end_time'])    
-    sheet1.write(len(fights)+1, 5, overall_raid_stats['used_fights_duration'])
-    sheet1.write(len(fights)+1, 6, overall_raid_stats['num_skipped_fights'])
-    sheet1.write(len(fights)+1, 7, overall_raid_stats['mean_allies'])    
-    sheet1.write(len(fights)+1, 8, overall_raid_stats['mean_enemies'])
-    sheet1.write(len(fights)+1, 9, overall_raid_stats['total_kills'])
-    for i,stat in enumerate(config.stats_to_compute):
-        sheet1.write(len(fights)+1, 10+i, overall_squad_stats['total'][stat])
-
-    wb.save(xls_output_filename)
+    df = create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_stats, config)
+#    print(df)
+    df.to_excel(writer, sheet_name = "Fights Overview", index = False)
+    book = writer.book
+    book.save(xls_output_filename)
 
 
 
@@ -183,3 +164,98 @@ def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_
     with open(output_file, 'w') as json_file:
         json.dump(json_dict, json_file, indent=4)
 
+
+
+# Create a panda dataframe for a fights overview
+def create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_stats, config):
+    first_col = ["" for i in range(len(fights))]
+    fight_num = [i for i in range(len(fights))]
+    start_date = [fight.start_time.split()[0] for fight in fights]
+    start_time = [fight.start_time.split()[1] for fight in fights]
+    end_time = [fight.end_time.split()[1] for fight in fights]
+    duration = [fight.duration for fight in fights]
+    skipped = ["yes" if fight.skipped else "no" for fight in fights]
+    num_allies = [fight.allies for fight in fights]
+    num_enemies = [fight.enemies for fight in fights]
+    kills = [fight.kills for fight in fights]
+    stats = {}
+    for stat in config.stats_to_compute:
+        if stat not in config.squad_buff_ids and stat != "dist":
+            stats[stat] = [fight.total_stats[stat] for fight in fights]
+        else:
+            stats[stat] = [fight.avg_stats[stat] for fight in fights]
+    first_col.append("Sum/Avg. in used fights")
+    fight_num.append(overall_raid_stats['num_used_fights'])
+    start_date.append(overall_raid_stats['date'])
+    start_time.append(overall_raid_stats['start_time'])
+    end_time.append(overall_raid_stats['end_time'])    
+    duration.append(overall_raid_stats['used_fights_duration'])
+    skipped.append(overall_raid_stats['num_skipped_fights'])
+    num_allies.append(overall_raid_stats['mean_allies'])    
+    num_enemies.append(overall_raid_stats['mean_enemies'])
+    kills.append(overall_raid_stats['total_kills'])
+    for stat in config.stats_to_compute:
+        stats[stat].append(overall_squad_stats['total'][stat])
+
+    data = {"": first_col,
+            "#": fight_num,
+            "Date": start_date,
+            "Start Time": start_time,
+            "End Time": end_time,
+            "Duration in s": duration,
+            "Skipped": skipped,
+            "Num. Allies": num_allies,
+            "Num. Enemies": num_enemies,
+            "Kills": kills
+            }
+    for stat in stats:
+        data[config.stat_names[stat]] = stats[stat]
+        
+    df = pd.DataFrame(data)
+    return df
+        
+    
+# Create a panda dataframe from stat data
+# Input:
+# players = list of Players
+# top_players = list of indices in players that are considered as top
+# stat = which stat are we considering
+# sorting_column = which column to sort by
+# sort_ascending = are we sorting in ascending order
+# config = config of how the stats are computed
+# Output:
+# panda data frame containing data to be written to an excel sheet
+def create_panda_dataframe(players, top_players, stat, sorting_column, sort_ascending, config):
+    accounts = (players[top_players[i]].account for i in range(len(top_players)))
+    names = (players[top_players[i]].name for i in range(len(top_players)))
+    professions = (players[top_players[i]].profession for i in range(len(top_players)))
+    num_fights_present = (players[top_players[i]].num_fights_present for i in range(len(top_players)))
+    duration_present = (players[top_players[i]].duration_present[config.duration_for_averages[stat]] for i in range(len(top_players)))
+    consistency_stats = (players[top_players[i]].consistency_stats[stat] for i in range(len(top_players)))
+    portion_top_stats = (players[top_players[i]].portion_top_stats[stat]*100 for i in range(len(top_players)))
+    total_stats = (players[top_players[i]].total_stats[stat] for i in range(len(top_players)))
+    average_stats = list()
+    if stat not in config.self_buff_ids:
+        average_stats = (players[top_players[i]].average_stats[stat] for i in range(len(top_players)))
+    data = {"Account": accounts,
+            "Name": names,
+            "Profession": professions,
+            "Attendance (number of fights)": num_fights_present,
+            "Attendance (duration present)": duration_present,
+            "Times Top "+str(config.num_players_considered_top[stat]): consistency_stats,
+            "Percentage Top"+str(config.num_players_considered_top[stat]): portion_top_stats}
+    if stat == 'spike_dmg':
+        data["Maximum "+stat] = total_stats
+    else:
+        data["Total "+stat] = total_stats
+    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
+        data["Average "+stat+" per min "+config.duration_for_averages[stat]] = average_stats
+    elif stat == 'spike_dmg':
+        data["Average "+stat] = average_stats
+    elif stat not in config.self_buff_ids:
+        data["Average "+stat+" per s "+config.duration_for_averages[stat]] = average_stats
+    
+    df = pd.DataFrame(data)
+
+    df.sort_values(["Profession", sorting_column], ascending=[True, sort_ascending], inplace=True)
+    return df
