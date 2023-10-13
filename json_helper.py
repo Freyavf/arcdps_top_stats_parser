@@ -549,13 +549,14 @@ def get_combat_start_from_player_json(initial_time, player_json):
 # List of start and end timestamps of the player being in combat
 def get_combat_time_breakpoints(player_json):
     start_combat = get_combat_start_from_player_json(0, player_json)
+    end_combat = (len(player_json['damage1S'][0]))*1000
     if 'combatReplayData' not in player_json:
         print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
-        # activeTimes = duration the player was not dead
-        return [start_combat, get_stat_from_player_json(player_json, 'time_active', None, None, None) * 1000]
+        # time_active = duration the player was not dead
+        return [start_combat, min(start_combat + get_stat_from_player_json(player_json, 'time_active', None, None, None) * 1000, end_combat)]
     replay = player_json['combatReplayData']
     if 'dead' not in replay:
-        return [start_combat, get_stat_from_player_json(player_json, 'time_active', None, None, None) * 1000]
+        return [start_combat, end_combat]
 
     breakpoints = []
     playerDeaths = dict(replay['dead'])
@@ -568,8 +569,7 @@ def get_combat_time_breakpoints(player_json):
                     breakpoints.append([start_combat, deathStart])
                 start_combat = get_combat_start_from_player_json(deathEnd + 1000, player_json)
                 break
-    end_combat = (len(player_json['damage1S'][0]))*1000
-    if start_combat != -1:
+    if start_combat != -1 and start_combat < end_combat:
         breakpoints.append([start_combat, end_combat])
 
     return breakpoints
@@ -584,6 +584,6 @@ def get_combat_time_breakpoints(player_json):
 def sum_breakpoints(breakpoints):
     combat_time = 0
     for [start, end] in breakpoints:
-        combat_time += end - start
+        combat_time += (end - start)
     return combat_time
 
