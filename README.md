@@ -5,6 +5,10 @@ Currently supported stats are:
 - all damage
 - damage dealt to target (in wvw: equivalent to damage dealt to players)
 - damage dealt to everything else (in wvw: siege, npcs, ...)
+- spike damage (maximum damage dealt within 1s)
+- killing hits
+- downing hits
+- down contribution (damage on downs)
 - boon rips
 - cleanses
 - stability output (generation squad)
@@ -32,7 +36,7 @@ Healing and barrier output can only be analyzed when contained in the logs, i.e.
 
 The script ```parse_top_stats_detailed.py``` shows the performance of all players contributing to each desired stat considering total values, average values, consistency and percentage of top stats reached for all desired stats.
 
-Output is given as .xls and .json file for further processing. 
+Output is given as .xlsx and .json file for further processing. 
 Here are some example output files: ![example output](/example_output/). They are explained in detail on the ![wiki](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Output-Files).
 
 Note that currently, this tool is meant mainly for analyzing wwv fights, and I am not sure how applicable it is for pve raids since I don't do them - feel free to test and give me a shout if anything is not working though (contact details below).
@@ -41,9 +45,10 @@ Note that currently, this tool is meant mainly for analyzing wwv fights, and I a
 ## Preparation ##
 To be able to generate the top stats, you need to install/download a few things.
 1. Install python3 if you don't have it yet (https://www.python.org/downloads/).
-2. Install xlrd, xlutils, xlwt and jsons it you don't have them yet: Open a terminal (on windows press windows key + r, type "cmd", enter), and type ```pip3 install xlrd xlutils xlwt jsons```, enter.
-3. Get the Elite Insights parser for arcdps logs (https://github.com/baaron4/GW2-Elite-Insights-Parser/releases). For parsing including barrier, you will need version 2.41 or higher. In the following, we assume the path to it is ```C:\Users\Example\Downloads\EliteInsights\```.
-4. Download this repository if you don't have it yet. We here assume the path is ```C:\Users\Example\Downloads\arcdps_top_stats_parser\```.
+2. Get the Elite Insights parser for arcdps logs (https://github.com/baaron4/GW2-Elite-Insights-Parser/releases). For parsing including barrier, you will need version 2.41 or higher. In the following, we assume the path to it is ```C:\Users\Example\Downloads\EliteInsights\```.
+3. Download this repository if you don't have it yet. We here assume the path is ```C:\Users\Example\Downloads\arcdps_top_stats_parser\```.
+4. Install the necessary python dependencies if you don't have them yet: Open a terminal (on windows press windows key + r, type "cmd", enter), go to the folder where you put the repository by typing ```cd Downloads\arcdps_top_stats_parser```, enter, and type ```pip3 install -r requirements.txt```, enter.
+
 
 There are two methods for generating the top stats, one requires more manual control, the other is more automated.
 ## Manual Top Stats Generation ##
@@ -60,7 +65,7 @@ For a more automated version, you can use the batch script ```parsing_arc_top_st
 3. Type ```<repo_folder>\parsing_arc_top_stats.bat "<log_folder>" "<Elite Insights folder>" "<repo_folder>"```. The full call in our example would be ```C:\Users\Example\Downloads\arcdps_top_stats_parser\parsing_arc_top_stats.bat "C:\Users\Example\Documents\log_folder\" "C:\Users\Example\Downloads\EliteInsights\" "C:\Users\Example\Downloads\arcdps_top_stats_parser\"```. This parses all logs in the log folder using EI with suitable settings and runs both scripts for generating the overview and detailed stats.
 
 ## Output ##
-Output files containing the tops stats are also generated in the input folder. By default, a top_stats_detailed.xls and a top_stats_detailed.json file with the same names are also created. Furthermore, a log file that contains information on which files were skipped and why is also created in the input folder as ```log_detailed.txt```. 
+Output files containing the tops stats are also generated in the input folder. By default, a top_stats_detailed.xlsx and a top_stats_detailed.json file with the same names are also created. Furthermore, a log file that contains information on which files were skipped and why is also created in the input folder as ```log_detailed.txt```. 
 
 ## Settings ##
 For changing any of the default settings, check out the wiki pages on ![command line options](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Command-line-options) and ![configuration options](https://github.com/Freyavf/arcdps_top_stats_parser/wiki/Configuration-options).
