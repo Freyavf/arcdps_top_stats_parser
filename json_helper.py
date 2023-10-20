@@ -334,14 +334,15 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         return total_dmg - players_dmg
 
     if stat == 'spike_dmg':
-        if 'damage1S' not in player_json:
-            config.errors.append("Could not find damage1S in json to determine spike_dmg.")
+        if 'targetDamage1S' not in player_json:
+            config.errors.append("Could not find targetDamage1S in json to determine spike_dmg.")
             return -1
         spike_dmg = -1
         last_dmg = 0
-        for dmg in player_json['damage1S'][0]:
-            spike_dmg = max(spike_dmg, dmg - last_dmg)
-            last_dmg = dmg
+        for t in range(len(player_json['targetDamage1S'][0][0])):
+            new_dmg = sum(player_json['targetDamage1S'][enemy][0][t] for enemy in range(len(player_json['targetDamage1S'])))
+            spike_dmg = max(spike_dmg, new_dmg - last_dmg)
+            last_dmg = new_dmg
         return spike_dmg
 
     ##############################
