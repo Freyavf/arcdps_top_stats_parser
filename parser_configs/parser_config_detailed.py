@@ -87,7 +87,7 @@ relevant_classes_for_stat = {
 duration_for_averages_default = 'total'
 duration_for_averages = {'dist': 'not_running_back'}
 
-# Default column(s) to sort the xls by. valid values are: "account", "name", "profession", "attendance_num", "attendance_duration", "times_top", "percentage", "total", and "avg".
+# Default column(s) to sort the xls by. valid values are: "account", "name", "profession", "attendance_num", "attendance_duration", "times_top", "percentage_top", "total", and "avg".
 default_sort_xls_by = ['profession', 'avg']
 # Individual column(s) per stat to sort the xls by
 sort_xls_by = {'dist': ['avg']}
