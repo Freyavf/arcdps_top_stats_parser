@@ -31,9 +31,9 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'hits_from_regen', 'might', 'fury', 'quick',
                     'alac', 'speed', 'barrier',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
-                    'dmg_taken_absorbed', 'deaths', 'stripped',
-                    'big_boomer', 'explosive_temper', 'explosive_entrance',
-                    'med_kit']
+                    'dmg_taken_absorbed', 'deaths', 'stripped']
+                    #'big_boomer', 'explosive_temper', 'explosive_entrance',
+                    #'med_kit']
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed_default = 1000
@@ -44,7 +44,6 @@ num_players_considered_top_default = 5
 num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 'resist': 3, 'regen': 3, 'heal_from_regen': 3,
                               'hits_from_regen': 3, 'might': 3, 'fury': 3, 'quick': 3, 'alac': 3, 'speed': 3, 'cleanses': 3,
                               'heal': 3, 'barrier': 3, 'deaths': 1}
-
 
 relevant_classes_for_stat = {
     'dmg_total': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
@@ -87,6 +86,11 @@ relevant_classes_for_stat = {
 # duration_for_averages_default = 'in_combat'
 duration_for_averages_default = 'total'
 duration_for_averages = {'dist': 'not_running_back'}
+
+# Default column(s) to sort the xls by. valid values are: "account", "name", "profession", "attendance_num", "attendance_duration", "times_top", "percentage", "total", and "avg".
+default_sort_xls_by = ['profession', 'avg']
+# Individual column(s) per stat to sort the xls by
+sort_xls_by = {'dist': ['avg']}
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
@@ -232,3 +236,11 @@ stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"
 stat_descriptions["explosive_entrance"] = "Explosive Entrance"
 stat_descriptions["med_kit"] = "Med Kit"
+
+# TODO move this somewhere else as "fixed"?
+xls_column_names = {}
+xls_column_names['account'] = "Account"
+xls_column_names['name'] = "Name"
+xls_column_names['profession'] = "Profession"
+xls_column_names['attendance_num'] = "Attendance (number of fights)"
+xls_column_names['attendance_duration'] = "Attendance (duration present)"

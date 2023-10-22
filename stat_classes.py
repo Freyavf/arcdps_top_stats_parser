@@ -77,7 +77,9 @@ class Config:
 
     portion_of_top_for_total: float = 0.         # What portion of the top total player stat does someone need to reach to be considered for total awards?
     portion_of_top_for_consistent: float = 0.    # What portion of the total stat of the top consistent player does someone need to reach to be considered for consistency awards?
-    portion_of_top_for_percentage: float = 0.    # What portion of the consistency stat of the top consistent player does someone need to reach to be considered for percentage awards?    
+    portion_of_top_for_percentage: float = 0.    # What portion of the consistency stat of the top consistent player does someone need to reach to be considered for percentage awards?
+
+    sort_xls_by: dict = field(default_factory=dict)  # Which column(s) should the xls be sorted by?
 
     min_allied_players: int = 0   # minimum number of allied players to consider a fight in the stats
     min_fight_duration: int = 0   # minimum duration of a fight to be considered in the stats
@@ -101,7 +103,8 @@ class Config:
 
     errors: list = field(default_factory=list)
     log_level: str = "info"
-    
+
+    xls_column_names: list = field(default_factory=list)
 
     
 # fills a Config with the given input    
@@ -130,6 +133,14 @@ def fill_config(config_input, log):
     for stat in config_input.stats_to_compute:
         if stat not in config.duration_for_averages:
             config.duration_for_averages[stat] = config_input.duration_for_averages_default
+
+    if hasattr(config_input, "sort_xls_by"):
+        config.sort_xls_by = config_input.sort_xls_by
+    else:
+        config.sort_xls_by = dict()
+    for stat in config_input.stats_to_compute:
+        if stat not in config.sort_xls_by:
+            config.sort_xls_by[stat] = config_input.default_sort_xls_by
 
     config.min_attendance_portion_for_percentage = config_input.attendance_percentage_for_percentage/100.
     config.min_attendance_percentage_for_average = config_input.attendance_percentage_for_average
@@ -169,6 +180,8 @@ def fill_config(config_input, log):
     config.self_buff_abbrev["Big Boomer"] = 'big_boomer'
     config.self_buff_abbrev["Med Kit"] = 'med_kit'
 
+    config.xls_column_names = config_input.xls_column_names
+    
     if config_input.log_level == "debug" or config_input.log_level == "warning" or config_input.log_level == "info":
         config.log_level = config_input.log_level
     else:
