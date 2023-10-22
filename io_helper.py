@@ -70,22 +70,28 @@ def myprint(output_file, output_string, log_level, config = None):
 def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     writer = pd.ExcelWriter(xls_output_filename, engine = "openpyxl", mode = 'a')
 
-    sorting_column = ""
-    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
-        sorting_column = "Average "+stat+" per min "+config.duration_for_averages[stat]
-    elif stat == 'spike_dmg':
-        sorting_column = "Average "+stat
-    elif stat not in config.self_buff_ids:
-        sorting_column = "Average "+stat+" per s "+config.duration_for_averages[stat]
-    else: 
-        sorting_column = "Total "+stat
+    #sorting_column = ""
+    #if stat == 'deaths' or stat == 'kills' or stat == 'downs':
+    #    sorting_column = "Average "+stat+" per min "+config.duration_for_averages[stat]
+    #elif stat == 'spike_dmg':
+    #    sorting_column = "Average "+stat
+    #elif stat not in config.self_buff_ids:
+    #    sorting_column = "Average "+stat+" per s "+config.duration_for_averages[stat]
+    #else: 
+    #    sorting_column = "Total "+stat
+    sorting_columns = config.sort_xls_by[stat]
 
-    sort_ascending = False
+    # sort in descending order, unless it's a stat where low values are good and total or avg are sorted
+    sort_ascending = [False for x in config.sort_xls_by[stat]]
     if stat == 'deaths' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
-        sort_ascending = True    
+        for i, val in enumerate(config.sort_xls_by[stat]):
+            if val == "avg" or val == "total":
+                sort_ascending[i] = True
         
-    df = create_panda_dataframe(players, top_players, stat, sorting_column, sort_ascending, config)
-    df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 2, index = False)
+    df = create_panda_dataframe(players, top_players, stat, sorting_columns, sort_ascending, config)
+
+    
+    df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 3, index = False, header = False)
     book = writer.book
     sheet = book[config.stat_names[stat]]
     bold = Font(bold=True)
@@ -94,22 +100,48 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     sheet['A1'] = config.stat_descriptions[stat]
     sheet['A1'].font = bold
 
+    column_names = [config.xls_column_names[c] for c in list(df) if c in config.xls_column_names]
+    column_names.append("Times Top "+str(config.num_players_considered_top[stat]))
+    column_names.append("Percentage Top"+str(config.num_players_considered_top[stat]))
+
+    # rename the columns for the xls
+    if stat == 'spike_dmg':
+        column_names.append("Maximum "+stat)
+        column_names.append("Average "+stat)
+    else:
+        column_names.append("Total "+stat)
+    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
+        column_names.append("Average "+stat+" per min "+config.duration_for_averages[stat])
+    elif stat not in config.self_buff_ids:
+        column_names.append("Average "+stat+" per s "+config.duration_for_averages[stat])
+    for i in range(len(column_names)):
+        header_cell = sheet.cell(row=3, column=(i+1))
+        header_cell.value = column_names[i]
+        header_cell.font = bold
+
     # make relevant classes bold
     (max_row, max_col) = df.shape
     top_value_per_profession = {profession: -1 for profession in config.relevant_classes[stat]}
     i = 0
+
+    # the actual stat value that is used first in sorting
+    stat_sorting_column = 0
+    if sorting_columns[0] == "profession" and len(sorting_columns) > 1:
+        stat_sorting_column = 1
+        
     for _, row in df.iterrows():
-        prof = row["Profession"]
+        prof = row["profession"]
         if prof in config.relevant_classes[stat]:
             if top_value_per_profession[prof] < 0:
-                if stat != 'dist' or row[sorting_column] > 0:
-                    top_value_per_profession[prof] = row[sorting_column]
+                # TODO what if only profession was chosen?
+                if stat != 'dist' or row[sorting_columns[stat_sorting_column]] > 0:
+                    top_value_per_profession[prof] = row[sorting_columns[stat_sorting_column]]
                 for j in range(1,10):
                     sheet.cell(i+4, j).font = bold_green
-            elif sort_ascending and row[sorting_column] > 2 * top_value_per_profession[prof]:
+            elif sort_ascending[stat_sorting_column] and row[sorting_columns[stat_sorting_column]] > 2 * top_value_per_profession[prof]:
                 for j in range(1,10):
                     sheet.cell(i+4, j).font = bold_red 
-            elif (not sort_ascending) and row[sorting_column] < 0.5 * top_value_per_profession[prof]:
+            elif (not sort_ascending[stat_sorting_column]) and row[sorting_columns[stat_sorting_column]] < 0.5 * top_value_per_profession[prof]:
                 for j in range(1,10):
                     sheet.cell(i+4, j).font = bold_red 
             else:
@@ -225,7 +257,7 @@ def create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_st
 # config = config of how the stats are computed
 # Output:
 # panda data frame containing data to be written to an excel sheet
-def create_panda_dataframe(players, top_players, stat, sorting_column, sort_ascending, config):
+def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_ascending, config):
     accounts = (players[top_players[i]].account for i in range(len(top_players)))
     names = (players[top_players[i]].name for i in range(len(top_players)))
     professions = (players[top_players[i]].profession for i in range(len(top_players)))
@@ -237,25 +269,18 @@ def create_panda_dataframe(players, top_players, stat, sorting_column, sort_asce
     average_stats = list()
     if stat not in config.self_buff_ids:
         average_stats = (players[top_players[i]].average_stats[stat] for i in range(len(top_players)))
-    data = {"Account": accounts,
-            "Name": names,
-            "Profession": professions,
-            "Attendance (number of fights)": num_fights_present,
-            "Attendance (duration present)": duration_present,
-            "Times Top "+str(config.num_players_considered_top[stat]): consistency_stats,
-            "Percentage Top"+str(config.num_players_considered_top[stat]): portion_top_stats}
-    if stat == 'spike_dmg':
-        data["Maximum "+stat] = total_stats
-    else:
-        data["Total "+stat] = total_stats
-    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
-        data["Average "+stat+" per min "+config.duration_for_averages[stat]] = average_stats
-    elif stat == 'spike_dmg':
-        data["Average "+stat] = average_stats
-    elif stat not in config.self_buff_ids:
-        data["Average "+stat+" per s "+config.duration_for_averages[stat]] = average_stats
+    data = {"account": accounts,
+            "name": names,
+            "profession": professions,
+            "attendance_num": num_fights_present,
+            "attendance_duration": duration_present,
+            "times_top": consistency_stats,
+            "percentage_top": portion_top_stats,
+            "total": total_stats}
+    if stat not in config.self_buff_ids:
+        data["avg"] = average_stats
     
     df = pd.DataFrame(data)
 
-    df.sort_values(["Profession", sorting_column], ascending=[True, sort_ascending], inplace=True)
+    df.sort_values(sorting_columns, ascending=sort_ascending, inplace=True)
     return df
