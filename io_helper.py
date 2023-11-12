@@ -61,6 +61,14 @@ def myprint(output_file, output_string, log_level, config = None):
         output_file.write(output_string+"\n")
 
 
+# checks whether the given column contains string values
+def is_string_column(column_name):
+    if column_name in ["account", "name", "profession"]:
+        return True
+    else:
+        return False
+
+    
 # Write the top x people who achieved top total stat.
 # Input:
 # players = list of Players
@@ -70,15 +78,6 @@ def myprint(output_file, output_string, log_level, config = None):
 def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     writer = pd.ExcelWriter(xls_output_filename, engine = "openpyxl", mode = 'a')
 
-    #sorting_column = ""
-    #if stat == 'deaths' or stat == 'kills' or stat == 'downs':
-    #    sorting_column = "Average "+stat+" per min "+config.duration_for_averages[stat]
-    #elif stat == 'spike_dmg':
-    #    sorting_column = "Average "+stat
-    #elif stat not in config.self_buff_ids:
-    #    sorting_column = "Average "+stat+" per s "+config.duration_for_averages[stat]
-    #else: 
-    #    sorting_column = "Total "+stat
     sorting_columns = config.sort_xls_by[stat]
 
     # sort in descending order, unless it's a stat where low values are good and total or avg are sorted
@@ -87,9 +86,12 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
         for i, val in enumerate(config.sort_xls_by[stat]):
             if val == "avg" or val == "total":
                 sort_ascending[i] = True
-        
+    # always sort strings in ascending order
+    for i, val in enumerate(config.sort_xls_by[stat]):
+        if is_string_column(val):
+            sort_ascending[i] = True
+                
     df = create_panda_dataframe(players, top_players, stat, sorting_columns, sort_ascending, config)
-
     
     df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 3, index = False, header = False)
     book = writer.book
@@ -126,27 +128,17 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 
     # the actual stat value that is used first in sorting
     stat_sorting_column = 0
-    if sorting_columns[0] == "profession" and len(sorting_columns) > 1:
-        stat_sorting_column = 1
-        
+    while stat_sorting_column < len(sorting_columns) and is_string_column(sorting_columns[stat_sorting_column]):
+        stat_sorting_column = stat_sorting_column+1
+    if stat_sorting_column >= len(sorting_columns):
+        stat_sorting_column = -1
+         
     for _, row in df.iterrows():
         prof = row["profession"]
+        # mark all relevant classes in bold
         if prof in config.relevant_classes[stat]:
-            if top_value_per_profession[prof] < 0:
-                # TODO what if only profession was chosen?
-                if stat != 'dist' or row[sorting_columns[stat_sorting_column]] > 0:
-                    top_value_per_profession[prof] = row[sorting_columns[stat_sorting_column]]
-                for j in range(1,10):
-                    sheet.cell(i+4, j).font = bold_green
-            elif sort_ascending[stat_sorting_column] and row[sorting_columns[stat_sorting_column]] > 2 * top_value_per_profession[prof]:
-                for j in range(1,10):
-                    sheet.cell(i+4, j).font = bold_red 
-            elif (not sort_ascending[stat_sorting_column]) and row[sorting_columns[stat_sorting_column]] < 0.5 * top_value_per_profession[prof]:
-                for j in range(1,10):
-                    sheet.cell(i+4, j).font = bold_red 
-            else:
-                for j in range(1,10):
-                    sheet.cell(i+4, j).font = bold
+            for j in range(1,10):
+                sheet.cell(i+4, j).font = bold
         i = i + 1
 
     filters = sheet.auto_filter
