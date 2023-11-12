@@ -382,6 +382,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['defenses'][0]['boonStrips'])
 
+
     ######################
     ### Heal & Barrier ###
     ######################

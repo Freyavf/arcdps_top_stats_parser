@@ -29,7 +29,7 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'heal_players', 'heal_other', 'dist', 'stab',
                     'prot', 'aegis', 'resist', 'regen', 'heal_from_regen',
                     'hits_from_regen', 'might', 'fury', 'quick',
-                    'alac', 'speed', 'barrier',
+                    'alac', 'resolution', 'swift', 'vigor', 'speed', 'barrier',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
                     'dmg_taken_absorbed', 'deaths', 'stripped']
                     #'big_boomer', 'explosive_temper', 'explosive_entrance',
@@ -70,6 +70,9 @@ relevant_classes_for_stat = {
     'fury': [],
     'quick': ["Firebrand", "Chronomancer", "Virtuoso"],
     'alac': ["Chronomancer", "Virtuoso", "Scourge"],
+    'resolution': [],
+    'swift': [],
+    'vigor': [],
     'speed': ["Scrapper", "Druid", "Tempest",  "Weaver", "Catalyst"],
     'barrier': ["Scourge"],
     'dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
@@ -88,7 +91,7 @@ duration_for_averages_default = 'total'
 duration_for_averages = {'dist': 'not_running_back'}
 
 # Default column(s) to sort the xls by. valid values are: "account", "name", "profession", "attendance_num", "attendance_duration", "times_top", "percentage_top", "total", and "avg".
-default_sort_xls_by = ['profession', 'avg']
+default_sort_xls_by = ['total', 'avg']
 # Individual column(s) per stat to sort the xls by
 sort_xls_by = {'dist': ['avg']}
 
@@ -198,6 +201,9 @@ stat_names["big_boomer"] = "Big Boomer"
 stat_names["explosive_temper"] = "Explosive Temper"
 stat_names["explosive_entrance"] = "Explosive Entrance"
 stat_names["med_kit"] = "Med Kit"
+stat_names["resolution"] = "Resolution Output"
+stat_names["swift"] = "Swiftness Output"
+stat_names["vigor"] = "Vigor Output"
 
 # name each stat will be written as in the .xls file
 stat_descriptions = {}
@@ -236,6 +242,9 @@ stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"
 stat_descriptions["explosive_entrance"] = "Explosive Entrance"
 stat_descriptions["med_kit"] = "Med Kit"
+stat_descriptions["resolution"] = "Resolution Output (Squad Generation, excluding self)"
+stat_descriptions["swift"] = "Swiftness Output (Squad Generation, excluding self)"
+stat_descriptions["vigor"] = "Vigor Output (Squad Generation, excluding self)"
 
 # TODO move this somewhere else as "fixed"?
 xls_column_names = {}
