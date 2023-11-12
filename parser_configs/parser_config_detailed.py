@@ -23,13 +23,13 @@
 log_level = "warning" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
-                    'spike_dmg',
-                    'kills', 'downs', 'down_contrib',
-                    'strips', 'cleanses', 'heal_total',
-                    'heal_players', 'heal_other', 'dist', 'stab',
-                    'prot', 'aegis', 'resist', 'regen', 'heal_from_regen',
-                    'hits_from_regen', 'might', 'fury', 'quick',
-                    'alac', 'resolution', 'swift', 'vigor', 'speed', 'barrier',
+                    'spike_dmg', 'strips', 'kills', 'downs',
+                    'down_contrib', 'might', 'fury',
+                    'heal_total', 'heal_players', 'heal_other',
+                    'barrier', 'cleanses', 'stab', 'prot', 'aegis',
+                    'resist', 'resolution', 'vigor', 'regen',
+                    'heal_from_regen', 'hits_from_regen',
+                    'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
                     'dmg_taken_absorbed', 'deaths', 'stripped']
                     #'big_boomer', 'explosive_temper', 'explosive_entrance',
