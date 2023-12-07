@@ -31,9 +31,11 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'heal_from_regen', 'hits_from_regen',
                     'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
-                    'dmg_taken_absorbed', 'deaths', 'stripped']
-                    #'big_boomer', 'explosive_temper', 'explosive_entrance',
-                    #'med_kit']
+                    'dmg_taken_absorbed', 'deaths', 'stripped',
+                    'chaos_aura', 'fire_aura', 'dark_aura', 'frost_aura',
+                    'light_aura', 'magnetic_aura', 'shocking_aura',
+                    'big_boomer', 'explosive_temper', 'explosive_entrance',
+                    'med_kit']
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed_default = 1000
@@ -83,7 +85,14 @@ relevant_classes_for_stat = {
     'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_entrance': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
-    'med_kit': ["Engineer", "Scrapper", "Holosmith", "Mechanist"]
+    'med_kit': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
+    'chaos_aura': [],
+    'fire_aura': [],
+    'frost_aura': [],
+    'light_aura': [],
+    'magnetic_aura': [],
+    'shocking_aura': [],
+    'dark_aura': []
 }
 
 # duration_for_averages_default = 'in_combat'
@@ -204,8 +213,15 @@ stat_names["med_kit"] = "Med Kit"
 stat_names["resolution"] = "Resolution Output"
 stat_names["swift"] = "Swiftness Output"
 stat_names["vigor"] = "Vigor Output"
+stat_names["chaos_aura"] = "Chaos Aura Uptime"
+stat_names["fire_aura"] = "Fire Aura Uptime"
+stat_names["frost_aura"] = "Frost Aura Uptime"
+stat_names["light_aura"] = "Light Aura Uptime"
+stat_names["magnetic_aura"] = "Magnetic Aura Uptime"
+stat_names["shocking_aura"] = "Shocking Aura Uptime"
+stat_names["dark_aura"] = "Dark Aura Uptime"
 
-# name each stat will be written as in the .xls file
+# description for each stat to be written as in the .xls file
 stat_descriptions = {}
 stat_descriptions["dmg_total"] = "Total Damage dealt to everything"
 stat_descriptions["dmg_players"] = "Damage dealt to enemy players"
@@ -245,6 +261,13 @@ stat_descriptions["med_kit"] = "Med Kit"
 stat_descriptions["resolution"] = "Resolution Output (Squad Generation, excluding self)"
 stat_descriptions["swift"] = "Swiftness Output (Squad Generation, excluding self)"
 stat_descriptions["vigor"] = "Vigor Output (Squad Generation, excluding self)"
+stat_descriptions["chaos_aura"] = "Chaos Aura Uptime"
+stat_descriptions["fire_aura"] = "Fire Aura Uptime"
+stat_descriptions["frost_aura"] = "Frost Aura Uptime"
+stat_descriptions["light_aura"] = "Light Aura Uptime"
+stat_descriptions["magnetic_aura"] = "Magnetic Aura Uptime"
+stat_descriptions["shocking_aura"] = "Shocking Aura Uptime"
+stat_descriptions["dark_aura"] = "Dark Aura Uptime"
 
 # TODO move this somewhere else as "fixed"?
 xls_column_names = {}
