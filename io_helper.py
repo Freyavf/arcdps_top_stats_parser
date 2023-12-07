@@ -205,6 +205,7 @@ def create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_st
     num_enemies = [fight.enemies for fight in fights]
     kills = [fight.kills for fight in fights]
     stats = {}
+    # for squad buffs and distance, total values don't make sense
     for stat in config.stats_to_compute:
         if stat not in config.squad_buff_ids and stat != "dist":
             stats[stat] = [fight.total_stats[stat] for fight in fights]
@@ -275,6 +276,9 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
         data["avg"] = average_stats
     
     df = pd.DataFrame(data)
+    print(stat)
+    #if stat == 'interrupts':
+    #    print(df)
 
     df.sort_values(sorting_columns, ascending=sort_ascending, inplace=True)
     return df
