@@ -23,8 +23,8 @@
 log_level = "warning" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
-                    'spike_dmg', 'strips', 'kills', 'downs',
-                    'down_contrib', 'might', 'fury',
+                    'spike_dmg', 'kills', 'downs', 'down_contrib',
+                    'strips', 'interrupts', 'might', 'fury',
                     'heal_total', 'heal_players', 'heal_other',
                     'barrier', 'cleanses', 'stab', 'prot', 'aegis',
                     'resist', 'resolution', 'vigor', 'regen',
@@ -56,6 +56,7 @@ relevant_classes_for_stat = {
     'downs': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'down_contrib': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'strips': ["Chronomancer", "Virtuoso", "Reaper", "Scourge"],
+    'interrupts': ["Firebrand", "Chronomancer"],
     'cleanses': ["Vindicator", "Scrapper", "Druid", "Tempest"],
     'heal_total': ["Vindicator", "Scrapper", "Druid", "Tempest"],
     'heal_players': ["Vindicator", "Scrapper", "Druid", "Tempest"],
@@ -102,7 +103,7 @@ duration_for_averages = {'dist': 'not_running_back'}
 # Default column(s) to sort the xls by. valid values are: "account", "name", "profession", "attendance_num", "attendance_duration", "times_top", "percentage_top", "total", and "avg".
 default_sort_xls_by = ['total', 'avg']
 # Individual column(s) per stat to sort the xls by
-sort_xls_by = {'dist': ['avg']}
+sort_xls_by = {'dist': ['avg'], 'big_boomer': ['total'], 'explosive_temper': ['total'], 'explosive_entrance': ['total'], 'med_kit': ['total'],}
 
 # For what portion of all fights does a player need to be there to be considered for "consistency percentage" awards?
 attendance_percentage_for_percentage = 50
@@ -183,6 +184,7 @@ stat_names["kills"] = "Kills"
 stat_names["downs"] = "Downs"
 stat_names["down_contrib"] = "Down Contribution"
 stat_names["strips"] = "Boon Strips"
+stat_names["interrupts"] = "Interrupts"
 stat_names["stab"] = "Stability Output"
 stat_names["prot"] = "Protection Output"
 stat_names["aegis"] = "Aegis Output"
@@ -231,6 +233,7 @@ stat_descriptions["kills"] = "Number of killing hits"
 stat_descriptions["downs"] = "Number of downing hits"
 stat_descriptions["down_contrib"] = "Damage done to downstates"
 stat_descriptions["strips"] = "Boon Strips"
+stat_descriptions["interrupts"] = "Number of hits that interrupted an enemy"
 stat_descriptions["stab"] = "Stability Output (Squad Generation, excluding self)"
 stat_descriptions["prot"] = "Protection Output (Squad Generation, excluding self)"
 stat_descriptions["aegis"] = "Aegis Output (Squad Generation, excluding self)"

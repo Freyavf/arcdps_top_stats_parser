@@ -344,10 +344,11 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             spike_dmg = max(spike_dmg, new_dmg - last_dmg)
             last_dmg = new_dmg
         return spike_dmg
-
+    
     ##############################
     ### Kill/Down contribution ###
     ##############################
+
     if stat == 'kills':
         if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'killed' not in player_json['statsAll'][0]:
             config.errors.append("Could not find statsAll or killed in json to determine number of kills.")
@@ -365,11 +366,11 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             config.errors.append("Could not find statsAll or downed in json to determine down contribution.")
             return -1
         return int(player_json['statsAll'][0]['downContribution'])
-    
 
     ##################################
     ### Incoming / Outgoing strips ###
     ##################################
+
     if stat == 'strips':
         if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
             config.errors.append("Could not find support or an entry for boonStrips in json to determine strips.")
@@ -382,7 +383,16 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['defenses'][0]['boonStrips'])
 
+    ################
+    ### Interrupts #
+    ################
 
+    if stat == 'interrupts':
+        if 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'interrupts' not in player_json['statsAll'][0]:
+            config.errors.append("Could not find statsAll or an entry for interrupts in json to determine interrupts.")
+            return -1
+        return int(player_json['statsAll'][0]['interrupts'])
+    
     ######################
     ### Heal & Barrier ###
     ######################
