@@ -451,11 +451,31 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         config.errors.append("Could not find regen in json to determine hits_from_regen.")
         return -1
 
-
-
     #############
-    ### Buffs ###
+    ### Auras ###
     #############
+
+    if 'aura' in stat:
+        if 'buffUptimes' not in player_json:
+            config.errors.append("Could not find buffUptimes in json to determine "+stat+".")
+            return -1
+        for buff in player_json['buffUptimes']:
+            if 'id' not in buff:
+                continue
+            # find right buff
+            buffId = buff['id']
+            if buffId == int(config.squad_buff_ids[stat]):
+                if 'buffData' not in buff or len(buff['buffData']) == 0 or 'uptime' not in buff['buffData'][0]:
+                    config.errors.append("Could not find entry for buffData or uptime in json to determine "+stat+".")
+                    return -1
+                return float(buff['buffData'][0]['uptime'])
+        config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
+        return 0.
+    
+    ###################
+    ### Squad Buffs ###
+    ###################
+
     if stat in config.squad_buff_ids:
         if 'squadBuffs' not in player_json:
             config.errors.append("Could not find squadBuffs in json to determine "+stat+".")
@@ -474,6 +494,10 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
 
         config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
         return 0.
+
+    ##################
+    ### Self Buffs ###
+    ##################
 
     # for self buffs, only check if they were there (1) or not (0)
     if stat in config.self_buff_ids:
