@@ -295,6 +295,10 @@ def compute_total_values(players, fights, config):
                             # value from json is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players
                             fight.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
                             player.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                        if stat in config.buffs_not_stacking:
+                            # value from json is boon uptime / fight duration" in percent, we want overall boon uptime
+                            fight.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type], 2)
+                            player.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type], 2)
                         elif stat in config.buffs_stacking_intensity:
                             # value from json is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players
                             fight.total_stats[stat] += round(player_stats[stat] * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
@@ -354,14 +358,17 @@ def compute_avg_values(players, fights, config):
             # TODO double check fight avg stats
             if stat == 'spike_dmg':
                 fight.avg_stats[stat] = sum(player.stats_per_fight[fight_number][stat] for player in players)/len(players)
-            elif stat in config.squad_buff_ids:
+            elif stat in config.squad_buff_ids and stat in config.buffs_not_stacking:
+                # all not stacking buff averages are per time, and the % values are always relative to the total fight duration
+                fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number]['total']
+            elif stat in config.squad_buff_ids and stat not in config.buffs_not_stacking:
                 # all buff averages are per time and allied player
                 fight.avg_stats[stat] /= total_normalization_time_allies_per_fight[fight_number][config.duration_for_averages[stat]]
             else:
                 # all other averages are per time
                 fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number][config.duration_for_averages[stat]]
 
-            if stat in config.buffs_stacking_duration:
+            if stat in config.buffs_stacking_duration or stat in config.buffs_not_stacking:
                 # averages for buffs stacking duration are given in % -> * 100
                 fight.avg_stats[stat] *= 100
 
@@ -406,10 +413,12 @@ def compute_avg_values(players, fights, config):
                 player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies[config.duration_for_averages[stat]] * 100, 2)
             elif stat in config.buffs_stacking_intensity:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies[config.duration_for_averages[stat]], 2)
+            elif stat in config.buffs_not_stacking:
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present['total'] * 100, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[config.duration_for_averages[stat]], 2)
 
-                                                             
+
 
 
 def get_stats_from_json_data(json_data, players, player_index, account_index, fights, config, found_all_buff_ids, found_healing, found_barrier, log, filename):
