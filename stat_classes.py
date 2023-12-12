@@ -98,6 +98,7 @@ class Config:
     self_buff_ids: dict = field(default_factory=dict)               # dict of self buff name to buff id as read from buffMap
     buffs_stacking_duration: list = field(default_factory=list)     # list of squad_buff names stacking duration
     buffs_stacking_intensity: list = field(default_factory=list)    # list of squad_buff names stacking intensity
+    buffs_not_stacking: list = field(default_factory=list)          # list of squad_buff names that do not stack intensity or duration (e.g. auras)
     squad_buff_abbrev: dict = field(default_factory=dict)           # abbreviations of squad buff names
     self_buff_abbrev: dict = field(default_factory=dict)            # abbreviations of self buff names
 

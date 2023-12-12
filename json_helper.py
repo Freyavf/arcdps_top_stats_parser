@@ -17,6 +17,8 @@ def get_buff_ids_from_json(json_data, config, log):
             config.squad_buff_ids[abbrev_name] = buff_id[1:]
             if buff['stacking']:
                 config.buffs_stacking_intensity.append(abbrev_name)
+            elif 'aura' in abbrev_name:
+                config.buffs_not_stacking.append(abbrev_name)
             else:
                 config.buffs_stacking_duration.append(abbrev_name)
         if buff['name'] in config.self_buff_abbrev:
@@ -26,6 +28,10 @@ def get_buff_ids_from_json(json_data, config, log):
     found_all_ids = True
     for buff, abbrev in config.self_buff_abbrev.items():
         if abbrev not in config.self_buff_ids:
+            myprint(log, "id for buff "+buff+" could not be found. This is not necessarily an error, the buff might just not be present in this log.", "info", config)
+            found_all_ids = False
+    for buff, abbrev in config.squad_buff_abbrev.items():
+        if abbrev not in config.squad_buff_ids:
             myprint(log, "id for buff "+buff+" could not be found. This is not necessarily an error, the buff might just not be present in this log.", "info", config)
             found_all_ids = False
     return found_all_ids
@@ -465,7 +471,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### Auras ###
     #############
 
-    if 'aura' in stat:
+    if 'aura' in stat and stat in config.squad_buff_ids:
         if 'buffUptimes' not in player_json:
             config.errors.append("Could not find buffUptimes in json to determine "+stat+".")
             return -1

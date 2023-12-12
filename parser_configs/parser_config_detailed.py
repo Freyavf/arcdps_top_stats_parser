@@ -20,7 +20,7 @@
 # "info" gives information about the current status of the program
 # "warning" gives additional information about things that could have gone wrong, but don't necessarily mean the program can't deal with the data (e.g., some players might not be running the healing addon)
 # "debug" gives more detailed information about the state of the program and is usually only needed for debugging
-log_level = "warning" 
+log_level = "info" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'spike_dmg', 'kills', 'downs', 'down_contrib',
@@ -97,6 +97,7 @@ relevant_classes_for_stat = {
 }
 
 # duration_for_averages_default = 'in_combat'
+# the time used for average uptime computation can not be configured here. It is hardcoded to the total duration of the fight.
 duration_for_averages_default = 'total'
 duration_for_averages = {'dist': 'not_running_back'}
 

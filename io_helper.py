@@ -55,6 +55,8 @@ def myprint(output_file, output_string, log_level, config = None):
             return
         if log_level == "debug" and config.log_level != "debug":
             return
+        print(output_string)
+        output_file.write(output_string+"\n")
         
     if config == None:
         print(output_string)
@@ -116,6 +118,8 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
         column_names.append("Average "+stat+" per min "+config.duration_for_averages[stat])
     elif stat == 'spike_dmg':
         column_names.append("Average "+stat+" over all fights")
+    elif stat in config.squad_buff_ids and stat in config.buffs_not_stacking:
+        column_names.append("Average "+stat+" in %")
     elif stat not in config.self_buff_ids:
         column_names.append("Average "+stat+" per s "+config.duration_for_averages[stat])
     for i in range(len(column_names)):
