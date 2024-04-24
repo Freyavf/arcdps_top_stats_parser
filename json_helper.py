@@ -67,9 +67,9 @@ def get_stats_from_fight_json(fight_json, config, log):
         if 'enemyPlayer' in enemy and enemy['enemyPlayer'] == True:
             num_enemies += 1
             # if combat replay data is there, add number of times this player died to total num kills
-            if 'combatReplayData' in enemy:
-                num_kills += len(enemy['combatReplayData']['dead'])
-                
+            if 'defenses' in enemy:
+                num_kills += enemy['defenses'][0]['deadCount']
+
     # initialize fight         
     fight = Fight()
     fight.duration = duration
@@ -356,10 +356,11 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ##############################
 
     if stat == 'kills':
-        if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'killed' not in player_json['statsAll'][0]:
-            config.errors.append("Could not find statsAll or killed in json to determine number of kills.")
+        if 'statsTargets' not in player_json or len(player_json['statsTargets']) == 0:
+            config.errors.append("Could not find statsTargets in json to determine number of kills.")
             return -1
-        return int(player_json['statsAll'][0]['killed'])
+        kills = sum(enemy[0]['killed'] for enemy in player_json['statsTargets'])
+        return kills
 
     if stat == 'downs':
         if 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'downed' not in player_json['statsAll'][0]:
