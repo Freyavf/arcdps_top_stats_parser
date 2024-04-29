@@ -16,7 +16,7 @@ from openpyxl.worksheet.filters import (
     Filters,
     )
 from openpyxl.utils import get_column_letter
-
+from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
 
 # get the professions of all players indicated by the indices. Additionally, get the length of the longest profession name.
 # Input:
@@ -94,7 +94,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
             sort_ascending[i] = True
                 
     df = create_panda_dataframe(players, top_players, stat, sorting_columns, sort_ascending, config)
-    
+
     df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 3, index = False, header = False)
     book = writer.book
     sheet = book[config.stat_names[stat]]
@@ -126,6 +126,13 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
         header_cell = sheet.cell(row=3, column=(i+1))
         header_cell.value = column_names[i]
         header_cell.font = bold
+
+
+    # adjust the width of the columns
+    dim_holder = DimensionHolder(worksheet=sheet)
+    for col in range(sheet.min_column, sheet.max_column + 1):
+        dim_holder[get_column_letter(col)] = ColumnDimension(sheet, min=col, max=col, width=21)
+    sheet.column_dimensions = dim_holder
 
     # make relevant classes bold
     (max_row, max_col) = df.shape
