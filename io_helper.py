@@ -84,7 +84,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 
     # sort in descending order, unless it's a stat where low values are good and total or avg are sorted
     sort_ascending = [False for x in config.sort_xls_by[stat]]
-    if stat == 'deaths' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
+    if stat == 'deaths' or stat == 'downstate' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
         for i, val in enumerate(config.sort_xls_by[stat]):
             if val == "avg" or val == "total":
                 sort_ascending[i] = True
@@ -114,7 +114,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     else:
         column_names.append("Total "+stat)
 
-    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
+    if stat == 'deaths' or stat == 'kills' or stat == 'downstate' or stat == 'downs':
         column_names.append("Average "+stat+" per min "+config.duration_for_averages[stat])
     elif stat == 'spike_dmg':
         column_names.append("Average "+stat+" over all fights")

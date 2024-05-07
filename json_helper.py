@@ -270,6 +270,15 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['defenses'][0]['deadCount'])
 
+    #################
+    ### downstate ###
+    #################
+    if stat == 'downstate':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'downCount' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for downCount in json.")
+            return -1
+        return int(player_json['defenses'][0]['downCount'])
+
 
     ################
     ### distance ###

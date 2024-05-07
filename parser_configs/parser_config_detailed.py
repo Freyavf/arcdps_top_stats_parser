@@ -31,7 +31,7 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'heal_from_regen', 'hits_from_regen',
                     'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
-                    'dmg_taken_absorbed', 'deaths', 'stripped',
+                    'dmg_taken_absorbed', 'deaths', 'downstate', 'stripped',
                     'chaos_aura', 'fire_aura', 'dark_aura', 'frost_aura',
                     'light_aura', 'magnetic_aura', 'shocking_aura',
                     'big_boomer', 'explosive_temper', 'explosive_entrance',
@@ -82,6 +82,7 @@ relevant_classes_for_stat = {
     'dmg_taken_hp_lost': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'dmg_taken_absorbed': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'deaths': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'downstate': [],
     'stripped': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
@@ -208,6 +209,7 @@ stat_names["dmg_taken_total"] = "Total Damage Taken"
 stat_names["dmg_taken_hp_lost"] = "HP lost"
 stat_names["dmg_taken_absorbed"] = "Damage absorbed"
 stat_names["deaths"] = "Deaths"
+stat_names["downstate"] = "Player Downstate"
 stat_names["stripped"] = "Incoming Strips"
 stat_names["big_boomer"] = "Big Boomer"
 stat_names["explosive_temper"] = "Explosive Temper"
@@ -257,6 +259,7 @@ stat_descriptions["dmg_taken_total"] = "Total Damage Taken (includes damage abso
 stat_descriptions["dmg_taken_hp_lost"] = "HP lost"
 stat_descriptions["dmg_taken_absorbed"] = "Damage absorbed by barrier"
 stat_descriptions["deaths"] = "Deaths"
+stat_descriptions["downstate"] = "Number of times a player went downstate"
 stat_descriptions["stripped"] = "Incoming Strips"
 stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"

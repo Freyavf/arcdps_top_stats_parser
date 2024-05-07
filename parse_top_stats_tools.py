@@ -52,8 +52,8 @@ def increase_top_x_reached(players, sortedList, config, stat, fight_number):
             players[sortedList[i][0]].consistency_stats[stat] += 1
             valid_values += 1
             last_val = sortedList[i][1]
-        # for incoming strips or dmg taken, anything >= 0 can be top
-        elif (stat == 'stripped' or 'dmg_taken' in stat) and sortedList[i][1] >= 0:
+        # for incoming strips, dmg taken, or downstate, anything >= 0 can be top
+        elif (stat == 'stripped' or 'dmg_taken' in stat or stat == 'downstate') and sortedList[i][1] >= 0:
             players[sortedList[i][0]].consistency_stats[stat] += 1
             valid_values += 1
             last_val = sortedList[i][1]
@@ -77,8 +77,8 @@ def increase_top_x_reached(players, sortedList, config, stat, fight_number):
 def sort_players_by_value_in_fight(players, stat, fight_num):
     # get list of (stat value, index)
     decorated = [(player.stats_per_fight[fight_num][stat], i) for i, player in enumerate(players)]
-    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped':
-        # for tag distance, dmg taken, deaths, and stripped, low numbers are good
+    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
+        # for tag distance, dmg taken, deaths, stripped, and downstate, low numbers are good
         decorated.sort()
     else:
         # for all other stats, high numbers are good
@@ -98,7 +98,7 @@ def sort_players_by_value_in_fight(players, stat, fight_num):
 def sort_players_by_total(players, stat):
     # get list of (total stat, index)
     decorated = [(player.total_stats[stat], i) for i, player in enumerate(players)]
-    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped':
+    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
         # for tag distance, dmg taken, deaths, and stripped, low numbers are good
         decorated.sort()
     else:
@@ -151,8 +151,8 @@ def sort_players_by_percentage(players, stat):
 def sort_players_by_average(players, stat):
     # get list of (average stat, times top, total stat, index), sort first by average stat, then by times top, and then by total
     decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
-    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped':
-        # for dist, dmg taken, deaths, and stripped: low values good
+    if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
+        # for dist, dmg taken, deaths, downstate, and stripped: low values good
         decorated.sort()
     else:
         # for all other stats: high values good
@@ -215,8 +215,8 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
             break
         last_value = new_value
 
-        # if stat isn't distance, dmg taken, deaths, or stripped, total value must be at least percentage % of top value
-        if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
+        # if stat isn't distance, dmg taken, deaths, stripped, or downstate, total value must be at least percentage % of top value
+        if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or stat == 'downstate' or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
             # consider minimum attendance percentage for average stats
             if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
                 top_players.append(sorted_index[i][0])
@@ -404,7 +404,7 @@ def compute_avg_values(players, fights, config):
                     player.average_stats[stat] = 0
                 else:
                     player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
-            elif stat == 'deaths' or stat == 'kills' or stat == 'downs':
+            elif stat == 'deaths' or stat == 'kills' or stat == 'downs' or stat == 'downstate':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[config.duration_for_averages[stat]] / 60), 2)
             elif stat in config.self_buff_ids:
                 # self buffs are only mentioned as "present" or "not present"
