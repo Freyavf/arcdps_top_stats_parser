@@ -106,7 +106,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 
     column_names = [config.xls_column_names[c] for c in list(df) if c in config.xls_column_names]
     column_names.append("Times Top "+str(config.num_players_considered_top[stat]))
-    column_names.append("Percentage Top"+str(config.num_players_considered_top[stat]))
+    column_names.append("Percentage Top "+str(config.num_players_considered_top[stat]))
 
     # rename the columns for the xls
     if stat == 'spike_dmg':

@@ -32,6 +32,7 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
                     'dmg_taken_absorbed', 'deaths', 'downstate', 'stripped',
+                    'dodges',
                     'chaos_aura', 'fire_aura', 'dark_aura', 'frost_aura',
                     'light_aura', 'magnetic_aura', 'shocking_aura',
                     'big_boomer', 'explosive_temper', 'explosive_entrance',
@@ -84,6 +85,7 @@ relevant_classes_for_stat = {
     'deaths': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'downstate': [],
     'stripped': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'dodges': [],
     'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_entrance': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
@@ -211,6 +213,7 @@ stat_names["dmg_taken_absorbed"] = "Damage absorbed"
 stat_names["deaths"] = "Deaths"
 stat_names["downstate"] = "Player Downstate"
 stat_names["stripped"] = "Incoming Strips"
+stat_names["dodges"] = "Dodges"
 stat_names["big_boomer"] = "Big Boomer"
 stat_names["explosive_temper"] = "Explosive Temper"
 stat_names["explosive_entrance"] = "Explosive Entrance"
@@ -261,6 +264,7 @@ stat_descriptions["dmg_taken_absorbed"] = "Damage absorbed by barrier"
 stat_descriptions["deaths"] = "Deaths"
 stat_descriptions["downstate"] = "Number of times a player went downstate"
 stat_descriptions["stripped"] = "Incoming Strips"
+stat_descriptions["dodges"] = "Dodges"
 stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"
 stat_descriptions["explosive_entrance"] = "Explosive Entrance"

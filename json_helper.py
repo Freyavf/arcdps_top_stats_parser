@@ -279,6 +279,14 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['defenses'][0]['downCount'])
 
+    #################
+    ### dodges ###
+    #################
+    if stat == 'dodges':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'dodgeCount' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for dodgeCount in json.")
+            return -1
+        return int(player_json['defenses'][0]['dodgeCount'])
 
     ################
     ### distance ###
