@@ -317,7 +317,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     # includes dmg absorbed by barrier
     if stat == 'dmg_taken_total':
         if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
-            config.errors.append("Could not find defenses or an entry for damageTaken in json to determine dmg_taken(_total).")
+            config.errors.append("Could not find defenses or an entry for damageTaken in json to determine dmg_taken_total.")
             return -1
         return int(player_json['defenses'][0]['damageTaken'])
 
@@ -333,6 +333,20 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         if total_dmg_taken < 0 or dmg_absorbed < 0:
             return -1
         return total_dmg_taken - dmg_absorbed
+
+    # includes dmg absorbed by barrier
+    if stat == 'condi_dmg_taken_total':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'conditionDamageTaken' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for conditionDamageTaken in json to determine condi_dmg_taken_total.")
+            return -1
+        return int(player_json['defenses'][0]['conditionDamageTaken'])
+
+    # includes dmg absorbed by barrier
+    if stat == 'power_dmg_taken_total':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'powerDamageTaken' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for powerDamageTaken in json to determine power_dmg_taken_total.")
+            return -1
+        return int(player_json['defenses'][0]['powerDamageTaken'])
 
     #################
     ### Dmg Dealt ###
@@ -355,6 +369,44 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         if total_dmg < 0 or players_dmg < 0:
             return -1
         return total_dmg - players_dmg
+
+    if stat == 'condi_dmg_total':
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'condiDamage' not in player_json['dpsAll'][0]:
+            config.errors.append("Could not find dpsAll or an entry for condiDamage in json to determine condi_dmg.")
+            return -1
+        return int(player_json['dpsAll'][0]['condiDamage'])
+
+    if stat == 'condi_dmg_players':
+        if 'targetConditionDamage1S' not in player_json:
+            config.errors.append("Could not find targetConditionDamage1S in json to determine condi_dmg_players.")
+            return -1
+        return sum(target[0][-1] for target in player_json['targetConditionDamage1S'])
+
+    if stat == 'condi_dmg_other':
+        total_condi_dmg = get_stat_from_player_json(player_json, 'condi_dmg_total', fight, player_duration_present, config)
+        players_condi_dmg = get_stat_from_player_json(player_json, 'condi_dmg_players', fight, player_duration_present, config)
+        if total_condi_dmg < 0 or players_condi_dmg < 0:
+            return -1
+        return total_condi_dmg - players_condi_dmg
+
+    if stat == 'power_dmg_total':
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'powerDamage' not in player_json['dpsAll'][0]:
+            config.errors.append("Could not find dpsAll or an entry for powerDamage in json to determine power_dmg.")
+            return -1
+        return int(player_json['dpsAll'][0]['powerDamage'])
+
+    if stat == 'power_dmg_players':
+        if 'targetPowerDamage1S' not in player_json:
+            config.errors.append("Could not find targetPowerDamage1S in json to determine power_dmg_players.")
+            return -1
+        return sum(target[0][-1] for target in player_json['targetPowerDamage1S'])
+
+    if stat == 'power_dmg_other':
+        total_power_dmg = get_stat_from_player_json(player_json, 'power_dmg_total', fight, player_duration_present, config)
+        players_power_dmg = get_stat_from_player_json(player_json, 'power_dmg_players', fight, player_duration_present, config)
+        if total_power_dmg < 0 or players_power_dmg < 0:
+            return -1
+        return total_power_dmg - players_power_dmg
 
     if stat == 'spike_dmg':
         if 'targetDamage1S' not in player_json:
@@ -553,7 +605,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
 
 
     if stat not in config.self_buff_abbrev.values() and stat not in config.squad_buff_abbrev.values():
-        config.errors.append("Stat ", stat, " is currently not supported! Treating it as 0.")
+        config.errors.append("Stat "+stat+" is currently not supported! Treating it as 0.")
     return 0
 
 
