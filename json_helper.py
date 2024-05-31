@@ -571,6 +571,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
                 break
         # get buffs in uptime -> need to loop over all buffs
         for buff in player_json['buffUptimes']:
+            #TODO fix
             if 'id' not in buff:
                 continue
             # find right buff
