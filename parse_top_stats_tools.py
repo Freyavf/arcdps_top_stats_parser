@@ -72,11 +72,16 @@ def increase_top_x_reached(players, sortedList, config, stat, fight_number):
 # players = list of all Players
 # stat = stat that is considered
 # fight_num = number of the fight that is considered
+# is_squad_buff = stat is a squad buff
 # Output:
 # list of (player index, stat value in fight fight_num), sorted by total stat value in fight fight_num
-def sort_players_by_value_in_fight(players, stat, fight_num):
+def sort_players_by_value_in_fight(players, stat, fight_num, is_squad_buff):
     # get list of (stat value, index)
-    decorated = [(player.stats_per_fight[fight_num][stat], i) for i, player in enumerate(players)]
+    decorated = []
+    if is_squad_buff:
+        decorated = [(player.stats_per_fight[fight_num][stat]['gen'], i) for i, player in enumerate(players)]
+    else:
+        decorated = [(player.stats_per_fight[fight_num][stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
         # for tag distance, dmg taken, deaths, stripped, and downstate, low numbers are good
         decorated.sort()
@@ -93,11 +98,16 @@ def sort_players_by_value_in_fight(players, stat, fight_num):
 # Input:
 # players = list of all Players
 # stat = stat that is considered
+# is_squad_buff = stat is a squad buff
 # Output:
 # list of (player index, total stat value), sorted by total stat value
-def sort_players_by_total(players, stat):
+def sort_players_by_total(players, stat, is_squad_buff):
     # get list of (total stat, index)
-    decorated = [(player.total_stats[stat], i) for i, player in enumerate(players)]
+    decorated = []
+    if is_squad_buff:
+        decorated = [(player.total_stats[stat]['gen'], i) for i, player in enumerate(players)]
+    else:
+        decorated = [(player.total_stats[stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
         # for tag distance, dmg taken, deaths, and stripped, low numbers are good
         decorated.sort()
@@ -114,11 +124,16 @@ def sort_players_by_total(players, stat):
 # Input:
 # players = list of all Players
 # stat = stat that is considered
+# is_squad_buff = stat is a squad buff
 # Output:
 # list of (player index, consistency stat value), sorted by consistency stat value (how often was top x reached)
-def sort_players_by_consistency(players, stat):
+def sort_players_by_consistency(players, stat, is_squad_buff):
     # get list of (times top, total stat, index), sort first by times top (high value = good) and then by total
-    decorated = [(player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
+    decorated = []
+    if is_squad_buff:
+        decorated = [(player.consistency_stats[stat], player.total_stats[stat]['gen'], i) for i, player in enumerate(players)]
+    else:
+        decorated = [(player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
     decorated.sort(reverse=True)
     # extract list of (index, times top)
     sorted_by_consistency = [(i, consistency) for consistency, total, i in decorated]
@@ -130,11 +145,16 @@ def sort_players_by_consistency(players, stat):
 # Input:
 # players = list of all Players
 # stat = stat that is considered
+# is_squad_buff = stat is a squad buff
 # Output:
 # list of (player index, percentage stat value), sorted by percentage stat value (how often was top x reached / number of fights attended)
-def sort_players_by_percentage(players, stat):
+def sort_players_by_percentage(players, stat, is_squad_buff):
     # get list of (percentage times top, times top, total stat, index), sort first by percentage times top (high value = good), then by times top, and then by total
-    decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]                
+    decorated = []
+    if is_squad_buff:
+        decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat]['gen'], i) for i, player in enumerate(players)]
+    else:
+        decorated = [(player.portion_top_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
     decorated.sort(reverse=True)
     # extract list of (index, percentage times top)
     sorted_by_percentage = [(i, percentage) for percentage, consistency, total, i in decorated]
@@ -146,11 +166,16 @@ def sort_players_by_percentage(players, stat):
 # Input:
 # players = list of all Players
 # stat = stat that is considered
+# is_squad_buff = stat is a squad buff
 # Output:
 # list of (player index, average stat value), sorted by average stat value ( total stat value / duration of fights attended)
-def sort_players_by_average(players, stat):
+def sort_players_by_average(players, stat, is_squad_buff):
     # get list of (average stat, times top, total stat, index), sort first by average stat, then by times top, and then by total
-    decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
+    decorated = []
+    if is_squad_buff:
+        decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat]['gen'], i) for i, player in enumerate(players)]
+    else:
+        decorated = [(player.average_stats[stat], player.consistency_stats[stat], player.total_stats[stat], i) for i, player in enumerate(players)]
     if stat == 'dist' or 'dmg_taken' in stat or stat == 'deaths' or stat == 'stripped' or stat == 'downstate':
         # for dist, dmg taken, deaths, downstate, and stripped: low values good
         decorated.sort()
@@ -191,19 +216,23 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
     # get correct portion of total value and get sorted list of (player index, total/consistency/average stat) 
     if total_or_consistent_or_average == StatType.TOTAL:
         percentage = float(config.portion_of_top_for_total)
-        sorted_index = sort_players_by_total(players, stat)
+        sorted_index = sort_players_by_total(players, stat, (stat in config.squad_buff_ids))
     elif total_or_consistent_or_average == StatType.CONSISTENT:
         percentage = float(config.portion_of_top_for_consistent)
-        sorted_index = sort_players_by_consistency(players, stat)
+        sorted_index = sort_players_by_consistency(players, stat, (stat in config.squad_buff_ids))
     elif total_or_consistent_or_average == StatType.AVERAGE:
         percentage = 0.
-        sorted_index = sort_players_by_average(players, stat)        
+        sorted_index = sort_players_by_average(players, stat, (stat in config.squad_buff_ids))
     else:
         print("ERROR: Called get_top_players for stats that are not total or consistent or average")
         return        
 
     # using total value for overall top player to compare with
-    top_value = players[sorted_index[0][0]].total_stats[stat]
+    top_value = 0
+    if stat in config.squad_buff_ids:
+        top_value = players[sorted_index[0][0]].total_stats[stat]['gen']
+    else:
+        top_value = players[sorted_index[0][0]].total_stats[stat]
     top_players = list()
 
     i = 0
@@ -214,9 +243,14 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
         if i >= config.num_players_listed[stat] and new_value != last_value:
             break
         last_value = new_value
+        total_value = 0
+        if stat in config.squad_buff_ids:
+            total_value = players[sorted_index[i][0]].total_stats[stat]['gen']
+        else:
+            total_value = players[sorted_index[i][0]].total_stats[stat]
 
         # if stat isn't distance, dmg taken, deaths, stripped, or downstate, total value must be at least percentage % of top value
-        if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or stat == 'downstate' or players[sorted_index[i][0]].total_stats[stat] >= top_value*percentage:
+        if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or stat == 'downstate' or total_value >= top_value*percentage:
             # consider minimum attendance percentage for average stats
             if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
                 top_players.append(sorted_index[i][0])
@@ -239,7 +273,7 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
 # Output:
 # list of player indices getting a percentage award, value with which the percentage stat was compared
 def get_top_percentage_players(players, config, stat, num_used_fights, top_consistent_players = list(), top_total_players = list()):
-    sorted_index = sort_players_by_percentage(players, stat)
+    sorted_index = sort_players_by_percentage(players, stat, (stat in config.squad_buff_ids))
     top_percentage = players[sorted_index[0][0]].portion_top_stats[stat]
 
     # get correct comparison value for top percentage and minimum attendance
@@ -289,20 +323,23 @@ def compute_total_values(players, fights, config):
                 for stat in config.stats_to_compute:
                     duration_type = config.duration_for_averages[stat]
                     # add stats of this fight and player to total stats of this fight and player, if value is valid ( >=0 )
-                    if player_stats['present_in_fight'] and player_stats[stat] >= 0:
+                    if player_stats['present_in_fight'] and ((stat not in config.squad_buff_ids and player_stats[stat] >= 0) or (stat in config.squad_buff_ids and player_stats[stat]['gen'] >= 0)):
                         # buff are generation squad values, using total over time
                         if stat in config.buffs_stacking_duration:
                             # value from json is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players
-                            fight.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
-                            player.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
-                        if stat in config.buffs_not_stacking:
+                            fight.total_stats[stat] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                            player.total_stats[stat]['gen'] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                            player.total_stats[stat]['uptime'] += round(player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type], 2)
+                        elif stat in config.buffs_not_stacking:
                             # value from json is boon uptime / fight duration" in percent, we want overall boon uptime
-                            fight.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type], 2)
-                            player.total_stats[stat] += round(player_stats[stat] / 100. * player_stats['duration_present'][duration_type], 2)
+                            fight.total_stats[stat] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type], 2)
+                            player.total_stats[stat]['gen'] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type], 2)
+                            player.total_stats[stat]['uptime'] += round(player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type], 2)
                         elif stat in config.buffs_stacking_intensity:
                             # value from json is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players
-                            fight.total_stats[stat] += round(player_stats[stat] * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
-                            player.total_stats[stat] += round(player_stats[stat] * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                            fight.total_stats[stat] += round(player_stats[stat]['gen'] * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                            player.total_stats[stat]['gen'] += round(player_stats[stat]['gen'] * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
+                            player.total_stats[stat]['uptime'] += round(player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type], 2)
                         elif stat == 'dist':
                             if player_stats[stat] >= 0:
                                 fight.total_stats[stat] += round(player_stats[stat] * player_stats['duration_present'][duration_type])
@@ -379,10 +416,18 @@ def compute_avg_values(players, fights, config):
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
-            player.total_stats[stat] = round(player.total_stats[stat], 2)
-            if player.total_stats[stat] == 0:
-                player.average_stats[stat] = 0
-                continue
+            if stat in config.squad_buff_ids:
+                player.total_stats[stat]['gen'] = round(player.total_stats[stat]['gen'], 2)
+                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime'], 2)
+                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime']/player.duration_present['total'] * 100, 2)
+                if player.total_stats[stat]['gen'] == 0:
+                    player.average_stats[stat] = 0
+                    continue
+            else:
+                player.total_stats[stat] = round(player.total_stats[stat], 2)
+                if player.total_stats[stat] == 0:
+                    player.average_stats[stat] = 0
+                    continue
             
             # DON'T SWITCH DMG_TAKEN AND DMG OR HEAL_FROM_REGEN AND HEAL
             if stat == 'spike_dmg':
@@ -410,11 +455,11 @@ def compute_avg_values(players, fights, config):
                 # self buffs are only mentioned as "present" or "not present"
                 player.average_stats[stat] = round(player.total_stats[stat]/player.num_fights_present, 2)
             elif stat in config.buffs_stacking_duration:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies[config.duration_for_averages[stat]] * 100, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[config.duration_for_averages[stat]] * 100, 2)
             elif stat in config.buffs_stacking_intensity:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.normalization_time_allies[config.duration_for_averages[stat]], 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[config.duration_for_averages[stat]], 2)
             elif stat in config.buffs_not_stacking:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present['total'] * 100, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.duration_present['total'] * 100, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[config.duration_for_averages[stat]], 2)
 
@@ -530,7 +575,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
     # create lists sorted according to stats
     sortedStats = {key: list() for key in config.stats_to_compute}
     for stat in config.stats_to_compute:
-        sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number)
+        sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number, (stat in config.squad_buff_ids))
 
     #######################
     ### print debug log ###

@@ -288,6 +288,15 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['defenses'][0]['dodgeCount'])
 
+    ##############
+    ### blocks ###
+    ##############
+    if stat == 'blocks':
+        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'blockedCount' not in player_json['defenses'][0]:
+            config.errors.append("Could not find defenses or an entry for blockedCount in json.")
+            return -1
+        return int(player_json['defenses'][0]['blockedCount'])
+
     ################
     ### distance ###
     ################          
@@ -537,35 +546,17 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         config.errors.append("Could not find regen in json to determine hits_from_regen.")
         return -1
 
-    #############
-    ### Auras ###
-    #############
-
-    if 'aura' in stat and stat in config.squad_buff_ids:
-        if 'buffUptimes' not in player_json:
-            config.errors.append("Could not find buffUptimes in json to determine "+stat+".")
-            return -1
-        for buff in player_json['buffUptimes']:
-            if 'id' not in buff:
-                continue
-            # find right buff
-            buffId = buff['id']
-            if buffId == int(config.squad_buff_ids[stat]):
-                if 'buffData' not in buff or len(buff['buffData']) == 0 or 'uptime' not in buff['buffData'][0]:
-                    config.errors.append("Could not find entry for buffData or uptime in json to determine "+stat+".")
-                    return -1
-                return float(buff['buffData'][0]['uptime'])
-        config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
-        return 0.
     
     ###################
     ### Squad Buffs ###
     ###################
 
     if stat in config.squad_buff_ids:
-        if 'squadBuffs' not in player_json:
-            config.errors.append("Could not find squadBuffs in json to determine "+stat+".")
-            return -1
+        vals = {'gen': -1, 'uptime': -1}
+        squad_gen = -1
+        if 'squadBuffs' not in player_json or 'buffUptimes' not in player_json:
+            config.errors.append("Could not find squadBuffs or buffUptimes in json to determine "+stat+".")
+            return vals
         # get buffs in squad generation -> need to loop over all buffs
         for buff in player_json['squadBuffs']:
             if 'id' not in buff:
@@ -575,11 +566,26 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             if buffId == int(config.squad_buff_ids[stat]):
                 if 'buffData' not in buff or len(buff['buffData']) == 0 or 'generation' not in buff['buffData'][0]:
                     config.errors.append("Could not find entry for buffData or generation in json to determine "+stat+".")
-                    return -1
-                return float(buff['buffData'][0]['generation'])
+                    return vals
+                squad_gen = float(buff['buffData'][0]['generation'])
+                break
+        # get buffs in uptime -> need to loop over all buffs
+        for buff in player_json['buffUptimes']:
+            if 'id' not in buff:
+                continue
+            # find right buff
+            buffId = buff['id']
+            if buffId == int(config.squad_buff_ids[stat]):
+                if 'buffData' not in buff or len(buff['buffData']) == 0 or 'uptime' not in buff['buffData'][0]:
+                    config.errors.append("Could not find entry for buffData or uptime in json to determine "+stat+".")
+                    return vals
+                vals = {'gen': squad_gen, 'uptime': float(buff['buffData'][0]['uptime'])}
+                return vals
 
         config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
-        return 0.
+        vals['gen'] = 0.
+        vals['uptime'] = 0.
+        return vals
 
     ##################
     ### Self Buffs ###
