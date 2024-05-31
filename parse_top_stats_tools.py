@@ -332,8 +332,6 @@ def compute_total_values(players, fights, config):
                                 player.total_stats[stat]['gen'] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1), 2)
                             if player_stats[stat]['uptime'] >= 0:
                                 player.total_stats[stat]['uptime'] += round(player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type], 2)
-                            if stat == 'fury' and player.name == "Demlix Dee":
-                                print(player.name+" after "+str(fight_number)+" fights: "+str(player.total_stats[stat]['uptime']))
                         elif stat in config.buffs_not_stacking:
                             # value from json is boon uptime / fight duration" in percent, we want overall boon uptime
                             fight.total_stats[stat] += round(player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type], 2)
@@ -543,9 +541,7 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         for stat in config.stats_to_compute:
             # TODO add total stats per fight and avg stats per fight; add option to decide whether "top" should be determined by total or avg ?
             player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, fight, player.stats_per_fight[fight_number]['duration_present'], config)
-            if stat == 'fury':
-                print(stat+" uptime for "+player.name+": "+str(player.stats_per_fight[fight_number][stat]['uptime']))
-            
+
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
             elif stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
