@@ -617,6 +617,9 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")
         return 0
 
+    if stat in config.squad_buff_abbrev.values():
+        vals = {'gen': -1, 'uptime': -1}
+        return vals
 
     if stat not in config.self_buff_abbrev.values() and stat not in config.squad_buff_abbrev.values():
         config.errors.append("Stat "+stat+" is currently not supported! Treating it as 0.")

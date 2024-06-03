@@ -274,7 +274,7 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
     consistency_stats = (players[top_players[i]].consistency_stats[stat] for i in range(len(top_players)))
     portion_top_stats = (players[top_players[i]].portion_top_stats[stat]*100 for i in range(len(top_players)))
     total_stats = list()
-    if stat in config.squad_buff_ids:
+    if stat in config.squad_buff_abbrev.values():
         total_stats = (players[top_players[i]].total_stats[stat]['gen'] for i in range(len(top_players)))
     else:
         total_stats = (players[top_players[i]].total_stats[stat] for i in range(len(top_players)))
@@ -282,7 +282,7 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
     if stat not in config.self_buff_ids:
         average_stats = (players[top_players[i]].average_stats[stat] for i in range(len(top_players)))
     uptime_stats = list()
-    if stat in config.squad_buff_ids:
+    if stat in config.squad_buff_abbrev.values():
         uptime_stats = (players[top_players[i]].total_stats[stat]['uptime'] for i in range(len(top_players)))
     data = {"account": accounts,
             "name": names,
@@ -294,7 +294,7 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
             "total": total_stats}
     if stat not in config.self_buff_ids:
         data["avg"] = average_stats
-    if stat in config.squad_buff_ids:
+    if stat in config.squad_buff_abbrev.values():
         data["uptime"] = uptime_stats
     
     df = pd.DataFrame(data)
