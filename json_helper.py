@@ -575,12 +575,19 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             if 'id' not in buff:
                 continue
             # find right buff
+
             buffId = buff['id']
             if buffId == int(config.squad_buff_ids[stat]):
-                if 'buffData' not in buff or len(buff['buffData']) == 0 or 'uptime' not in buff['buffData'][0]:
-                    config.errors.append("Could not find entry for buffData or uptime in json to determine "+stat+".")
-                    return vals
-                vals = {'gen': squad_gen, 'uptime': float(buff['buffData'][0]['uptime'])}
+                if stat in config.buffs_stacking_intensity:
+                    if 'buffData' not in buff or len(buff['buffData']) == 0 or 'presence' not in buff['buffData'][0]:
+                        config.errors.append("Could not find entry for buffData or presence in json to determine "+stat+".")
+                        return vals
+                    vals = {'gen': squad_gen, 'uptime': float(buff['buffData'][0]['presence'])}
+                else:
+                    if 'buffData' not in buff or len(buff['buffData']) == 0 or 'uptime' not in buff['buffData'][0]:
+                        config.errors.append("Could not find entry for buffData or uptime in json to determine "+stat+".")
+                        return vals
+                    vals = {'gen': squad_gen, 'uptime': float(buff['buffData'][0]['uptime'])}
                 return vals
 
         config.errors.append("Could not find the buff "+stat+" in the json. Treating as 0.")

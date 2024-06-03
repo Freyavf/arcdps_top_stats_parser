@@ -43,7 +43,7 @@ class Player:
         self.normalization_time_allies = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.total_stats = {key: 0 for key in config.stats_to_compute}
         for stat in config.squad_buff_abbrev.values():
-            self.total_stats[stat] = {'gen': -1, 'uptime': -1}
+            self.total_stats[stat] = {'gen': 0, 'uptime': 0}
 
         self.average_stats = {key: 0 for key in config.stats_to_compute}
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}

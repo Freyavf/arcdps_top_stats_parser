@@ -299,8 +299,6 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
     
     df = pd.DataFrame(data)
     print(stat)
-    #if stat == 'interrupts':
-    #    print(df)
 
     df.sort_values(sorting_columns, ascending=sort_ascending, inplace=True)
     return df
