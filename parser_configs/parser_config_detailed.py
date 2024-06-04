@@ -25,7 +25,7 @@ log_level = "info"
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'condi_dmg_total', 'condi_dmg_players', 'condi_dmg_other',
                     'power_dmg_total', 'power_dmg_players', 'power_dmg_other',
-                    'spike_dmg', 'kills', 'downs', 'down_contrib',
+                    'spike_dmg', 'kills', 'downs', 'dmg_against_downed',
                     'strips', 'interrupts', 'might', 'fury',
                     'heal_total', 'heal_players', 'heal_other',
                     'barrier', 'cleanses', 'stab', 'prot', 'aegis',
@@ -64,7 +64,7 @@ relevant_classes_for_stat = {
     'spike_dmg': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'kills': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'downs': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'down_contrib': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'dmg_against_downed': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'strips': ["Chronomancer", "Virtuoso", "Reaper", "Scourge"],
     'interrupts': ["Firebrand", "Chronomancer"],
     'cleanses': ["Vindicator", "Scrapper", "Druid", "Tempest"],
@@ -205,7 +205,7 @@ stat_names["power_dmg_other"] = "Other Power Damage"
 stat_names["spike_dmg"] = "Spike Damage"
 stat_names["kills"] = "Kills"
 stat_names["downs"] = "Downs"
-stat_names["down_contrib"] = "Down Contribution"
+stat_names["dmg_against_downed"] = "Damage against Downstates"
 stat_names["strips"] = "Boon Strips"
 stat_names["interrupts"] = "Interrupts"
 stat_names["stab"] = "Stability Output"
@@ -266,7 +266,7 @@ stat_descriptions["power_dmg_other"] = "Power Damage dealt to siege, gates, npcs
 stat_descriptions["spike_dmg"] = "Spike Damage (Maximum damage dealt to players within 1s)"
 stat_descriptions["kills"] = "Number of killing hits"
 stat_descriptions["downs"] = "Number of downing hits"
-stat_descriptions["down_contrib"] = "Damage done to downstates"
+stat_descriptions["dmg_against_downed"] = "Damage done to downstates"
 stat_descriptions["strips"] = "Boon Strips"
 stat_descriptions["interrupts"] = "Number of hits that interrupted an enemy"
 stat_descriptions["stab"] = "Stability Output (Squad Generation, excluding self)"

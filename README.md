@@ -14,7 +14,7 @@ Currently supported stats are:
 - spike damage (maximum damage dealt within 1s)
 - killing hits
 - downing hits
-- down contribution (damage on downs) #TODO fix
+- damage against downed players
 - boon rips
 - interrupts
 - cleanses
