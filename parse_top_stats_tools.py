@@ -720,7 +720,7 @@ def get_overall_squad_stats(fights, config):
             overall_squad_stats['avg'][stat] = round(spike_dmg, 2)
         if stat not in config.squad_buff_abbrev.values():
             overall_squad_stats['avg'][stat] = round(overall_squad_stats['total'][stat] / (sum([f.duration * f.allies for f in fights])), 2)
-        if stat in config.squad_buff_abbrev.values():
+        else:
             overall_squad_stats['avg'][stat] = overall_squad_stats['total'][stat]
             if stat in config.buffs_stacking_duration:
                 overall_squad_stats['avg'][stat] *= 100

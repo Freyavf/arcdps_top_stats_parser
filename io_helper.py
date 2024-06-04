@@ -235,7 +235,10 @@ def create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_st
     num_enemies.append(overall_raid_stats['mean_enemies'])
     kills.append(overall_raid_stats['total_kills'])
     for stat in config.stats_to_compute:
-        stats[stat].append(overall_squad_stats['total'][stat])
+        if stat in config.squad_buff_abbrev.values():
+            stats[stat].append(overall_squad_stats['avg'][stat])
+        else:
+            stats[stat].append(overall_squad_stats['total'][stat])
 
     data = {"": first_col,
             "#": fight_num,
