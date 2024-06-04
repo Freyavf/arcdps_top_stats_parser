@@ -423,7 +423,7 @@ def compute_avg_values(players, fights, config):
     for player in players:
         # compute percentage top stats and attendance percentage for each player
         used_fights = len([fight for fight in fights if fight.skipped == False])
-        player.attendance_percentage = round(player.num_fights_present / used_fights * 100)
+        player.attendance_percentage = round(sum(fight.duration for i,fight in enumerate(fights) if player.stats_per_fight[i]['present_in_fight']) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
