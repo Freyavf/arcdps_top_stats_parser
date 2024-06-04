@@ -370,7 +370,15 @@ def compute_total_values(players, fights, config):
                             fight.total_stats[stat] += player.stats_per_fight[fight_number][stat]
                             player.total_stats[stat] += player.stats_per_fight[fight_number][stat]
 
-
+                # sum up the total dmg done per skill and the number of casts and hits
+                for skill_id in player.stats_per_fight[fight_number]['dmg_distribution']:
+                    if skill_id not in player.total_stats['dmg_distribution']:
+                        player.total_stats['dmg_distribution'][skill_id] = {'dmg': 0, 'hits': 0, 'casts': 0, 'name': ""}
+                        player.total_stats['dmg_distribution'][skill_id]['name'] = player.stats_per_fight[fight_number]['dmg_distribution'][skill_id]['name']
+                    player.total_stats['dmg_distribution'][skill_id]['dmg'] += player.stats_per_fight[fight_number]['dmg_distribution'][skill_id]['dmg']
+                    player.total_stats['dmg_distribution'][skill_id]['hits'] += player.stats_per_fight[fight_number]['dmg_distribution'][skill_id]['hits']
+                    player.total_stats['dmg_distribution'][skill_id]['casts'] += player.stats_per_fight[fight_number]['dmg_distribution'][skill_id]['casts']
+                    
 
 # Given the total values per fight and player, compute the average values for each player over all fights and for each fight over all players
 # Stores result directly in players / fights
@@ -473,7 +481,20 @@ def compute_avg_values(players, fights, config):
                 player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.duration_present['total'] * 100, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[config.duration_for_averages[stat]], 2)
-
+        for skill_id in player.total_stats['dmg_distribution']:
+            if skill_id not in player.average_stats['dmg_distribution']:
+                player.average_stats['dmg_distribution'][skill_id] = {'dmg_per_hit': 0, 'dmg_per_cast': 0, 'hits_per_cast': 0, 'name': ""}
+                player.average_stats['dmg_distribution'][skill_id]['name'] = player.total_stats['dmg_distribution'][skill_id]['name']
+            if player.total_stats['dmg_distribution'][skill_id]['hits'] > 0:
+                player.average_stats['dmg_distribution'][skill_id]['dmg_per_hit'] = player.total_stats['dmg_distribution'][skill_id]['dmg'] / player.total_stats['dmg_distribution'][skill_id]['hits']
+            else:
+                player.average_stats['dmg_distribution'][skill_id]['dmg_per_hit'] = -1
+            if player.total_stats['dmg_distribution'][skill_id]['casts'] > 0:
+                player.average_stats['dmg_distribution'][skill_id]['dmg_per_cast'] = player.total_stats['dmg_distribution'][skill_id]['dmg'] / player.total_stats['dmg_distribution'][skill_id]['casts']
+                player.average_stats['dmg_distribution'][skill_id]['hits_per_cast'] = player.total_stats['dmg_distribution'][skill_id]['hits'] / player.total_stats['dmg_distribution'][skill_id]['casts']
+            else:
+                player.average_stats['dmg_distribution'][skill_id]['dmg_per_cast'] = -1
+                player.average_stats['dmg_distribution'][skill_id]['hits_per_cast'] = -1
 
 
 
@@ -482,15 +503,15 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
     fight = get_stats_from_fight_json(json_data, config, log)
             
     if not found_all_buff_ids:
-        found_all_buff_ids = get_buff_ids_from_json(json_data, config, log)
+        found_all_buff_ids = get_buff_ids_from_json(json_data['buffMap'], config, log)
                     
-    # add new entry for this fight in all players
+    # add new entry for this fight for all existing players
     for player in players:
         player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})
         player.stats_per_fight[-1]['duration_present'] = {key: value for key, value in config.empty_stats['duration_present'].items()}
 
     fight_number = int(len(fights))
-        
+    
     # don't compute anything for skipped fights
     if fight.skipped:
         fights.append(fight)
@@ -544,7 +565,9 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         player.stats_per_fight[fight_number]['duration_present']['not_running_back'] = get_stat_from_player_json(player_data, 'time_not_running_back', fight, None, config)
         player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, 'group', fight, player.stats_per_fight[fight_number]['duration_present'], config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
+        player.stats_per_fight[fight_number]['dmg_distribution'] = get_dmg_distribution_from_player_json(player_data)
 
+        
         error_index = len(config.errors)
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
@@ -584,6 +607,15 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
     sortedStats = {key: list() for key in config.stats_to_compute}
     for stat in config.stats_to_compute:
         sortedStats[stat] = sort_players_by_value_in_fight(players, stat, fight_number, (stat in config.squad_buff_abbrev.values()))
+
+    # find the names for the skills that were used
+    for player in players:
+        for skill_id in player.stats_per_fight[fight_number]['dmg_distribution']:
+            skill_name = find_skill_name(skill_id, json_data['skillMap'], json_data['buffMap'], log)
+            if skill_name == "":
+                print("x")
+                continue #TODO
+            player.stats_per_fight[fight_number]['dmg_distribution'][skill_id]['name'] = skill_name
 
     #######################
     ### print debug log ###

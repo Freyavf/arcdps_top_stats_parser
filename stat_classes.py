@@ -42,10 +42,12 @@ class Player:
         self.duration_present = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.normalization_time_allies = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.total_stats = {key: 0 for key in config.stats_to_compute}
+        self.total_stats['dmg_distribution'] = {}
         for stat in config.squad_buff_abbrev.values():
             self.total_stats[stat] = {'gen': 0, 'uptime': 0}
 
         self.average_stats = {key: 0 for key in config.stats_to_compute}
+        self.average_stats['dmg_distribution'] = {}
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
         self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
@@ -197,6 +199,7 @@ def fill_config(config_input, log):
         config.empty_stats[stat] = {'gen': -1, 'uptime': -1}
     config.empty_stats['duration_present'] = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
     config.empty_stats['present_in_fight'] = False
+    config.empty_stats['dmg_distribution'] = {}
 
     config.xls_column_names = config_input.xls_column_names
     

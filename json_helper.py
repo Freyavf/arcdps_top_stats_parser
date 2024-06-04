@@ -6,12 +6,11 @@ from io_helper import myprint
 
 # get ids of buffs in the log from the buff map
 # Input:
-# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+# buff_map: json data containing the mapping of buff id to buff name
 # config: config to use in top stats computation
 # changes config.buffs_stacking_intensity and config.buffs_stacking_duration inplace
-def get_buff_ids_from_json(json_data, config, log):
-    buffs = json_data['buffMap']
-    for buff_id, buff in buffs.items():
+def get_buff_ids_from_json(buff_map, config, log):
+    for buff_id, buff in buff_map.items():
         if buff['name'] in config.squad_buff_abbrev:
             abbrev_name = config.squad_buff_abbrev[buff['name']]
             config.squad_buff_ids[abbrev_name] = buff_id[1:]
@@ -35,6 +34,33 @@ def get_buff_ids_from_json(json_data, config, log):
             myprint(log, "id for buff "+buff+" could not be found. This is not necessarily an error, the buff might just not be present in this log.", "info", config)
             found_all_ids = False
     return found_all_ids
+
+
+# get name of the skill with the given id from the skill map
+# Input:
+# requested_skill_id:
+# skill_map: json data containing the mapping of skill id to skill name
+# config: config to use in top stats computation
+# changes config.buffs_stacking_intensity and config.buffs_stacking_duration inplace
+def find_skill_name(requested_skill_id, skill_map, buff_map, log):
+    for skill_id, skill in skill_map.items():
+        if skill_id[1:] == str(requested_skill_id):
+            if 'name' not in skill:
+                #TODO get config
+                myprint(log, "The name for the skill with id "+str(skill_id)+" could not be found. This is probably a bad thing.", "info", config)
+                return ""
+            return skill['name']
+
+    for buff_id, buff in buff_map.items():
+        if buff_id[1:] == str(requested_skill_id):
+            if 'name' not in buff:
+                myprint(log, "The name for the skill with id "+str(skill_id)+" could not be found. This is probably a bad thing.", "info", config)
+                print("The name for the skill with id "+str(skill_id)+" could not be found. This is probably a bad thing.")
+                return ""
+            return buff['name']
+
+    #TODO get config
+    #myprint(log, "The name for the skill with id "+str(skill_id)+" could not be found. This is probably a bad thing.", "info", config)
 
 
 # get stats for this fight from fight_json
@@ -624,6 +650,36 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     if stat not in config.self_buff_abbrev.values() and stat not in config.squad_buff_abbrev.values():
         config.errors.append("Stat "+stat+" is currently not supported! Treating it as 0.")
     return 0
+
+
+# get the damage distribution over all skills a player used from the json
+# return an empty dictionary if it is not available
+# Input:
+# player_json: json data with the player info. In a json file as parsed by Elite Insights, one entry of the 'players' list.
+def get_dmg_distribution_from_player_json(player_json):
+    # for all used skills, get their names from the ids, total dmg dealt by it, number of casts, number of hits
+    if 'totalDamageDist' not in player_json or len(player_json['totalDamageDist']) == 0:
+        config.errors.append("Could not find totalDamageDist in json or size is 0 to determine "+stat+".")
+        return {}
+    dmg_dist = {}
+    for skill in player_json['totalDamageDist'][0]:
+        if 'id' not in skill:
+            continue
+        skillId = skill['id']
+        dmg_dist[skillId] = {'dmg': 0, 'casts': 0, 'hits': 0}
+        if 'totalDamage' in skill:
+            dmg_dist[skillId]['dmg'] = skill['totalDamage']
+        if 'hits' in skill:
+            dmg_dist[skillId]['hits'] = skill['hits']
+        if 'rotation' not in player_json:
+            config.errors.append("Could not find rotation in json to determine the number of casts for "+config.skillIdToName[skillId]+".")
+        for rotation_part in player_json['rotation']:
+            if 'id' not in rotation_part:
+                continue
+            if rotation_part['id'] == skillId:
+                dmg_dist[skillId]['casts'] = len(rotation_part['skills'])
+    return dmg_dist
+
 
 
 # find the first time a player took or dealt damage after initial_time
