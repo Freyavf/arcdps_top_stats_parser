@@ -148,7 +148,7 @@ def fill_config(config_input, log):
         if stat not in config.sort_xls_by:
             config.sort_xls_by[stat] = config_input.default_sort_xls_by
 
-    config.min_attendance_portion_for_percentage = config_input.attendance_percentage_for_percentage/100.
+    config.min_attendance_percentage_for_percentage = config_input.attendance_percentage_for_percentage
     config.min_attendance_percentage_for_average = config_input.attendance_percentage_for_average
 
     config.portion_of_top_for_consistent = config_input.percentage_of_top_for_consistent/100.
