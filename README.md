@@ -5,24 +5,34 @@ Currently supported stats are:
 - all damage
 - damage dealt to target (in wvw: equivalent to damage dealt to players)
 - damage dealt to everything else (in wvw: siege, npcs, ...)
+- all condition damage
+- condition damage dealt to target (in wvw: equivalent to damage dealt to players)
+- condition damage dealt to everything else (in wvw: siege, npcs, ...)
+- all power damage
+- power damage dealt to target (in wvw: equivalent to damage dealt to players)
+- power damage dealt to everything else (in wvw: siege, npcs, ...)
 - spike damage (maximum damage dealt within 1s)
 - killing hits
 - downing hits
-- down contribution (damage on downs)
+- damage against downed players
 - boon rips
+- interrupts
 - cleanses
-- stability output (generation squad)
-- protection output (generation squad)
-- aegis output (generation squad)
-- resistance output (generation squad)
-- resolution output (generation squad)
-- quickness output (generation squad)
-- might output (generation squad)
-- fury output (generation squad)
-- alacrity output (generation squad)
-- superspeed output (generation squad)
-- swiftness output (generation squad)
-- vigor output (generation squad)
+- dodges
+- blocks
+- stability (output to squad, uptime)
+- protection (output to squad, uptime)
+- aegis (output to squad, uptime)
+- resistance (output to squad, uptime)
+- resolution (output to squad, uptime)
+- quickness (output to squad, uptime)
+- might (output to squad, uptime)
+- fury (output to squad, uptime)
+- alacrity (output to squad, uptime)
+- superspeed (output to squad, uptime)
+- swiftness (output to squad, uptime)
+- vigor (output to squad, uptime)
+- stealth (output to squad, uptime)
 - all healing output
 - healing dealt to target (in wvw: equivalent to healing on players)
 - healing dealt to everything else (in wvw: npcs, pets, ...)
@@ -33,6 +43,9 @@ Currently supported stats are:
 - total damage taken
 - damage absorbed by barrier
 - hp lost (= total damage taken - damage absorbed by barrier)
+- condition damage taken
+- power damage taken
+- downstates
 - deaths
 
 Healing and barrier output can only be analyzed when contained in the logs, i.e., the [healing addon for arcdps](https://github.com/Krappa322/arcdps_healing_stats/releases) is installed. They will only be analyzed for players who also have the addon installed, since data may be incomplete for others.

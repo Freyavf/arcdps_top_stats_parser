@@ -42,7 +42,10 @@ class Player:
         self.duration_present = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.normalization_time_allies = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
         self.total_stats = {key: 0 for key in config.stats_to_compute}
-        self.average_stats = {key: 0 for key in config.stats_to_compute}        
+        for stat in config.squad_buff_abbrev.values():
+            self.total_stats[stat] = {'gen': 0, 'uptime': 0}
+
+        self.average_stats = {key: 0 for key in config.stats_to_compute}
         self.consistency_stats = {key: 0 for key in config.stats_to_compute}
         self.portion_top_stats = {key: 0 for key in config.stats_to_compute}
 
@@ -162,9 +165,6 @@ def fill_config(config_input, log):
     config.relevant_classes = config_input.relevant_classes_for_stat
 
     config.stats_to_compute = config_input.stats_to_compute
-    config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
-    config.empty_stats['duration_present'] = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
-    config.empty_stats['present_in_fight'] = False
 
     config.squad_buff_abbrev["Stability"] = 'stab'
     config.squad_buff_abbrev["Protection"] = 'prot'
@@ -179,6 +179,7 @@ def fill_config(config_input, log):
     config.squad_buff_abbrev["Swiftness"] = 'swift'
     config.squad_buff_abbrev["Vigor"] = 'vigor'
     config.squad_buff_abbrev["Superspeed"] = 'speed'
+    config.squad_buff_abbrev["Stealth"] = 'stealth'
     config.squad_buff_abbrev["Chaos Aura"] = 'chaos_aura'
     config.squad_buff_abbrev["Fire Aura"] = 'fire_aura'
     config.squad_buff_abbrev["Frost Aura"] = 'frost_aura'
@@ -190,6 +191,12 @@ def fill_config(config_input, log):
     config.self_buff_abbrev["Explosive Temper"] = 'explosive_temper'
     config.self_buff_abbrev["Big Boomer"] = 'big_boomer'
     config.self_buff_abbrev["Med Kit"] = 'med_kit'
+
+    config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
+    for stat in config.squad_buff_abbrev.values():
+        config.empty_stats[stat] = {'gen': -1, 'uptime': -1}
+    config.empty_stats['duration_present'] = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
+    config.empty_stats['present_in_fight'] = False
 
     config.xls_column_names = config_input.xls_column_names
     

@@ -84,7 +84,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 
     # sort in descending order, unless it's a stat where low values are good and total or avg are sorted
     sort_ascending = [False for x in config.sort_xls_by[stat]]
-    if stat == 'deaths' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
+    if stat == 'deaths' or stat == 'downstate' or stat == 'stripped' or stat == 'dist' or 'dmg_taken' in stat:
         for i, val in enumerate(config.sort_xls_by[stat]):
             if val == "avg" or val == "total":
                 sort_ascending[i] = True
@@ -92,7 +92,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     for i, val in enumerate(config.sort_xls_by[stat]):
         if is_string_column(val):
             sort_ascending[i] = True
-                
+
     df = create_panda_dataframe(players, top_players, stat, sorting_columns, sort_ascending, config)
 
     df.to_excel(writer, sheet_name = config.stat_names[stat], startrow = 3, index = False, header = False)
@@ -106,7 +106,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
 
     column_names = [config.xls_column_names[c] for c in list(df) if c in config.xls_column_names]
     column_names.append("Times Top "+str(config.num_players_considered_top[stat]))
-    column_names.append("Percentage Top"+str(config.num_players_considered_top[stat]))
+    column_names.append("Percentage Top "+str(config.num_players_considered_top[stat]))
 
     # rename the columns for the xls
     if stat == 'spike_dmg':
@@ -114,7 +114,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     else:
         column_names.append("Total "+stat)
 
-    if stat == 'deaths' or stat == 'kills' or stat == 'downs':
+    if stat == 'deaths' or stat == 'kills' or stat == 'downstate' or stat == 'downs':
         column_names.append("Average "+stat+" per min "+config.duration_for_averages[stat])
     elif stat == 'spike_dmg':
         column_names.append("Average "+stat+" over all fights")
@@ -122,6 +122,8 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
         column_names.append("Average "+stat+" in %")
     elif stat not in config.self_buff_ids:
         column_names.append("Average "+stat+" per s "+config.duration_for_averages[stat])
+    if stat in config.squad_buff_ids:
+        column_names.append(stat+" Uptime in %")
     for i in range(len(column_names)):
         header_cell = sheet.cell(row=3, column=(i+1))
         header_cell.value = column_names[i]
@@ -233,7 +235,10 @@ def create_panda_dataframe_overview(fights, overall_squad_stats, overall_raid_st
     num_enemies.append(overall_raid_stats['mean_enemies'])
     kills.append(overall_raid_stats['total_kills'])
     for stat in config.stats_to_compute:
-        stats[stat].append(overall_squad_stats['total'][stat])
+        if stat in config.squad_buff_abbrev.values():
+            stats[stat].append(overall_squad_stats['avg'][stat])
+        else:
+            stats[stat].append(overall_squad_stats['total'][stat])
 
     data = {"": first_col,
             "#": fight_num,
@@ -271,10 +276,17 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
     duration_present = (players[top_players[i]].duration_present[config.duration_for_averages[stat]] for i in range(len(top_players)))
     consistency_stats = (players[top_players[i]].consistency_stats[stat] for i in range(len(top_players)))
     portion_top_stats = (players[top_players[i]].portion_top_stats[stat]*100 for i in range(len(top_players)))
-    total_stats = (players[top_players[i]].total_stats[stat] for i in range(len(top_players)))
+    total_stats = list()
+    if stat in config.squad_buff_abbrev.values():
+        total_stats = (players[top_players[i]].total_stats[stat]['gen'] for i in range(len(top_players)))
+    else:
+        total_stats = (players[top_players[i]].total_stats[stat] for i in range(len(top_players)))
     average_stats = list()
     if stat not in config.self_buff_ids:
         average_stats = (players[top_players[i]].average_stats[stat] for i in range(len(top_players)))
+    uptime_stats = list()
+    if stat in config.squad_buff_abbrev.values():
+        uptime_stats = (players[top_players[i]].total_stats[stat]['uptime'] for i in range(len(top_players)))
     data = {"account": accounts,
             "name": names,
             "profession": professions,
@@ -285,11 +297,11 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
             "total": total_stats}
     if stat not in config.self_buff_ids:
         data["avg"] = average_stats
+    if stat in config.squad_buff_abbrev.values():
+        data["uptime"] = uptime_stats
     
     df = pd.DataFrame(data)
     print(stat)
-    #if stat == 'interrupts':
-    #    print(df)
 
     df.sort_values(sorting_columns, ascending=sort_ascending, inplace=True)
     return df

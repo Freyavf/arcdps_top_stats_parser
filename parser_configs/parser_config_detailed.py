@@ -23,7 +23,9 @@
 log_level = "info" 
 
 stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
-                    'spike_dmg', 'kills', 'downs', 'down_contrib',
+                    'condi_dmg_total', 'condi_dmg_players', 'condi_dmg_other',
+                    'power_dmg_total', 'power_dmg_players', 'power_dmg_other',
+                    'spike_dmg', 'kills', 'downs', 'dmg_against_downed',
                     'strips', 'interrupts', 'might', 'fury',
                     'heal_total', 'heal_players', 'heal_other',
                     'barrier', 'cleanses', 'stab', 'prot', 'aegis',
@@ -31,7 +33,9 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'heal_from_regen', 'hits_from_regen',
                     'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
-                    'dmg_taken_absorbed', 'deaths', 'stripped',
+                    'dmg_taken_absorbed', 'condi_dmg_taken_total', 'power_dmg_taken_total',
+                    'deaths', 'downstate', 'stripped',
+                    'dodges', 'blocks', 'stealth',
                     'chaos_aura', 'fire_aura', 'dark_aura', 'frost_aura',
                     'light_aura', 'magnetic_aura', 'shocking_aura',
                     'big_boomer', 'explosive_temper', 'explosive_entrance',
@@ -51,10 +55,16 @@ relevant_classes_for_stat = {
     'dmg_total': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'dmg_players': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'dmg_other': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'condi_dmg_total': [],
+    'condi_dmg_players': [],
+    'condi_dmg_other': [],
+    'power_dmg_total': [],
+    'power_dmg_players': [],
+    'power_dmg_other': [],
     'spike_dmg': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'kills': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'downs': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'down_contrib': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'dmg_against_downed': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
     'strips': ["Chronomancer", "Virtuoso", "Reaper", "Scourge"],
     'interrupts': ["Firebrand", "Chronomancer"],
     'cleanses': ["Vindicator", "Scrapper", "Druid", "Tempest"],
@@ -81,8 +91,14 @@ relevant_classes_for_stat = {
     'dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'dmg_taken_hp_lost': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'dmg_taken_absorbed': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'condi_dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'power_dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
     'deaths': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'downstate': [],
     'stripped': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'dodges': [],
+    'blocks': [],
+    'stealth': [],
     'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
     'explosive_entrance': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
@@ -180,10 +196,16 @@ stat_names = {}
 stat_names["dmg_total"] = "Total Damage"
 stat_names["dmg_players"] = "Player Damage"
 stat_names["dmg_other"] = "Other Damage"
+stat_names["condi_dmg_total"] = "Total Condition Damage"
+stat_names["condi_dmg_players"] = "Player Condition Damage"
+stat_names["condi_dmg_other"] = "Other Condition Damage"
+stat_names["power_dmg_total"] = "Total Power Damage"
+stat_names["power_dmg_players"] = "Player Power Damage"
+stat_names["power_dmg_other"] = "Other Power Damage"
 stat_names["spike_dmg"] = "Spike Damage"
 stat_names["kills"] = "Kills"
 stat_names["downs"] = "Downs"
-stat_names["down_contrib"] = "Down Contribution"
+stat_names["dmg_against_downed"] = "Damage against Downstates"
 stat_names["strips"] = "Boon Strips"
 stat_names["interrupts"] = "Interrupts"
 stat_names["stab"] = "Stability Output"
@@ -207,8 +229,14 @@ stat_names["dist"] = "Distance to Tag"
 stat_names["dmg_taken_total"] = "Total Damage Taken"
 stat_names["dmg_taken_hp_lost"] = "HP lost"
 stat_names["dmg_taken_absorbed"] = "Damage absorbed"
+stat_names["condi_dmg_taken_total"] = "Total Condition Damage Taken"
+stat_names["power_dmg_taken_total"] = "Total Power Damage Taken"
 stat_names["deaths"] = "Deaths"
+stat_names["downstate"] = "Player Downstate"
 stat_names["stripped"] = "Incoming Strips"
+stat_names["dodges"] = "Dodges"
+stat_names["blocks"] = "Blocks"
+stat_names["stealth"] = "Stealth Output"
 stat_names["big_boomer"] = "Big Boomer"
 stat_names["explosive_temper"] = "Explosive Temper"
 stat_names["explosive_entrance"] = "Explosive Entrance"
@@ -229,10 +257,16 @@ stat_descriptions = {}
 stat_descriptions["dmg_total"] = "Total Damage dealt to everything"
 stat_descriptions["dmg_players"] = "Damage dealt to enemy players"
 stat_descriptions["dmg_other"] = "Damage dealt to siege, gates, npcs, pets,..."
+stat_descriptions["condi_dmg_total"] = "Total Condition Damage dealt to everything"
+stat_descriptions["condi_dmg_players"] = "Condition Damage dealt to players"
+stat_descriptions["condi_dmg_other"] = "Condition Damage dealt to siege, gates, npcs, pets,..."
+stat_descriptions["power_dmg_total"] = "Total Power Damage dealt to everything"
+stat_descriptions["power_dmg_players"] = "Power Damage dealt to players"
+stat_descriptions["power_dmg_other"] = "Power Damage dealt to siege, gates, npcs, pets,..."
 stat_descriptions["spike_dmg"] = "Spike Damage (Maximum damage dealt to players within 1s)"
 stat_descriptions["kills"] = "Number of killing hits"
 stat_descriptions["downs"] = "Number of downing hits"
-stat_descriptions["down_contrib"] = "Damage done to downstates"
+stat_descriptions["dmg_against_downed"] = "Damage done to downstates"
 stat_descriptions["strips"] = "Boon Strips"
 stat_descriptions["interrupts"] = "Number of hits that interrupted an enemy"
 stat_descriptions["stab"] = "Stability Output (Squad Generation, excluding self)"
@@ -256,8 +290,14 @@ stat_descriptions["dist"] = "Distance to Tag"
 stat_descriptions["dmg_taken_total"] = "Total Damage Taken (includes damage absorbed by barrier)"
 stat_descriptions["dmg_taken_hp_lost"] = "HP lost"
 stat_descriptions["dmg_taken_absorbed"] = "Damage absorbed by barrier"
+stat_descriptions["condi_dmg_taken_total"] = "Total Condition Damage Taken (includes damage absorbed by barrier)"
+stat_descriptions["power_dmg_taken_total"] = "Total Power Damage Taken (includes damage absorbed by barrier)"
 stat_descriptions["deaths"] = "Deaths"
+stat_descriptions["downstate"] = "Number of times a player went downstate"
 stat_descriptions["stripped"] = "Incoming Strips"
+stat_descriptions["dodges"] = "Dodges"
+stat_descriptions["blocks"] = "Number of Blocked Enemy Attacks"
+stat_descriptions["stealth"] = "Stealth Output (Squad Generation, excluding self)"
 stat_descriptions["big_boomer"] = "Big Boomer"
 stat_descriptions["explosive_temper"] = "Explosive Temper"
 stat_descriptions["explosive_entrance"] = "Explosive Entrance"
