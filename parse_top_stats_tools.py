@@ -499,8 +499,8 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
 
     # get stats for each player
     for player_data in json_data['players']:
-        create_new_player = False
         build_swapped = False
+        new_player_created = False
 
         account, name, profession = get_basic_player_data_from_json(player_data)                
 
@@ -513,20 +513,6 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         name_and_prof = name+" "+profession
         if name_and_prof not in player_index.keys():
             print("creating new player",name_and_prof)
-            create_new_player = True
-
-        # if this account is not in the account index yet, create a new entry
-        if account not in account_index.keys():
-            account_index[account] = [len(players)]
-        elif name_and_prof not in player_index.keys():
-            # if account does already exist, but name/prof combo does not, this player swapped build or character
-            # -> note for all Player instances of this account
-            for ind in range(len(account_index[account])):
-                players[account_index[account][ind]].swapped_build = True
-            account_index[account].append(len(players))
-            build_swapped = True
-
-        if create_new_player:
             new_player = Player(account, name, profession)
             new_player.initialize(config)
             player_index[name_and_prof] = len(players)
@@ -535,6 +521,18 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
                 new_player.stats_per_fight.append({key: value for key, value in config.empty_stats.items()})
                 new_player.stats_per_fight[-1]['duration_present'] = {key: value for key, value in config.empty_stats['duration_present'].items()}
             players.append(new_player)
+            new_player_created = True
+
+        # if this account is not in the account index yet, create a new entry
+        if account not in account_index.keys():
+            account_index[account] = [len(players)-1]
+        elif new_player_created:
+            # if account does already exist, but name/prof combo does not, this player swapped build or character
+            # -> note for all Player instances of this account
+            for ind in range(len(account_index[account])):
+                players[account_index[account][ind]].swapped_build = True
+            account_index[account].append(len(players)-1)
+            build_swapped = True
 
         player = players[player_index[name_and_prof]]
 
