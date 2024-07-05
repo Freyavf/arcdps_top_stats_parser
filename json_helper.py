@@ -143,7 +143,8 @@ def get_basic_player_data_from_json(player_json):
     account = player_json['account']
     name = player_json['name']
     profession = player_json['profession']
-    return account, name, profession
+    not_in_squad = player_json['notInSquad']
+    return account, name, profession, not_in_squad
 
 
 
