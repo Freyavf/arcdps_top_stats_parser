@@ -502,7 +502,9 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         build_swapped = False
         new_player_created = False
 
-        account, name, profession = get_basic_player_data_from_json(player_data)                
+        account, name, profession, not_in_squad = get_basic_player_data_from_json(player_data)
+        if not_in_squad:
+            continue
 
         if profession in fight.squad_composition:
             fight.squad_composition[profession] += 1

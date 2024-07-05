@@ -99,7 +99,7 @@ if __name__ == '__main__':
         top_percentage_stat_players[stat],percentage_comparison_val[stat] = get_top_percentage_players(players, config, stat, num_used_fights, top_consistent_stat_players[stat])
 
     if 'json' in config.files_to_write:
-        write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, args.json_output_filename)
+        write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, config.stat_names, config.stat_descriptions, args.json_output_filename)
 
     if 'xls' in config.files_to_write:
         for stat in config.stats_to_compute:

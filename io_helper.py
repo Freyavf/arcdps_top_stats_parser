@@ -189,7 +189,7 @@ def write_fights_overview_xls(fights, overall_squad_stats, overall_raid_stats, c
 # config = the config used for stats computation
 # output = file to write to
 
-def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, output_file):
+def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_total_stat_players, top_average_stat_players, top_consistent_stat_players, top_percentage_stat_players, stat_names, stat_descriptions, output_file):
     json_dict = {}
     json_dict["overall_raid_stats"] = {key: value for key, value in overall_raid_stats.items()}
     json_dict["overall_squad_stats"] = {key: value for key, value in overall_squad_stats.items()}
@@ -199,6 +199,8 @@ def write_to_json(overall_raid_stats, overall_squad_stats, fights, players, top_
     json_dict["top_average_players"] =  {key: value for key, value in top_average_stat_players.items()}
     json_dict["top_consistent_players"] =  {key: value for key, value in top_consistent_stat_players.items()}
     json_dict["top_percentage_players"] =  {key: value for key, value in top_percentage_stat_players.items()}
+    json_dict["stat_names"] =  {key: value for key, value in stat_names.items()}
+    json_dict["stat_descriptions"] =  {key: value for key, value in stat_descriptions.items()}
 
     with open(output_file, 'w') as json_file:
         json.dump(json_dict, json_file, indent=4)
