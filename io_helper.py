@@ -133,6 +133,8 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     for col in sheet.columns:
         length = max(len(str(cell.value)) for cell in col[4:])
         sheet.column_dimensions[col[0].column_letter].width = max(length+3, 12)
+        for cell in col:
+            cell.alignment = cell.alignment.copy(horizontal="left")
 
     # make relevant classes bold
     (max_row, max_col) = df.shape
