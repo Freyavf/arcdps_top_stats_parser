@@ -318,5 +318,6 @@ xls_column_names = {}
 xls_column_names['account'] = "Account"
 xls_column_names['name'] = "Name"
 xls_column_names['profession'] = "Profession"
+xls_column_names['groups'] = "Groups"
 xls_column_names['attendance_num'] = "Attendance (number of fights)"
 xls_column_names['attendance_duration'] = "Attendance (duration present)"
