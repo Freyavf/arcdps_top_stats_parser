@@ -453,6 +453,13 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
             return -1
         return int(player_json['statsAll'][0]['againstDownedDamage'])
 
+    if stat == 'down_contrib':
+        if 'statsTargets' not in player_json or len(player_json['statsTargets']) == 0:
+            config.errors.append("Could not find statsTargets in json to determine down contribution.")
+            return -1
+        down_contribution = sum([stats[0]['downContribution'] for stats in player_json['statsTargets']])
+        return down_contribution
+
     ##################################
     ### Incoming / Outgoing strips ###
     ##################################
@@ -480,9 +487,9 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         interrupts = sum([stats[0][stat] for stats in player_json['statsTargets']])
         return interrupts
     
-    ######################
-    ### Heal & Barrier ###
-    ######################
+    ##############################
+    ### Heal, Barrier, revives ###
+    ##############################
             
     if stat == 'heal_total':
         # check if healing was logged, save it
@@ -548,6 +555,11 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         config.errors.append("Could not find regen in json to determine hits_from_regen.")
         return -1
 
+    if stat == 'resurrects':
+        if 'support' not in player_json or len(player_json['support']) != 1 or 'resurrects' not in player_json['support'][0]:
+            config.errors.append("Could not find support or an entry for resurrects in json to determine resurrects.")
+            return -1
+        return int(player_json['support'][0]['resurrects'])
     
     ###################
     ### Squad Buffs ###
