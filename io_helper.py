@@ -132,7 +132,7 @@ def write_stats_xls(players, top_players, stat, xls_output_filename, config):
     # adjust the width of the columns
     for col in sheet.columns:
         length = max((len(str(cell.value)) for cell in col[4:]), default = 9)
-        sheet.column_dimensions[col[0].column_letter].width = length + 3
+        sheet.column_dimensions[col[0].column_letter].width = max(length + 3, 12)
         for cell in col:
             cell.alignment = cell.alignment.copy(horizontal="left")
 
@@ -274,8 +274,8 @@ def create_panda_dataframe(players, top_players, stat, sorting_columns, sort_asc
     accounts = (players[top_players[i]].account for i in range(len(top_players)))
     names = (players[top_players[i]].name for i in range(len(top_players)))
     professions = (players[top_players[i]].profession for i in range(len(top_players)))
-    num_fights_present = (players[top_players[i]].num_fights_present for i in range(len(top_players)))
-    duration_present = (players[top_players[i]].duration_present[config.duration_for_averages[stat]] for i in range(len(top_players)))
+    num_fights_present = (players[top_players[i]].num_fights_present[stat] for i in range(len(top_players)))
+    duration_present = (players[top_players[i]].duration_present[stat] for i in range(len(top_players)))
     consistency_stats = (players[top_players[i]].consistency_stats[stat] for i in range(len(top_players)))
     portion_top_stats = (players[top_players[i]].portion_top_stats[stat]*100 for i in range(len(top_players)))
     total_stats = list()

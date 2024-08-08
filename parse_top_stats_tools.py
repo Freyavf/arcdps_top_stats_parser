@@ -252,7 +252,7 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
         # if stat isn't distance, dmg taken, deaths, stripped, or downstate, total value must be at least percentage % of top value
         if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or stat == 'downstate' or stat in config.squad_buff_abbrev.values() or total_value >= top_value*percentage:
             # consider minimum attendance percentage for average stats
-            if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
+            if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage[stat] > config.min_attendance_percentage_for_average):
                 top_players.append(sorted_index[i][0])
 
         i += 1
@@ -285,7 +285,7 @@ def get_top_percentage_players(players, config, stat, num_used_fights, top_consi
     last_value = 0
     for (ind, percent) in sorted_index:
         # player wasn't there for enough fights
-        if players[ind].num_fights_present < min_attendance:
+        if players[ind].num_fights_present[stat] < min_attendance:
             continue
         # index must be lower than number of output desired OR list entry has same value as previous entry, i.e. double place
         if len(top_players) >= config.num_players_listed[stat] and percent != last_value:
@@ -311,47 +311,47 @@ def compute_total_values(players, fights, config):
             fight = fights[fight_number]
             player_stats = player.stats_per_fight[fight_number]
             if player_stats['present_in_fight']:
-                # increase number of fights the player was present
-                player.num_fights_present += 1
                 # compute overall duration present (for all types) and the normalization factor of duration * allies
-                for duration_type in player.duration_present:
-                    player.duration_present[duration_type] += player_stats['duration_present'][duration_type]
-                    player.normalization_time_allies[duration_type] += (fight.allies - 1) * player.stats_per_fight[fight_number]['duration_present'][duration_type]
+                for stat in config.stats_to_compute:
+                    player.duration_present[stat] += player_stats['duration_present'][stat]
+                    player.normalization_time_allies[stat] += (fight.allies - 1) * player.stats_per_fight[fight_number]['duration_present'][stat]
+                    # increase number of fights the player was present
+                    if player.stats_per_fight[fight_number]['duration_present'][stat] > 0:
+                        player.num_fights_present[stat] += 1
 
                 # compute total values per player and per fight
                 for stat in config.stats_to_compute:
-                    duration_type = config.duration_for_averages[stat]
-                    # add stats of this fight and player to total stats of this fight and player, if value is valid ( >=0 )
-                    if player_stats['present_in_fight'] and (player_stats['duration_present'][duration_type] > 0) and ((stat not in config.squad_buff_abbrev.values() and player_stats[stat] >= 0) or stat in config.squad_buff_abbrev.values()):
+                    # add stats of this fight and player to total stats of this fight and player. value is always valid ( >=0 ), otherwise duration_present would already be 0 for this fight.
+                    if player_stats['present_in_fight'] and (player_stats['duration_present'][stat] > 0) or stat in config.squad_buff_abbrev.values():
                         # buff are generation squad values, using total over time
                         if stat in config.buffs_stacking_duration:
                             if player_stats[stat]['gen'] >= 0:
                                 # value from json is generated boon time on all squad players / fight duration / (players-1)" in percent, we want generated boon time on all squad players
-                                fight.total_stats[stat] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1)
-                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type] * (fight.allies-1)
+                                fight.total_stats[stat] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][stat] * (fight.allies-1)
+                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][stat] * (fight.allies-1)
                             if player_stats[stat]['uptime'] >= 0:
-                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type]
+                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][stat]
                         elif stat in config.buffs_not_stacking:
                             if player_stats[stat]['gen'] >= 0:
                                 # value from json is boon uptime / fight duration" in percent, we want overall boon uptime
-                                fight.total_stats[stat] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type]
-                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][duration_type]
+                                fight.total_stats[stat] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][stat]
+                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] / 100. * player_stats['duration_present'][stat]
                             if player_stats[stat]['uptime'] >= 0:
-                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type]
+                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][stat]
                         elif stat in config.buffs_stacking_intensity:
                             if player_stats[stat]['gen'] >= 0:
                                 # value from json is generated boon time on all squad players / fight duration / (players-1)", we want generated boon time on all squad players
-                                fight.total_stats[stat] += player_stats[stat]['gen'] * player_stats['duration_present'][duration_type] * (fight.allies-1)
-                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] * player_stats['duration_present'][duration_type] * (fight.allies-1)
+                                fight.total_stats[stat] += player_stats[stat]['gen'] * player_stats['duration_present'][stat] * (fight.allies-1)
+                                player.total_stats[stat]['gen'] += player_stats[stat]['gen'] * player_stats['duration_present'][stat] * (fight.allies-1)
                             if player_stats[stat]['uptime'] >= 0:
-                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][duration_type]
+                                player.total_stats[stat]['uptime'] += player_stats[stat]['uptime'] / 100. * player_stats['duration_present'][stat]
                         elif stat == 'dist':
                             if player_stats[stat] >= 0:
-                                fight.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][duration_type]
-                                player.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][duration_type]
+                                fight.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][stat]
+                                player.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][stat]
                         elif 'dmg_taken' in stat:
-                            fight.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][duration_type]
-                            player.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][duration_type]
+                            fight.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][stat]
+                            player.total_stats[stat] += player_stats[stat] * player_stats['duration_present'][stat]
                         elif stat in config.self_buff_ids:
                             # only count whether or not buff was present
                             fight.total_stats[stat] += player_stats[stat]
@@ -383,16 +383,16 @@ def compute_avg_values(players, fights, config):
     total_normalization_time_per_fight = list()
     for fight_number in range(len(fights)):
         total_normalization_time_per_fight.append({})
-        for duration_type in config.empty_stats['duration_present']:
-            # sum_players (player_duration_present)
-            total_normalization_time_per_fight[fight_number][duration_type] = sum([player.stats_per_fight[fight_number]['duration_present'][duration_type] for player in players])
+        # sum_players (player_duration_present)
+        for stat in config.stats_to_compute:
+            total_normalization_time_per_fight[fight_number][stat] = sum([player.stats_per_fight[fight_number]['duration_present'][stat] for player in players])
 
     total_normalization_time_allies_per_fight = list()
     for fight_number in range(len(fights)):
         total_normalization_time_allies_per_fight.append({})
-        for duration_type in config.empty_stats['duration_present']:
+        for stat in config.stats_to_compute:
             # sum_players (player_duration_present * (allies - 1))
-            total_normalization_time_allies_per_fight[fight_number][duration_type] = total_normalization_time_per_fight[fight_number][duration_type] * (fights[fight_number].allies - 1)
+            total_normalization_time_allies_per_fight[fight_number][stat] = total_normalization_time_per_fight[fight_number][stat] * (fights[fight_number].allies - 1)
 
     for stat in config.stats_to_compute:
         for fight_number in range(len(fights)):
@@ -408,13 +408,16 @@ def compute_avg_values(players, fights, config):
                 fight.avg_stats[stat] = sum(player.stats_per_fight[fight_number][stat] for player in players)/len(players)
             elif stat in config.squad_buff_abbrev.values() and stat in config.buffs_not_stacking:
                 # all not stacking buff averages are per time, and the % values are always relative to the total fight duration
-                fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number]['total']
+                fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number][stat]
             elif stat in config.squad_buff_abbrev.values() and stat not in config.buffs_not_stacking:
                 # all buff averages are per time and allied player
-                fight.avg_stats[stat] /= total_normalization_time_allies_per_fight[fight_number][config.duration_for_averages[stat]]
+                fight.avg_stats[stat] /= total_normalization_time_allies_per_fight[fight_number][stat]
             else:
                 # all other averages are per time
-                fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number][config.duration_for_averages[stat]]
+                if total_normalization_time_per_fight[fight_number][stat] == 0:
+                    fight.avg_stats[stat] = 0
+                else:
+                    fight.avg_stats[stat] /= total_normalization_time_per_fight[fight_number][stat]
 
             if stat in config.buffs_stacking_duration or stat in config.buffs_not_stacking:
                 # averages for buffs stacking duration are given in % -> * 100
@@ -422,19 +425,21 @@ def compute_avg_values(players, fights, config):
 
     for player in players:
         # compute percentage top stats and attendance percentage for each player
-        used_fights = len([fight for fight in fights if fight.skipped == False])
-        player.attendance_percentage = round(sum(fight.duration for i,fight in enumerate(fights) if player.stats_per_fight[i]['present_in_fight']) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
         # round total and portion top stats
         for stat in config.stats_to_compute:
-            player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
+            if player.num_fights_present[stat] == 0:
+                player.portion_top_stats[stat] = 0
+            else:
+                player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present[stat], 4)
             if stat in config.squad_buff_abbrev.values():
+                player.attendance_percentage[stat] = round(sum(fight.duration for i,fight in enumerate(fights) if (player.stats_per_fight[i]['present_in_fight'] and player.stats_per_fight[i][stat]['gen'] >= 0)) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
                 player.total_stats[stat]['gen'] = round(player.total_stats[stat]['gen'], 2)
-#                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime'], 2)
-                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime']/player.duration_present['total'] * 100, 2)
+                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime']/player.duration_present[stat] * 100, 2)
                 if player.total_stats[stat]['gen'] <= 0:
                     player.average_stats[stat] = player.total_stats[stat]['gen']
                     continue
             else:
+                player.attendance_percentage[stat] = round(sum(fight.duration for i,fight in enumerate(fights) if (player.stats_per_fight[i]['present_in_fight'] and player.stats_per_fight[i][stat] >= 0)) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
                 player.total_stats[stat] = round(player.total_stats[stat], 2)
                 if player.total_stats[stat] == 0:
                     player.average_stats[stat] = 0
@@ -460,19 +465,25 @@ def compute_avg_values(players, fights, config):
                     player.average_stats[stat] = 0
                 else:
                     player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
-            elif stat == 'deaths' or stat == 'kills' or stat == 'downs' or stat == 'downstate':
-                player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[config.duration_for_averages[stat]] / 60), 2)
+            elif stat == 'deaths' or stat == 'kills' or stat == 'downs' or stat == 'downstate' or stat == 'resurrects':
+                player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[stat] / 60), 2)
             elif stat in config.self_buff_ids:
                 # self buffs are only mentioned as "present" or "not present"
-                player.average_stats[stat] = round(player.total_stats[stat]/player.num_fights_present, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]/player.num_fights_present[stat], 2)
             elif stat in config.buffs_stacking_duration:
-                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[config.duration_for_averages[stat]] * 100, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[stat] * 100, 2)
             elif stat in config.buffs_stacking_intensity:
-                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[config.duration_for_averages[stat]], 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[stat], 2)
             elif stat in config.buffs_not_stacking:
-                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.duration_present['total'] * 100, 2)
+                player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.duration_present[stat] * 100, 2)
+            elif 'heal' in stat or 'barrier' in stat:
+                duration_healing_addon_present = sum([player.stats_per_fight[fight_number]['duration_present'][stat] for fight_number, fight in enumerate(fights) if (player.stats_per_fight[fight_number]['present_in_fight'] and player.stats_per_fight[fight_number][stat] >= 0)])
+                if duration_healing_addon_present == 0:
+                    player.average_stats[stat] = 0
+                else:
+                    player.average_stats[stat] = round(player.total_stats[stat]/duration_healing_addon_present, 2)
             else:
-                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[config.duration_for_averages[stat]], 2)
+                player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[stat], 2)
 
 
 
@@ -538,10 +549,11 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
 
         player = players[player_index[name_and_prof]]
 
-        player.stats_per_fight[fight_number]['duration_present']['total'] = fight.duration
-        player.stats_per_fight[fight_number]['duration_present']['active'] = get_stat_from_player_json(player_data, 'time_active', None, None, config)
-        player.stats_per_fight[fight_number]['duration_present']['in_combat'] = get_stat_from_player_json(player_data, 'time_in_combat', None, None, config)
-        player.stats_per_fight[fight_number]['duration_present']['not_running_back'] = get_stat_from_player_json(player_data, 'time_not_running_back', fight, None, config)
+        duration_present = {}
+        duration_present['total'] = fight.duration
+        duration_present['active'] = get_stat_from_player_json(player_data, 'time_active', None, None, config)
+        duration_present['in_combat'] = get_stat_from_player_json(player_data, 'time_in_combat', None, None, config)
+        duration_present['not_running_back'] = get_stat_from_player_json(player_data, 'time_not_running_back', fight, None, config)
         player.stats_per_fight[fight_number]['group'] = get_stat_from_player_json(player_data, 'group', fight, player.stats_per_fight[fight_number]['duration_present'], config)
         player.stats_per_fight[fight_number]['present_in_fight'] = True
 
@@ -549,7 +561,12 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
         # get all stats that are supposed to be computed from the player data
         for stat in config.stats_to_compute:
             # TODO add total stats per fight and avg stats per fight; add option to decide whether "top" should be determined by total or avg ?
-            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, fight, player.stats_per_fight[fight_number]['duration_present'], config)
+            player.stats_per_fight[fight_number][stat] = get_stat_from_player_json(player_data, stat, fight, duration_present, config)
+            if stat in config.squad_buff_abbrev.values() or player.stats_per_fight[fight_number][stat] >= 0:
+                # player is only considered to be "there" if his contribution to this stat could be read (i.e. is >= 0)
+                player.stats_per_fight[fight_number]['duration_present'][stat] = duration_present[config.duration_for_averages[stat]]
+            else:
+                player.stats_per_fight[fight_number]['duration_present'][stat] = 0
             if 'heal' in stat and player.stats_per_fight[fight_number][stat] >= 0:
                 found_healing = True
             elif stat == 'barrier' and player.stats_per_fight[fight_number][stat] >= 0:
@@ -558,11 +575,11 @@ def get_stats_from_json_data(json_data, players, player_index, account_index, fi
                 # TODO fix with using proper duration for avg; check the rest of the comp is right
                 # if player wasn't present, dmg taken doesn't count
                 #TODO for anything where total-players or total-absorbed is something else, use same duration type?
-                if player.stats_per_fight[fight_number]['duration_present'][config.duration_for_averages[stat]] == 0:
+                if player.stats_per_fight[fight_number]['duration_present'][stat] == 0:
                     player.stats_per_fight[fight_number][stat] = -1
                 else:
                     # dmg taken per fight should be sorted by avg, what else?
-                    player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['duration_present'][config.duration_for_averages[stat]]
+                    player.stats_per_fight[fight_number][stat] = player.stats_per_fight[fight_number][stat]/player.stats_per_fight[fight_number]['duration_present'][stat]
 
         player.swapped_build |= build_swapped
 

@@ -17,15 +17,12 @@ class Player:
     account: str                        # account name
     name: str                           # character name
     profession: str                     # profession name
-    num_fights_present: int = 0         # the number of fight the player was involved in 
-    attendance_percentage: float = 0.   # the percentage of fight duration the player was involved in out of all fights # TODO
-    # the duration of all fights the player was involved in; including
-    # - 'total' (total duration of the fights a player was involved in),
-    # - 'active' (total duration a player was active (alive or down)),
-    # - 'in_combat' (total duration a player was in combat (from each start of taking/dealing dmg until death, also multiple times in one fight))
-    # - 'not_running_back' (time from beginning of each fight until down of either player or tag leading to death; 0 if player was running back at the beginning of the fight)
+    num_fights_present: dict = field(default_factory=dict)    # the number of fight the player was involved in regarding a certain stat
+    attendance_percentage: dict = field(default_factory=dict) # for each stat the percentage of fight duration the player was involved in out of all fights, where data was available for a given stat
+    # For each stat, the duration of all fights the player was involved in. Depends on whether a stat could be found in the log (e.g. whether the healing addon was active),
+    # and on which duration type is used for computing the avg for the stat ('total', 'active', 'in_combat', 'not_running_back')
     duration_present: dict = field(default_factory=dict) 
-    # the sum of duration present * (squad members -1) of all fights the player was involved in;
+    # for each stat, the sum of duration present * (squad members -1) of all fights the player was involved in;
     # analogue to duration_present (see above)
     normalization_time_allies: dict = field(default_factory=dict)  
     swapped_build: bool = False         # a different player character or specialization with this account name was in some of the fights
@@ -39,8 +36,9 @@ class Player:
     stats_per_fight: list = field(default_factory=list)       # what's the value of each stat for this player in each fight?
 
     def initialize(self, config):
-        self.duration_present = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
-        self.normalization_time_allies = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
+        self.duration_present = {key: 0 for key in config.stats_to_compute}
+        self.num_fights_present = {key: 0 for key in config.stats_to_compute}
+        self.normalization_time_allies = {key: 0 for key in config.stats_to_compute}
         self.total_stats = {key: 0 for key in config.stats_to_compute}
         for stat in config.squad_buff_abbrev.values():
             self.total_stats[stat] = {'gen': 0, 'uptime': 0}
@@ -195,7 +193,9 @@ def fill_config(config_input, log):
     config.empty_stats = {stat: -1 for stat in config.stats_to_compute}
     for stat in config.squad_buff_abbrev.values():
         config.empty_stats[stat] = {'gen': -1, 'uptime': -1}
-    config.empty_stats['duration_present'] = {'total': 0, 'active': 0, 'in_combat': 0, 'not_running_back': 0}
+    config.empty_stats['duration_present'] = {stat: 0 for stat in config.stats_to_compute}
+    config.empty_stats['num_fights_present'] = {stat: 0 for stat in config.stats_to_compute}
+    config.empty_stats['normalization_time_allies'] = {stat: 0 for stat in config.stats_to_compute}
     config.empty_stats['present_in_fight'] = False
 
     config.xls_column_names = config_input.xls_column_names
