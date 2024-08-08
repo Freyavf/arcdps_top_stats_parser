@@ -18,7 +18,7 @@ class Player:
     name: str                           # character name
     profession: str                     # profession name
     num_fights_present: int = 0         # the number of fight the player was involved in 
-    attendance_percentage: float = 0.   # the percentage of fight duration the player was involved in out of all fights # TODO
+    attendance_percentage: dict = field(default_factory=dict) # for each stat the percentage of fight duration the player was involved in out of all fights, where data was available for a given stat
     # the duration of all fights the player was involved in; including
     # - 'total' (total duration of the fights a player was involved in),
     # - 'active' (total duration a player was active (alive or down)),

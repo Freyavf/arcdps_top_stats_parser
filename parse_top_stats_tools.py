@@ -252,7 +252,7 @@ def get_top_players(players, config, stat, total_or_consistent_or_average):
         # if stat isn't distance, dmg taken, deaths, stripped, or downstate, total value must be at least percentage % of top value
         if stat == "dist" or "dmg_taken" in stat or stat == "deaths" or stat == 'stripped' or stat == 'downstate' or stat in config.squad_buff_abbrev.values() or total_value >= top_value*percentage:
             # consider minimum attendance percentage for average stats
-            if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage > config.min_attendance_percentage_for_average):
+            if total_or_consistent_or_average != StatType.AVERAGE or (players[sorted_index[i][0]].attendance_percentage[stat] > config.min_attendance_percentage_for_average):
                 top_players.append(sorted_index[i][0])
 
         i += 1
@@ -422,12 +422,12 @@ def compute_avg_values(players, fights, config):
 
     for player in players:
         # compute percentage top stats and attendance percentage for each player
-        used_fights = len([fight for fight in fights if fight.skipped == False])
-        player.attendance_percentage = round(sum(fight.duration for i,fight in enumerate(fights) if player.stats_per_fight[i]['present_in_fight']) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
+#        used_fights = len([fight for fight in fights if fight.skipped == False])
         # round total and portion top stats
         for stat in config.stats_to_compute:
             player.portion_top_stats[stat] = round(player.consistency_stats[stat]/player.num_fights_present, 4)
             if stat in config.squad_buff_abbrev.values():
+                player.attendance_percentage[stat] = round(sum(fight.duration for i,fight in enumerate(fights) if (player.stats_per_fight[i]['present_in_fight'] and player.stats_per_fight[i][stat]['gen'] >= 0)) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
                 player.total_stats[stat]['gen'] = round(player.total_stats[stat]['gen'], 2)
 #                player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime'], 2)
                 player.total_stats[stat]['uptime'] = round(player.total_stats[stat]['uptime']/player.duration_present['total'] * 100, 2)
@@ -435,6 +435,7 @@ def compute_avg_values(players, fights, config):
                     player.average_stats[stat] = player.total_stats[stat]['gen']
                     continue
             else:
+                player.attendance_percentage[stat] = round(sum(fight.duration for i,fight in enumerate(fights) if (player.stats_per_fight[i]['present_in_fight'] and player.stats_per_fight[i][stat] >= 0)) / sum(fight.duration for fight in fights if fight.skipped == False) * 100)
                 player.total_stats[stat] = round(player.total_stats[stat], 2)
                 if player.total_stats[stat] == 0:
                     player.average_stats[stat] = 0
@@ -460,7 +461,7 @@ def compute_avg_values(players, fights, config):
                     player.average_stats[stat] = 0
                 else:
                     player.average_stats[stat] = round(player.total_stats[stat]/player.total_stats['hits_from_regen'], 2)
-            elif stat == 'deaths' or stat == 'kills' or stat == 'downs' or stat == 'downstate':
+            elif stat == 'deaths' or stat == 'kills' or stat == 'downs' or stat == 'downstate' or stat == 'resurrects':
                 player.average_stats[stat] = round(player.total_stats[stat]/(player.duration_present[config.duration_for_averages[stat]] / 60), 2)
             elif stat in config.self_buff_ids:
                 # self buffs are only mentioned as "present" or "not present"
@@ -471,6 +472,12 @@ def compute_avg_values(players, fights, config):
                 player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.normalization_time_allies[config.duration_for_averages[stat]], 2)
             elif stat in config.buffs_not_stacking:
                 player.average_stats[stat] = round(player.total_stats[stat]['gen']/player.duration_present['total'] * 100, 2)
+            elif 'heal' in stat or 'barrier' in stat:
+                duration_healing_addon_present = sum([player.stats_per_fight[fight_number]['duration_present'][config.duration_for_averages[stat]] for fight_number, fight in enumerate(fights) if (player.stats_per_fight[fight_number]['present_in_fight'] and player.stats_per_fight[fight_number][stat] >= 0)])
+                if duration_healing_addon_present == 0:
+                    player.average_stats[stat] = 0
+                else:
+                    player.average_stats[stat] = round(player.total_stats[stat]/duration_healing_addon_present, 2)
             else:
                 player.average_stats[stat] = round(player.total_stats[stat]/player.duration_present[config.duration_for_averages[stat]], 2)
 
