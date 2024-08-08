@@ -26,20 +26,23 @@ stats_to_compute = ['dmg_total', 'dmg_players', 'dmg_other',
                     'condi_dmg_total', 'condi_dmg_players', 'condi_dmg_other',
                     'power_dmg_total', 'power_dmg_players', 'power_dmg_other',
                     'spike_dmg', 'kills', 'downs', 'dmg_against_downed',
+                    'down_contrib',
                     'strips', 'interrupts', 'might', 'fury',
+                    'resurrects',
                     'heal_total', 'heal_players', 'heal_other',
                     'barrier', 'cleanses', 'stab', 'prot', 'aegis',
                     'resist', 'resolution', 'vigor', 'regen',
-                    'heal_from_regen', 'hits_from_regen',
+                    #'heal_from_regen', 'hits_from_regen',
                     'dist', 'quick', 'alac', 'swift', 'speed',
                     'dmg_taken_total', 'dmg_taken_hp_lost',
                     'dmg_taken_absorbed', 'condi_dmg_taken_total', 'power_dmg_taken_total',
                     'deaths', 'downstate', 'stripped',
                     'dodges', 'blocks', 'stealth',
-                    'chaos_aura', 'fire_aura', 'dark_aura', 'frost_aura',
-                    'light_aura', 'magnetic_aura', 'shocking_aura',
-                    'big_boomer', 'explosive_temper', 'explosive_entrance',
-                    'med_kit']
+                    'chaos_aura', #'fire_aura', 'dark_aura', 'frost_aura',
+                    #'light_aura', 'magnetic_aura', 'shocking_aura',
+                    #'big_boomer', 'explosive_temper', 'explosive_entrance',
+                    #'med_kit'
+                    ]
 
 # How many players will be listed who achieved top stats most often for each stat?
 num_players_listed_default = 1000
@@ -52,57 +55,59 @@ num_players_considered_top = {'strips': 3, 'stab': 3, 'prot': 3, 'aegis': 3, 're
                               'heal': 3, 'barrier': 3, 'deaths': 1}
 
 relevant_classes_for_stat = {
-    'dmg_total': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'dmg_players': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'dmg_other': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
+    'dmg_total': [],
+    'dmg_players': [],
+    'dmg_other': [],
     'condi_dmg_total': [],
     'condi_dmg_players': [],
     'condi_dmg_other': [],
     'power_dmg_total': [],
     'power_dmg_players': [],
     'power_dmg_other': [],
-    'spike_dmg': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'kills': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'downs': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'dmg_against_downed': ["Dragonhunter", "Willbender", "Herald", "Vindicator", "Berserker", "Holosmith", "Weaver", "Catalyst", "Virtuoso", "Reaper"],
-    'strips': ["Chronomancer", "Virtuoso", "Reaper", "Scourge"],
-    'interrupts': ["Firebrand", "Chronomancer"],
-    'cleanses': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'heal_total': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'heal_players': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'heal_other': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'dist': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'stab': ["Firebrand", "Vindicator"],
-    'prot': ["Firebrand", "Scrapper", "Druid", "Tempest"],
-    'aegis': ["Firebrand"],
-    'resist': ["Firebrand"],
-    'regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'heal_from_regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'hits_from_regen': ["Vindicator", "Scrapper", "Druid", "Tempest"],
-    'might': ["Firebrand", "Scrapper", "Tempest",  "Weaver", "Catalyst"],
+    'spike_dmg': [],
+    'kills': [],
+    'downs': [],
+    'dmg_against_downed': [],
+    'down_contrib': [],
+    'strips': [],
+    'interrupts': [],
+    'cleanses': [],
+    'heal_total': [],
+    'heal_players': [],
+    'heal_other': [],
+    'resurrects': [],
+    'dist': [],
+    'stab': [],
+    'prot': [],
+    'aegis': [],
+    'resist': [],
+    'regen': [],
+    'heal_from_regen': [],
+    'hits_from_regen': [],
+    'might': [],
     'fury': [],
-    'quick': ["Firebrand", "Chronomancer", "Virtuoso"],
-    'alac': ["Chronomancer", "Virtuoso", "Scourge"],
+    'quick': [],
+    'alac': [],
     'resolution': [],
     'swift': [],
     'vigor': [],
-    'speed': ["Scrapper", "Druid", "Tempest",  "Weaver", "Catalyst"],
-    'barrier': ["Scourge"],
-    'dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'dmg_taken_hp_lost': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'dmg_taken_absorbed': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'condi_dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'power_dmg_taken_total': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
-    'deaths': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'speed': [],
+    'barrier': [],
+    'dmg_taken_total': [],
+    'dmg_taken_hp_lost': [],
+    'dmg_taken_absorbed': [],
+    'condi_dmg_taken_total': [],
+    'power_dmg_taken_total': [],
+    'deaths': [],
     'downstate': [],
-    'stripped': ["Guardian", "Dragonhunter", "Firebrand", "Willbender", "Revenant", "Renegade", "Herald", "Vindicator", "Warrior", "Berserker", "Spellbreaker", "Bladesworn",  "Engineer", "Scrapper", "Holosmith", "Mechanist",  "Ranger", "Druid", "Soulbeast", "Untamed",  "Thief", "Daredevil", "Deadeye", "Specter",  "Elementalist", "Tempest",  "Weaver", "Catalyst",  "Mesmer", "Chronomancer", "Mirage", "Virtuoso",  "Necromancer", "Reaper", "Scourge", "Harbinger"],
+    'stripped': [],
     'dodges': [],
     'blocks': [],
     'stealth': [],
-    'big_boomer': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
-    'explosive_temper': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
-    'explosive_entrance': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
-    'med_kit': ["Engineer", "Scrapper", "Holosmith", "Mechanist"],
+    'big_boomer': [],
+    'explosive_temper': [],
+    'explosive_entrance': [],
+    'med_kit': [],
     'chaos_aura': [],
     'fire_aura': [],
     'frost_aura': [],
@@ -206,6 +211,7 @@ stat_names["spike_dmg"] = "Spike Damage"
 stat_names["kills"] = "Kills"
 stat_names["downs"] = "Downs"
 stat_names["dmg_against_downed"] = "Damage against Downstates"
+stat_names["down_contrib"] = "Down contribution"
 stat_names["strips"] = "Boon Strips"
 stat_names["interrupts"] = "Interrupts"
 stat_names["stab"] = "Stability Output"
@@ -225,6 +231,7 @@ stat_names["heal_total"] = "Total Healing"
 stat_names["heal_players"] = "Player Healing"
 stat_names["heal_other"] = "Other Healing"
 stat_names["barrier"] = "Barrier"
+stat_names["resurrects"] = "Resurrects"
 stat_names["dist"] = "Distance to Tag"
 stat_names["dmg_taken_total"] = "Total Damage Taken"
 stat_names["dmg_taken_hp_lost"] = "HP lost"
@@ -267,6 +274,7 @@ stat_descriptions["spike_dmg"] = "Spike Damage (Maximum damage dealt to players 
 stat_descriptions["kills"] = "Number of killing hits"
 stat_descriptions["downs"] = "Number of downing hits"
 stat_descriptions["dmg_against_downed"] = "Damage done to downstates"
+stat_descriptions["down_contrib"] = "Damage done to bring an enemy into downstate"
 stat_descriptions["strips"] = "Boon Strips"
 stat_descriptions["interrupts"] = "Number of hits that interrupted an enemy"
 stat_descriptions["stab"] = "Stability Output (Squad Generation, excluding self)"
@@ -286,6 +294,7 @@ stat_descriptions["heal_total"] = "Total Healing (only shown if player has the h
 stat_descriptions["heal_players"] = "Healing on players (only shown if player has the healing addon installed)"
 stat_descriptions["heal_other"] = "Healing on pets, npcs, ... (only shown if player has the healing addon installed)"
 stat_descriptions["barrier"] = "Barrier(only shown if player has the healing addon installed)"
+stat_descriptions["resurrects"] = "Number of times the player resurrected someone"
 stat_descriptions["dist"] = "Distance to Tag"
 stat_descriptions["dmg_taken_total"] = "Total Damage Taken (includes damage absorbed by barrier)"
 stat_descriptions["dmg_taken_hp_lost"] = "HP lost"
