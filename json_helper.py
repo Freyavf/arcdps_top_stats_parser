@@ -209,7 +209,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         if fight.tag_positions_until_death == list():
             config.errors.append("Could not find tag positions to determine time_not_running_back.")
             return -1
-        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'distToCom' not in player_json['statsAll'][0]:
             config.errors.append("json is missing combatReplayData or entries for dead, down, or distToCom to determine time_not_running_back.")
             return -1
         player_dist_to_tag = player_json['statsAll'][0]['distToCom']
@@ -256,7 +256,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### cleanses ###
     ################
     if stat == 'cleanses':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'condiCleanse' not in player_json['support'][0]:
+        if 'support' not in player_json or len(player_json['support']) == 0 or 'condiCleanse' not in player_json['support'][0]:
             config.errors.append("Could not find support or an entry for condiCleanse in json.")
             return -1
         return int(player_json['support'][0]['condiCleanse'])            
@@ -266,7 +266,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ##############
     if stat == 'deaths':
         # TODO split by death on tag / off tag
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'deadCount' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'deadCount' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for deadCount in json.")
             return -1
         return int(player_json['defenses'][0]['deadCount'])
@@ -275,7 +275,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### downstate ###
     #################
     if stat == 'downstate':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'downCount' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'downCount' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for downCount in json.")
             return -1
         return int(player_json['defenses'][0]['downCount'])
@@ -284,7 +284,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### dodges ###
     #################
     if stat == 'dodges':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'dodgeCount' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'dodgeCount' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for dodgeCount in json.")
             return -1
         return int(player_json['defenses'][0]['dodgeCount'])
@@ -293,7 +293,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### blocks ###
     ##############
     if stat == 'blocks':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'blockedCount' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'blockedCount' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for blockedCount in json.")
             return -1
         return int(player_json['defenses'][0]['blockedCount'])
@@ -305,7 +305,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         if fight.tag_positions_until_death == list():
             config.errors.append("Could not find tag positions to determine distance to tag.")
             return -1
-        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) != 1 or 'distToCom' not in player_json['statsAll'][0]:
+        if 'combatReplayData' not in player_json or 'dead' not in player_json['combatReplayData'] or 'down' not in player_json['combatReplayData'] or 'statsAll' not in player_json or len(player_json['statsAll']) == 0 or 'distToCom' not in player_json['statsAll'][0]:
             config.errors.append("json is missing  combat replay data or entries for dead, down, or distToCom to determine distance to tag.")
             return -1
         # TODO this is hardcoded to not_running_back. make it possible to use active, total or in_combat too?
@@ -326,13 +326,13 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     #################
     # includes dmg absorbed by barrier
     if stat == 'dmg_taken_total':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageTaken' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'damageTaken' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for damageTaken in json to determine dmg_taken_total.")
             return -1
         return int(player_json['defenses'][0]['damageTaken'])
 
     if stat == 'dmg_taken_absorbed':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'damageBarrier' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'damageBarrier' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for damageBarrier in json to determine dmg_taken_absorbed.")
             return -1
         return int(player_json['defenses'][0]['damageBarrier'])
@@ -346,14 +346,14 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
 
     # includes dmg absorbed by barrier
     if stat == 'condi_dmg_taken_total':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'conditionDamageTaken' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'conditionDamageTaken' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for conditionDamageTaken in json to determine condi_dmg_taken_total.")
             return -1
         return int(player_json['defenses'][0]['conditionDamageTaken'])
 
     # includes dmg absorbed by barrier
     if stat == 'power_dmg_taken_total':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'powerDamageTaken' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'powerDamageTaken' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for powerDamageTaken in json to determine power_dmg_taken_total.")
             return -1
         return int(player_json['defenses'][0]['powerDamageTaken'])
@@ -362,7 +362,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ### Dmg Dealt ###
     #################
     if stat == 'dmg_total':
-        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'damage' not in player_json['dpsAll'][0]:
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) == 0 or 'damage' not in player_json['dpsAll'][0]:
             config.errors.append("Could not find dpsAll or an entry for damage in json to determine dmg_total.")
             return -1
         return int(player_json['dpsAll'][0]['damage'])  
@@ -381,7 +381,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         return total_dmg - players_dmg
 
     if stat == 'condi_dmg_total':
-        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'condiDamage' not in player_json['dpsAll'][0]:
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) == 0 or 'condiDamage' not in player_json['dpsAll'][0]:
             config.errors.append("Could not find dpsAll or an entry for condiDamage in json to determine condi_dmg.")
             return -1
         return int(player_json['dpsAll'][0]['condiDamage'])
@@ -400,7 +400,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         return total_condi_dmg - players_condi_dmg
 
     if stat == 'power_dmg_total':
-        if 'dpsAll' not in player_json or len(player_json['dpsAll']) != 1 or 'powerDamage' not in player_json['dpsAll'][0]:
+        if 'dpsAll' not in player_json or len(player_json['dpsAll']) == 0 or 'powerDamage' not in player_json['dpsAll'][0]:
             config.errors.append("Could not find dpsAll or an entry for powerDamage in json to determine power_dmg.")
             return -1
         return int(player_json['dpsAll'][0]['powerDamage'])
@@ -465,13 +465,13 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
     ##################################
 
     if stat == 'strips':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'boonStrips' not in player_json['support'][0]:
+        if 'support' not in player_json or len(player_json['support']) == 0 or 'boonStrips' not in player_json['support'][0]:
             config.errors.append("Could not find support or an entry for boonStrips in json to determine strips.")
             return -1
         return int(player_json['support'][0]['boonStrips'])
     
     if stat == 'stripped':
-        if 'defenses' not in player_json or len(player_json['defenses']) != 1 or 'boonStrips' not in player_json['defenses'][0]:
+        if 'defenses' not in player_json or len(player_json['defenses']) == 0 or 'boonStrips' not in player_json['defenses'][0]:
             config.errors.append("Could not find defenses or an entry for boonStrips in json to determine stripped.")
             return -1
         return int(player_json['defenses'][0]['boonStrips'])
@@ -556,7 +556,7 @@ def get_stat_from_player_json(player_json, stat, fight, player_duration_present,
         return -1
 
     if stat == 'resurrects':
-        if 'support' not in player_json or len(player_json['support']) != 1 or 'resurrects' not in player_json['support'][0]:
+        if 'support' not in player_json or len(player_json['support']) == 0 or 'resurrects' not in player_json['support'][0]:
             config.errors.append("Could not find support or an entry for resurrects in json to determine resurrects.")
             return -1
         return int(player_json['support'][0]['resurrects'])
